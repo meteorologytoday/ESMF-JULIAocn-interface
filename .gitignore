@@ -9,6 +9,6 @@ ref/
 *.mod
 
 *.ESMF_LogFile
-
+core.*
 
 *.swp

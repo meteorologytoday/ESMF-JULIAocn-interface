@@ -9,7 +9,7 @@ echo "JL_LIB=$JL_LIB"
 echo "MPI_LIB=$MPI_LIB"
 
 set -x
-g++ -c c_gate.c -I$JL_INC  -o c_gate.o
+mpicxx -c c_gate.c -I$JL_INC  -o c_gate.o
 mpif90 -c main.f90 -I$MPI_LIB -o main.o
 
 mpif90 main.o c_gate.o -L$JL_LIB -ljulia -o run.exe

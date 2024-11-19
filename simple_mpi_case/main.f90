@@ -29,12 +29,19 @@ program mpi_example
     call MPI_Comm_size(MPI_COMM_WORLD, size, ierr)
 
     ! Print a message from each process
-    print *, "MPI_COMM_WORLD = ", MPI_COMM_WORLD
+    print *, "[Fortran90] MPI_COMM_WORLD = ", MPI_COMM_WORLD
     print *, 'Hello from process ', rank, ' of ', size
     print *, "Calling function: MARCOISCOOL_addnums"
+    
     print *, MARCOISCOOL_addnums(rank, MPI_COMM_WORLD)
 
 
     ! Finalize MPI
     call MPI_Finalize(ierr)
+
+
+
+
+
+
 end program mpi_example

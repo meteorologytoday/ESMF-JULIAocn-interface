@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <julia.h>
 
-extern "C" {
 
 MPI_Comm get_comm_from_int(int comm_id) {
     if (comm_id == 0) {
@@ -39,23 +38,12 @@ void MARCOISCOOL_addnums( int* thread_id, int* comm )
 
     printf("[C code] Rank %d out of %d processes in communicator ID %d\n", rank, size, comm_id);
 
-    jl_init();
-
-
-    (void) jl_eval_string("using MPI");
-    //(void) jl_eval_string("comm = MPI.Comm(unbox(Int32, boxed_comm))");
-    //(void) jl_eval_string("println(\"Do this from C\");");
-    //(void) jl_eval_string("println(string(MPI.Comm_rank(comm)))");
-
-    
-    //(void) jl_eval_string("println(\"!!!!!!!!!!!!!!!! MPI comm = \", comm);");
-    //(void) jl_eval_string("println(\"My RANK = \", MPI.Comm_rank(comm));");
-    (void) jl_eval_string("include(\"myjulia.jl\")");
-
+        //(void) jl_eval_string("include(\"myjulia.jl\")");
 
     //printf("Getting function\n");
-    jl_function_t *add_numbers = jl_get_function(jl_main_module, "add_numbers");
+    //jl_function_t *add_numbers = jl_get_function(jl_main_module, "add_numbers");
 
+    /*
     printf("Calling Julia function\n");
     jl_value_t *boxed_thread_id = jl_box_int32((int)(*thread_id)); 
     jl_value_t *boxed_comm      = jl_box_int32((int)(*comm)) ;
@@ -72,11 +60,48 @@ void MARCOISCOOL_addnums( int* thread_id, int* comm )
     } else {
         printf("Julia code executed successfully.\n");
     }
+    */
 
+
+
+}
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    char cmd[1024];
+    // Initialize the MPI environment
+    MPI_Init(&argc, &argv);
+    
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    printf("Hello from process %d of %d\n", rank, size);
+
+    int comm_id = MPI_Comm_c2f(MPI_COMM_WORLD);
+
+    jl_init();
+
+
+    (void) jl_eval_string("using MPI");
+    
+    (void) jl_eval_string("if MPI.Initialized() ;  println(\"MPI is initialized.\") ; else ; println(\"Warning: MPI is not initialized.\") ; end ");
+    
+    sprintf(cmd, "comm = MPI.Comm(%d)", comm_id);
+    printf("Goinig to evaluate:\n");
+    printf(cmd);
+    printf("\n");
+    (void) jl_eval_string(cmd);
+   
+    
+    (void) jl_eval_string("println(comm)");
+    (void) jl_eval_string("println(MPI.Comm_rank(comm))");
 
     jl_atexit_hook(0);
 
+    MPI_Finalize();
+
+    return 0;
 }
 
-}
+
+
 
