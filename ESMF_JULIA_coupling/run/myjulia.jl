@@ -1,11 +1,9 @@
 using MPI
 println("Initialize MPI")
-
+MPI.Init()
 
 
 function add_numbers(thread_id, comm)
-
-    MPI.Init()
 
     println("Thread id = ", thread_id)
     println("comm = ", comm )
@@ -22,8 +20,6 @@ function add_numbers(thread_id, comm)
     println("Hello world again, there are in total $(MPI.Comm_size(comm_handle)) threads.")
 
     #MPI.Barrier(comm)
-    
-    MPI.finalize()
 
 end
 

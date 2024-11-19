@@ -39,9 +39,10 @@ module mod_esmf_ocn
 
 ! ---- ESMF_JULIA BEGIN ----
     INTERFACE
-      INTEGER FUNCTION MARCOISCOOL_addnums(a, b) BIND(C, name="MARCOISCOOL_addnums")
+      INTEGER FUNCTION MARCOISCOOL_addnums(thread_id, comm) BIND(C, name="MARCOISCOOL_addnums")
         import :: C_INT
-        INTEGER(C_INT) :: a, b
+        INTEGER(C_INT) :: thread_id
+        INTEGER(C_INT) :: comm
       END FUNCTION MARCOISCOOL_addnums
     END INTERFACE
 ! ---- ESMF_JULIA END ----'
@@ -238,8 +239,8 @@ module mod_esmf_ocn
   !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
   !!     line=__LINE__, file=FILENAME)) return
 
-    print *, '!!!!!!!!!!!!!!!! Hello, World!'
-    print *, "Add Numbers 1+2 = ", MARCOISCOOL_addnums(1 , 2)
+    print *, "Calling function: MARCOISCOOL_addnums"
+    print *, MARCOISCOOL_addnums(myThid, comm)
 
 
   end subroutine

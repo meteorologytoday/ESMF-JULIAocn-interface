@@ -1,2 +1,14 @@
 scripps_kaust_model/
 ref/
+
+
+
+
+*.o
+*.exe
+*.mod
+
+*.ESMF_LogFile
+
+
+*.swp
