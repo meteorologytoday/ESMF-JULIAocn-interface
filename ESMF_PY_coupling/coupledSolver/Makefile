@@ -24,11 +24,13 @@ endif
 
 include $(ESMFMKFILE)
 
+version=3.10
+pyfull=python$(version)
 PY_ROOT=/home/t2hsu/miniconda3/envs/mpi
-PY_INC=$(PY_ROOT)/include/python3.13
-PY_LIB=$(PY_ROOT)/lib/python3.13
+PY_INC=$(PY_ROOT)/include/$(pyfull)
+PY_LIB=$(PY_ROOT)/lib
 
-PY_COMPILE_OPT_C=-L$(PY_LIB) -I$(PY_INC) -lpython3.13
+PY_COMPILE_OPT_C=-L$(PY_LIB) -I$(PY_INC) -l$(pyfull)
 
 
 ################################################################################

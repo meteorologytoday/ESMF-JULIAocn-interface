@@ -69,6 +69,7 @@ void MARCOISCOOL_addnums( int* thread_id, int* comm )
 int main(int argc, char *argv[]) {
     int rank, size;
     char cmd[1024];
+   
     // Initialize the MPI environment
     MPI_Init(&argc, &argv);
     

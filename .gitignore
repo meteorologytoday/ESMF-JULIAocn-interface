@@ -1,7 +1,6 @@
 scripps_kaust_model/
 ref/
-
-
+__pycache__/
 
 
 *.o

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-version=3.13
+version=3.10
+
+PY_ROOT=/home/t2hsu/miniconda3/envs/mpi
 
 fullpy=python${version}
-PY_INC=/home/t2hsu/miniconda3/envs/mpi/include/$fullpy
-PY_LIB=/home/t2hsu/miniconda3/envs/mpi/lib/$fullpy
-
-echo "PY_INC=$PY_INC"
-echo "PY_LIB=$PY_LIB"
+INC_FLAGS="-I$PY_ROOT/include/$fullpy -I$PY_ROOT/lib/python3.10/site-packages/mpi4py/include/" 
+LIB_FLAGS="-L$PY_ROOT/lib"
+LD_FLAGS="-l$fullpy"
 
 set -x
-mpicc main.c -I$PY_INC -L$PY_LIB -l$fullpy -o run.exe
+mpicc main.c $INC_FLAGS $LIB_FLAGS $LD_FLAGS -o run.exe

@@ -1,22 +1,35 @@
-import mpi4py.MPI as MPI
-rank = MPI.COMM_WORLD.Get_rank()
-size = MPI.COMM_WORLD.Get_size()
+from mpi4py import MPI
 
-
-
-
-# example.py
 class OceanModel:
     
-    def __init__(self, thread_id, comm_id):
+    def __init__(self, rank, comm_id):
 
-        self.thread_id = thread_id
+        print("You are in the OceanModel constructor!")
+        self.rank = rank
         self.comm_id = comm_id
-        self.comm = MPI.Comm.id2comm(comm_id)
+        self.comm = MPI.COMM_WORLD
+
+        self.report()
 
     def report(self):
-        
+ 
+        if self.comm_id != 0:
+            print("Warning: comm_id is not zero. This is not COMM_WORLD.")
+
+       
         print(f'Python: Rank {self.comm.Get_rank()} of {self.comm.Get_size()}')
 
 
-def init(): 
+
+
+
+if __name__ == "__main__":
+ 
+    rank = MPI.COMM_WORLD.Get_rank()
+    size = MPI.COMM_WORLD.Get_size()
+  
+    model = OceanModel(rank, 1)
+ 
+    print("Rank = ", rank)
+    print("Size = ", size)
+    

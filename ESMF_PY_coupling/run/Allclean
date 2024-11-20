@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 rm -rf *.*
 rm -rf *data prepare_run esmf_application *list
 rm -rf log
@@ -15,4 +16,5 @@ rm -rf ncep*
 rm -rf MASK
 rm -rf launch
 
-rm -rf *.jl
+rm -rf __pycache__/
+rm -rf *.py
