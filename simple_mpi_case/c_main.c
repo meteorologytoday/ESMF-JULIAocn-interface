@@ -86,13 +86,14 @@ int main(int argc, char *argv[]) {
     
     (void) jl_eval_string("if MPI.Initialized() ;  println(\"MPI is initialized.\") ; else ; println(\"Warning: MPI is not initialized.\") ; end ");
     
-    sprintf(cmd, "comm = MPI.Comm(%d)", comm_id);
+    sprintf(cmd, "comm = MPI.Comm(%ld)", MPI_COMM_WORLD);
     printf("Goinig to evaluate:\n");
     printf(cmd);
     printf("\n");
     (void) jl_eval_string(cmd);
    
     
+    (void) jl_eval_string("println(\"Printing Comm\")");
     (void) jl_eval_string("println(comm)");
     (void) jl_eval_string("println(MPI.Comm_rank(comm))");
 
