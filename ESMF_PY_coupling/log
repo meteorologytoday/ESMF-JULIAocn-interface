@@ -1,0 +1,4824 @@
+rm -f esmf_application *.o 
+rm -f PET*.ESMF_LogFile mod*.mod *.a mit*.mod
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mod_types.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mod_config.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mpicxx  -c -std=c++11 -g -Wall -Wextra -Wno-unused  -fPIC -m64 -mcmodel=small -pthread  -I/home/t2hsu/esmf-8.6.1/src/include  -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/home/t2hsu/esmf-8.6.1/src/prologue/yaml-cpp/include -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 -D__SDIR__='' -DESMF_CXXSTD=11 -DESMF_NO_SIGUSR2 -L/home/t2hsu/user_pkg/julia-1.10.2/lib -I/home/t2hsu/user_pkg/julia-1.10.2/include/julia -ljulia c_gate.c
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mod_esmf_ocn.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mod_esmf_ocn.F90:42:42:
+
+   42 |       INTEGER FUNCTION MARCOISCOOL_addnums(a, b) BIND(C, name="MARCOISCOOL_addnums")
+      |                                          1
+Warning: Variable 'marcoiscool_addnums' at (1) may not be a C interoperable kind but it is BIND(C) [-Wc-binding-type]
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mod_esmf_atm.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mod_esmf_cpl.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mod_esmf_esm.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mpifort  -c -g -Wall -Wextra -Wconversion -Wno-unused -Wno-unused-dummy-argument -fbacktrace -fimplicit-none -fcheck=all,no-pointer -fPIC  -m64 -mcmodel=small -pthread -ffree-line-length-none -I/home/t2hsu/esmf-8.6.1/mod/modg/Linux.gfortran.64.openmpi.default -I/home/t2hsu/esmf-8.6.1/src/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/include -I/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/include  -DESMF_NO_INTEGER_1_BYTE -DESMF_NO_INTEGER_2_BYTE -DESMF_LOWERCASE_SINGLEUNDERSCORE -DESMF_MOAB=1 -DESMF_LAPACK=1 -DESMF_LAPACK_INTERNAL=1 -DESMF_NO_ACC_SOFTWARE_STACK=1 -DESMF_NETCDF=1 -DESMF_YAMLCPP=1 -DESMF_YAML=1 -DESMF_PIO=1 -DESMF_NO_OPENMP -DESMF_NO_OPENACC -DESMF_TESTEXHAUSTIVE -DESMF_BOPT_g -DESMF_TESTCOMPTUNNEL -DSx86_64_small=1 -DESMF_OS_Linux=1 -DESMF_COMM=openmpi -DESMF_DIR=/home/t2hsu/esmf-8.6.1 mitgcm_wrf.F90 -I/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver
+mpifort -m64 -mcmodel=small -pthread -Wl,--no-as-needed -L/home/t2hsu/esmf-8.6.1/lib/libg/Linux.gfortran.64.openmpi.default -L/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/lib -L/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/lib -L/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen/gcc-8.5.0/gcc-10.2.0-npcyll4gxjhf4tejksmdzlsl3d3usqpd/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../lib64/ -Wl,-rpath,/home/t2hsu/esmf-8.6.1/lib/libg/Linux.gfortran.64.openmpi.default -Wl,-rpath,/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-c-4.8.1-yt65vteujsipoyljuvot454iwmr6wwtd/lib -Wl,-rpath,/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen2/gcc-10.2.0/netcdf-fortran-4.5.3-dcwxaybpaorkofff2co6ldsxrilfdnt7/lib  -Wl,-rpath,/cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen/gcc-8.5.0/gcc-10.2.0-npcyll4gxjhf4tejksmdzlsl3d3usqpd/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../lib64/ -L/home/t2hsu/projects/fortran_Julia_interface/TEST/coupledSolver -L/home/t2hsu/user_pkg/julia-1.10.2/lib -I/home/t2hsu/user_pkg/julia-1.10.2/include/julia -ljulia -o esmf_application mod_config.o mod_types.o mod_esmf_ocn.o c_gate.o mod_esmf_atm.o mod_esmf_cpl.o mod_esmf_esm.o mitgcm_wrf.o -lesmf   -lrt -lstdc++ -ldl -lnetcdf -lnetcdff -lpioc
+cleaning the current folder
+copying the NUOPC--WRF code...
+running the NUOPC--WRF code...
+ DEBUGLEVEL ESMF is:            1
+ DEBUGLEVEL ESMF is:            1
+ DEBUGLEVEL ESMF is:            1
+ DEBUGLEVEL ESMF is:            1
+ DEBUGLEVEL ESMF is:            1
+ calling ESM_SetServices function
+ calling ESM_SetServices function
+ calling ESM_SetServices function
+ calling ESM_SetServices function
+ calling ESM_SetServices function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function finished
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function finished
+ calling NUOPC_CompSpecialize function finished
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function finished
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function
+ calling NUOPC_CompSpecialize function finished
+ calling ESM_SetModelServices function
+ setting ATM services
+ calling ESM_SetModelServices function
+ setting ATM services
+ calling ESM_SetModelServices function
+ setting ATM services
+ calling ESM_SetModelServices function
+ setting ATM services
+ calling ESM_SetModelServices function
+ setting ATM services
+ setting OCN services
+ setting OCN services
+ setting OCN services
+ setting OCN services
+ setting OCN services
+ setting clock services
+ setting clock services
+ setting clock services
+ setting clock services
+ setting clock services
+ setting clock services finished!
+ setting clock services finished!
+ setting clock services finished!
+ setting clock services finished!
+ setting clock services finished!
+ Running coupled solver...
+ Running coupled solver...
+ Running coupled solver...
+ Running coupled solver...
+ Running coupled solver...
+ NUOPC_DriverPrint for PET:           0
+   Model, Mediator, and Driver components, in the order
+   that they were added to the Driver:
+           1 :  ATM
+           2 :  OCN
+   Connector components, in the order
+   that they were added to the Driver:
+           1 :  ATM-TO-OCN
+           2 :  OCN-TO-ATM
+NUOPC_RunSequenceArrayPrint: element     1 out of      1
+runSeq::
+ runElementPrint:      1     2     1 F T
+ runElementPrint:      2     1     1 F T
+ runElementPrint:      1    -1     1 F T
+ runElementPrint:      2    -1     1 F T
+ runElementPrint:     -1    -1     0 F F
+::
+ NUOPC_DriverPrint for PET:           1
+   Model, Mediator, and Driver components, in the order
+   that they were added to the Driver:
+           1 :  ATM
+           2 :  OCN
+   Connector components, in the order
+   that they were added to the Driver:
+           1 :  ATM-TO-OCN
+           2 :  OCN-TO-ATM
+NUOPC_RunSequenceArrayPrint: element     1 out of      1
+runSeq::
+ runElementPrint:      1     2     1 F T
+ runElementPrint:      2     1     1 F T
+ runElementPrint:      1    -1     1 F T
+ runElementPrint:      2    -1     1 F T
+ runElementPrint:     -1    -1     0 F F
+::
+ NUOPC_DriverPrint for PET:           2
+   Model, Mediator, and Driver components, in the order
+   that they were added to the Driver:
+           1 :  ATM
+           2 :  OCN
+   Connector components, in the order
+   that they were added to the Driver:
+           1 :  ATM-TO-OCN
+           2 :  OCN-TO-ATM
+NUOPC_RunSequenceArrayPrint: element     1 out of      1
+runSeq::
+ runElementPrint:      1     2     1 F T
+ runElementPrint:      2     1     1 F T
+ runElementPrint:      1    -1     1 F T
+ runElementPrint:      2    -1     1 F T
+ runElementPrint:     -1    -1     0 F F
+::
+ NUOPC_DriverPrint for PET:           3
+   Model, Mediator, and Driver components, in the order
+   that they were added to the Driver:
+           1 :  ATM
+           2 :  OCN
+   Connector components, in the order
+   that they were added to the Driver:
+           1 :  ATM-TO-OCN
+           2 :  OCN-TO-ATM
+NUOPC_RunSequenceArrayPrint: element     1 out of      1
+runSeq::
+ runElementPrint:      1     2     1 F T
+ runElementPrint:      2     1     1 F T
+ runElementPrint:      1    -1     1 F T
+ runElementPrint:      2    -1     1 F T
+ runElementPrint:     -1    -1     0 F F
+::
+ NUOPC_DriverPrint for PET:           4
+   Model, Mediator, and Driver components, in the order
+   that they were added to the Driver:
+           1 :  ATM
+           2 :  OCN
+   Connector components, in the order
+   that they were added to the Driver:
+           1 :  ATM-TO-OCN
+           2 :  OCN-TO-ATM
+NUOPC_RunSequenceArrayPrint: element     1 out of      1
+runSeq::
+ runElementPrint:      1     2     1 F T
+ runElementPrint:      2     1     1 F T
+ runElementPrint:      1    -1     1 F T
+ runElementPrint:      2    -1     1 F T
+ runElementPrint:     -1    -1     0 F F
+::
+ localDECount is:            1  localPet is:            1
+ j is:            0
+ localDECount is:            1  localPet is:            0
+ j is:            0
+ localDECount is:            1  localPet is:            4
+ j is:            0
+ localDECount is:            1  localPet is:            2
+ j is:            0
+ localDECount is:            1  localPet is:            3
+ j is:            0
+ loop n is:            1  m is:            1
+ atmMesh n is:            1  m is:            1
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            1  m is:            2
+ atmMesh n is:            1  m is:            2
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            1  m is:            3
+ atmMesh n is:            1  m is:            3
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            1  m is:            4
+ atmMesh n is:            1  m is:            4
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            1  m is:            5
+ atmMesh n is:            1  m is:            5
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            1  m is:            6
+ atmMesh n is:            1  m is:            6
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            1  m is:            7
+ atmMesh n is:            1  m is:            7
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            1  m is:            8
+ atmMesh n is:            1  m is:            8
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            1  m is:            9
+ loop n is:            1  m is:            1
+ atmMesh n is:            1  m is:            1
+ loop n is:            1  m is:            1
+ atmMesh n is:            1  m is:            1
+ loop n is:            1  m is:            1
+ atmMesh n is:            1  m is:            1
+ atmMesh n is:            1  m is:            9
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            1  m is:           10
+ atmMesh n is:            1  m is:           10
+ atmosphere meshX is:    90.000000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            1  m is:            2
+ atmMesh n is:            1  m is:            2
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            1  m is:            3
+ atmMesh n is:            1  m is:            3
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            1  m is:            2
+ atmMesh n is:            1  m is:            2
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            1  m is:            3
+ atmMesh n is:            1  m is:            3
+ atmosphere meshX is:    306.00000000000000     
+ loop n is:            2  m is:            1
+ atmMesh n is:            2  m is:            1
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            2  m is:            2
+ atmMesh n is:            2  m is:            2
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            2  m is:            3
+ atmMesh n is:            2  m is:            3
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            2  m is:            4
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            1  m is:            2
+ atmMesh n is:            1  m is:            2
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            1  m is:            3
+ atmMesh n is:            1  m is:            3
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            1  m is:            4
+ atmMesh n is:            1  m is:            4
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            1  m is:            4
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            1  m is:            5
+ atmMesh n is:            1  m is:            5
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            1  m is:            6
+ atmMesh n is:            2  m is:            4
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            2  m is:            5
+ atmMesh n is:            2  m is:            5
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            2  m is:            6
+ atmMesh n is:            2  m is:            6
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            1  m is:            4
+ atmMesh n is:            1  m is:            4
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            1  m is:            5
+ atmMesh n is:            1  m is:            5
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            1  m is:            6
+ atmMesh n is:            1  m is:            6
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            1  m is:            7
+ atmMesh n is:            1  m is:            7
+ atmMesh n is:            1  m is:            6
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            1  m is:            7
+ atmMesh n is:            1  m is:            7
+ atmosphere meshX is:    234.00000000000000     
+ loop n is:            2  m is:            7
+ atmMesh n is:            2  m is:            7
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            2  m is:            8
+ atmMesh n is:            2  m is:            8
+ atmMesh n is:            1  m is:            4
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            1  m is:            5
+ atmMesh n is:            1  m is:            5
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            1  m is:            8
+ atmMesh n is:            1  m is:            8
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            1  m is:            9
+ atmMesh n is:            1  m is:            9
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            1  m is:            8
+ atmMesh n is:            1  m is:            8
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            1  m is:            9
+ atmMesh n is:            1  m is:            9
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            1  m is:           10
+ atmMesh n is:            1  m is:           10
+ atmosphere meshX is:    234.00000000000000     
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            2  m is:            9
+ atmMesh n is:            2  m is:            9
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            2  m is:           10
+ atmMesh n is:            2  m is:           10
+ atmosphere meshX is:    126.00000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ atmosphere array filled!
+ ptr nullified!
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            1  m is:            6
+ atmMesh n is:            1  m is:            6
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            1  m is:            7
+ atmMesh n is:            1  m is:            7
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            1  m is:            8
+ atmMesh n is:            1  m is:            8
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            1  m is:            9
+ atmMesh n is:            1  m is:            9
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            1  m is:           10
+ atmMesh n is:            1  m is:           10
+ atmosphere meshX is:    162.00000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            1  m is:           10
+ atmMesh n is:            1  m is:           10
+ atmosphere meshX is:    306.00000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ loop n is:            2  m is:            1
+ atmMesh n is:            2  m is:            1
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            2  m is:            2
+ atmMesh n is:            2  m is:            2
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ loop n is:            2  m is:            1
+ atmMesh n is:            2  m is:            1
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            2  m is:            2
+ atmMesh n is:            2  m is:            2
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            2  m is:            3
+ atmMesh n is:            2  m is:            3
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            2  m is:            4
+ atmosphere meshY is:    81.000000000000000     
+ loop n is:            2  m is:            1
+ atmMesh n is:            2  m is:            1
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            2  m is:            2
+ atmMesh n is:            2  m is:            2
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            2  m is:            3
+ loop n is:            2  m is:            3
+ atmMesh n is:            2  m is:            3
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            2  m is:            4
+ atmMesh n is:            2  m is:            4
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            2  m is:            5
+ atmMesh n is:            2  m is:            4
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            2  m is:            5
+ atmMesh n is:            2  m is:            5
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ atmMesh n is:            2  m is:            5
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ atmMesh n is:            2  m is:            3
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            2  m is:            4
+ atmMesh n is:            2  m is:            4
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            2  m is:            5
+ atmMesh n is:            2  m is:            5
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            2  m is:            6
+ loop n is:            2  m is:            6
+ atmMesh n is:            2  m is:            6
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            2  m is:            7
+ atmMesh n is:            2  m is:            7
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            2  m is:            8
+ atmMesh n is:            2  m is:            8
+ atmosphere meshX is:    270.00000000000000     
+ atmMesh n is:            2  m is:            6
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            2  m is:            7
+ atmMesh n is:            2  m is:            7
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            2  m is:            8
+ atmMesh n is:            2  m is:            8
+ loop n is:            2  m is:            6
+ atmMesh n is:            2  m is:            6
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            2  m is:            7
+ atmMesh n is:            2  m is:            7
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            2  m is:            8
+ atmMesh n is:            2  m is:            8
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            2  m is:            9
+ atmMesh n is:            2  m is:            9
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            2  m is:            9
+ atmMesh n is:            2  m is:            9
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            2  m is:           10
+ atmMesh n is:            2  m is:           10
+ atmosphere meshX is:    270.00000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ atmosphere array filled!
+ ptr nullified!
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            2  m is:            9
+ atmMesh n is:            2  m is:            9
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            2  m is:           10
+ atmMesh n is:            2  m is:           10
+ atmosphere meshX is:    198.00000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ atmosphere array filled!
+ ptr nullified!
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            2  m is:           10
+ atmMesh n is:            2  m is:           10
+ atmosphere meshX is:    342.00000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ atmosphere array filled!
+ ptr nullified!
+ loop n is:            1  m is:            1
+ atmMesh n is:            1  m is:            1
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            1  m is:            2
+ atmMesh n is:            1  m is:            2
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            1  m is:            3
+ atmMesh n is:            1  m is:            3
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            1  m is:            4
+ atmMesh n is:            1  m is:            4
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            1  m is:            5
+ atmMesh n is:            1  m is:            5
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            1  m is:            6
+ atmMesh n is:            1  m is:            6
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            1  m is:            7
+ atmMesh n is:            1  m is:            7
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            1  m is:            8
+ atmMesh n is:            1  m is:            8
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            1  m is:            9
+ atmMesh n is:            1  m is:            9
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            1  m is:           10
+ atmMesh n is:            1  m is:           10
+ atmosphere meshX is:    18.000000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ loop n is:            2  m is:            1
+ atmMesh n is:            2  m is:            1
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:   -81.000000000000000     
+ loop n is:            2  m is:            2
+ atmMesh n is:            2  m is:            2
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:   -63.000000000000000     
+ loop n is:            2  m is:            3
+ atmMesh n is:            2  m is:            3
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:   -45.000000000000000     
+ loop n is:            2  m is:            4
+ atmMesh n is:            2  m is:            4
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:   -27.000000000000000     
+ loop n is:            2  m is:            5
+ atmMesh n is:            2  m is:            5
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:   -9.0000000000000000     
+ loop n is:            2  m is:            6
+ atmMesh n is:            2  m is:            6
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:    9.0000000000000000     
+ loop n is:            2  m is:            7
+ atmMesh n is:            2  m is:            7
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:    27.000000000000000     
+ loop n is:            2  m is:            8
+ atmMesh n is:            2  m is:            8
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:    45.000000000000000     
+ loop n is:            2  m is:            9
+ atmMesh n is:            2  m is:            9
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:    63.000000000000000     
+ loop n is:            2  m is:           10
+ atmMesh n is:            2  m is:           10
+ atmosphere meshX is:    54.000000000000000     
+ atmosphere meshY is:    81.000000000000000     
+ atmosphere array filled!
+ ptr nullified!
+ debug finished!
+ debug finished!
+ debug finished!
+ debug finished!
+ !!!!!!!!!!!!!!!! Hello, World!
+sum of 1 and 2 is 3
+ !!!!!!!!!!!!!!!! Hello, World!
+sum of 1 and 2 is 3
+ !!!!!!!!!!!!!!!! Hello, World!
+sum of 1 and 2 is 3
+ debug finished!
+ !!!!!!!!!!!!!!!! Hello, World!
+sum of 1 and 2 is 3
+ !!!!!!!!!!!!!!!! Hello, World!
+sum of 1 and 2 is 3
+4.47213595499958
+Say something...
+Getting function
+Boxing values...
+Calling Julia function
+4.47213595499958
+Say something...
+Getting function
+Boxing values...
+Calling Julia function
+4.47213595499958
+Say something...
+Getting function
+Boxing values...
+Calling Julia function
+a + b = 3.0
+Unboxing Julia value
+Result returned from Julia : 3.000000
+a / b = 0.5
+Unboxing another Julia value
+Result returned from Julia : 0.500000
+ Add Numbers 1+2 =     18952648
+a + b = 3.0
+Unboxing Julia value
+Result returned from Julia : 3.000000
+a / b = 0.5
+Unboxing another Julia value
+Result returned from Julia : 0.500000
+ Add Numbers 1+2 =     18956808
+a + b = 3.0
+Unboxing Julia value
+Result returned from Julia : 3.000000
+a / b = 0.5
+Unboxing another Julia value
+Result returned from Julia : 0.500000
+ Add Numbers 1+2 =     18815592
+4.47213595499958
+Say something...
+Getting function
+Boxing values...
+Calling Julia function
+4.47213595499958
+Say something...
+Getting function
+Boxing values...
+Calling Julia function
+a + b = 3.0
+Unboxing Julia value
+Result returned from Julia : 3.000000
+a / b = 0.5
+Unboxing another Julia value
+Result returned from Julia : 0.500000
+ Add Numbers 1+2 =     19263432
+a + b = 3.0
+Unboxing Julia value
+Result returned from Julia : 3.000000
+a / b = 0.5
+Unboxing another Julia value
+Result returned from Julia : 0.500000
+ Add Numbers 1+2 =     18958536
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling empty CPL_ComputeRH...
+ calling main run function
+ calling main run function
+ calling main run function
+ calling main run function
+ calling main run function
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            1
+ ATM iLoop is:            1
+ ATM iLoop is:            1
+ ATM iLoop is:            2
+ ATM iLoop is:            3
+ ATM iLoop is:            4
+ ATM iLoop is:            2
+ ATM iLoop is:            2
+ ATM iLoop is:            5
+ ATM iLoop is:            6
+ ATM iLoop is:            1
+ ATM iLoop is:            2
+ ATM iLoop is:            3
+ ATM iLoop is:            4
+ ATM iLoop is:            3
+ ATM iLoop is:            4
+ ATM iLoop is:            7
+ ATM iLoop is:            8
+ ATM iLoop is:            3
+ ATM iLoop is:            4
+ ATM iLoop is:            5
+ ATM iLoop is:            6
+ ATM iLoop is:            9
+ ATM iLoop is:           10
+ ATM iLoop is:            5
+ ATM iLoop is:            6
+ ATM iLoop is:            5
+ ATM iLoop is:            6
+ ATM iLoop is:            7
+ ATM iLoop is:            7
+ ATM iLoop is:            8
+ ATM iLoop is:            9
+ ATM iLoop is:            7
+ ATM iLoop is:            8
+ ATM iLoop is:            9
+ ATM iLoop is:           11
+ ATM iLoop is:           12
+ ATM iLoop is:           13
+ ATM iLoop is:            8
+ ATM iLoop is:            9
+ ATM iLoop is:           10
+ ATM iLoop is:           14
+ ATM iLoop is:           15
+ ATM iLoop is:           10
+ ATM iLoop is:           11
+ ATM iLoop is:           10
+ ATM iLoop is:           11
+ ATM iLoop is:           12
+ ATM iLoop is:           11
+ ATM iLoop is:           12
+ ATM iLoop is:           13
+ ATM iLoop is:           14
+ ATM iLoop is:           15
+ ATM iLoop is:           16
+ ATM iLoop is:           17
+ ATM iLoop is:           18
+ ATM iLoop is:           19
+ ATM iLoop is:           12
+ ATM iLoop is:           13
+ ATM iLoop is:           14
+ ATM iLoop is:           13
+ ATM iLoop is:           14
+ ATM iLoop is:           15
+ ATM iLoop is:           16
+ ATM iLoop is:           15
+ ATM iLoop is:           16
+ ATM iLoop is:           16
+ ATM iLoop is:           17
+ ATM iLoop is:           18
+ ATM iLoop is:           20
+ ATM iLoop is:           17
+ ATM iLoop is:           18
+ ATM iLoop is:           19
+ ATM iLoop is:           17
+ ATM iLoop is:           18
+ ATM iLoop is:           19
+ ATM iLoop is:           20
+ ATM iLoop is:           19
+ ATM iLoop is:           20
+ ATM iLoop is:           20
+ OCN iLoop is:            1
+ OCN iLoop is:            1
+ OCN iLoop is:            1
+ OCN iLoop is:            1
+ ATM iLoop is:            1
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            2
+ ATM iLoop is:            3
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            4
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            5
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            6
+ ATM iLoop is:            7
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            8
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:            9
+ ATM iLoop is:           10
+ ATM iLoop is:           11
+ ATM iLoop is:           12
+ ATM iLoop is:           13
+ ATM iLoop is:           21
+ ATM iLoop is:           14
+ ATM iLoop is:           22
+ ATM iLoop is:           23
+ ATM iLoop is:           24
+ ATM iLoop is:           21
+ ATM iLoop is:           22
+ ATM iLoop is:           25
+ ATM iLoop is:           26
+ ATM iLoop is:           23
+ ATM iLoop is:           24
+ ATM iLoop is:           25
+ ATM iLoop is:           21
+ ATM iLoop is:           22
+ ATM iLoop is:           15
+ ATM iLoop is:           27
+ ATM iLoop is:           28
+ ATM iLoop is:           29
+ ATM iLoop is:           21
+ ATM iLoop is:           22
+ ATM iLoop is:           23
+ ATM iLoop is:           30
+ ATM iLoop is:           31
+ ATM iLoop is:           32
+ ATM iLoop is:           26
+ ATM iLoop is:           27
+ ATM iLoop is:           28
+ ATM iLoop is:           29
+ ATM iLoop is:           23
+ ATM iLoop is:           24
+ ATM iLoop is:           25
+ ATM iLoop is:           24
+ ATM iLoop is:           25
+ ATM iLoop is:           33
+ ATM iLoop is:           34
+ ATM iLoop is:           35
+ ATM iLoop is:           30
+ ATM iLoop is:           31
+ ATM iLoop is:           32
+ ATM iLoop is:           33
+ ATM iLoop is:           26
+ ATM iLoop is:           27
+ ATM iLoop is:           28
+ ATM iLoop is:           26
+ ATM iLoop is:           27
+ ATM iLoop is:           28
+ ATM iLoop is:           29
+ ATM iLoop is:           29
+ ATM iLoop is:           34
+ ATM iLoop is:           36
+ ATM iLoop is:           37
+ ATM iLoop is:           30
+ ATM iLoop is:           30
+ ATM iLoop is:           31
+ ATM iLoop is:           35
+ ATM iLoop is:           36
+ ATM iLoop is:           31
+ ATM iLoop is:           32
+ ATM iLoop is:           38
+ ATM iLoop is:           39
+ ATM iLoop is:           33
+ ATM iLoop is:           34
+ ATM iLoop is:           37
+ ATM iLoop is:           38
+ ATM iLoop is:           39
+ ATM iLoop is:           32
+ ATM iLoop is:           33
+ ATM iLoop is:           34
+ ATM iLoop is:           40
+ ATM iLoop is:           35
+ ATM iLoop is:           35
+ ATM iLoop is:           36
+ ATM iLoop is:           40
+ ATM iLoop is:           37
+ ATM iLoop is:           38
+ ATM iLoop is:           36
+ ATM iLoop is:           37
+ ATM iLoop is:           38
+ ATM iLoop is:           39
+ ATM iLoop is:           16
+ ATM iLoop is:           39
+ ATM iLoop is:           40
+ ATM iLoop is:           40
+ ATM iLoop is:           17
+ ATM iLoop is:           18
+ ATM iLoop is:           19
+ ATM iLoop is:           20
+ OCN iLoop is:            2
+ OCN iLoop is:            2
+ OCN iLoop is:            2
+ OCN iLoop is:            2
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            1
+ ATM iLoop is:           41
+ ATM iLoop is:           41
+ ATM iLoop is:           42
+ ATM iLoop is:           43
+ ATM iLoop is:           42
+ ATM iLoop is:           43
+ ATM iLoop is:           44
+ ATM iLoop is:           44
+ ATM iLoop is:           45
+ ATM iLoop is:           45
+ ATM iLoop is:           46
+ ATM iLoop is:           47
+ ATM iLoop is:           46
+ ATM iLoop is:           48
+ ATM iLoop is:           41
+ ATM iLoop is:           47
+ ATM iLoop is:           48
+ ATM iLoop is:           42
+ ATM iLoop is:           49
+ ATM iLoop is:           50
+ ATM iLoop is:           49
+ ATM iLoop is:           50
+ ATM iLoop is:           41
+ ATM iLoop is:           42
+ ATM iLoop is:           43
+ ATM iLoop is:           51
+ ATM iLoop is:           43
+ ATM iLoop is:           44
+ ATM iLoop is:           44
+ ATM iLoop is:           52
+ ATM iLoop is:           53
+ ATM iLoop is:           45
+ ATM iLoop is:           51
+ ATM iLoop is:           52
+ ATM iLoop is:           53
+ ATM iLoop is:           46
+ ATM iLoop is:           54
+ ATM iLoop is:           55
+ ATM iLoop is:           45
+ ATM iLoop is:           46
+ ATM iLoop is:           54
+ ATM iLoop is:           47
+ ATM iLoop is:           48
+ ATM iLoop is:           47
+ ATM iLoop is:           48
+ ATM iLoop is:           49
+ ATM iLoop is:           56
+ ATM iLoop is:           57
+ ATM iLoop is:           55
+ ATM iLoop is:           56
+ ATM iLoop is:           57
+ ATM iLoop is:           58
+ ATM iLoop is:           59
+ ATM iLoop is:           60
+ ATM iLoop is:           49
+ ATM iLoop is:           50
+ ATM iLoop is:           51
+ ATM iLoop is:           50
+ ATM iLoop is:           51
+ ATM iLoop is:           58
+ ATM iLoop is:           59
+ ATM iLoop is:           60
+ ATM iLoop is:           52
+ ATM iLoop is:           53
+ ATM iLoop is:           52
+ ATM iLoop is:           53
+ ATM iLoop is:           54
+ ATM iLoop is:           55
+ ATM iLoop is:           56
+ ATM iLoop is:           54
+ ATM iLoop is:           55
+ ATM iLoop is:           57
+ ATM iLoop is:           56
+ ATM iLoop is:           57
+ ATM iLoop is:           58
+ ATM iLoop is:           59
+ ATM iLoop is:           60
+ ATM iLoop is:           58
+ ATM iLoop is:           59
+ ATM iLoop is:           60
+ OCN iLoop is:            3
+ OCN iLoop is:            3
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            3
+ OCN iLoop is:            3
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           61
+ ATM iLoop is:           62
+ ATM iLoop is:           61
+ ATM iLoop is:           62
+ ATM iLoop is:           63
+ ATM iLoop is:           63
+ ATM iLoop is:           64
+ ATM iLoop is:           64
+ ATM iLoop is:           65
+ ATM iLoop is:           65
+ ATM iLoop is:           66
+ ATM iLoop is:           66
+ ATM iLoop is:           67
+ ATM iLoop is:           68
+ ATM iLoop is:           67
+ ATM iLoop is:           68
+ ATM iLoop is:           69
+ ATM iLoop is:           70
+ ATM iLoop is:           61
+ ATM iLoop is:           62
+ ATM iLoop is:           69
+ ATM iLoop is:           70
+ ATM iLoop is:           71
+ ATM iLoop is:           63
+ ATM iLoop is:           72
+ ATM iLoop is:           71
+ ATM iLoop is:           72
+ ATM iLoop is:           61
+ ATM iLoop is:           64
+ ATM iLoop is:           65
+ ATM iLoop is:           62
+ ATM iLoop is:           63
+ ATM iLoop is:           73
+ ATM iLoop is:           74
+ ATM iLoop is:           75
+ ATM iLoop is:           73
+ ATM iLoop is:           74
+ ATM iLoop is:           66
+ ATM iLoop is:           67
+ ATM iLoop is:           75
+ ATM iLoop is:           64
+ ATM iLoop is:           65
+ ATM iLoop is:           76
+ ATM iLoop is:           77
+ ATM iLoop is:           78
+ ATM iLoop is:           68
+ ATM iLoop is:           69
+ ATM iLoop is:           66
+ ATM iLoop is:           67
+ ATM iLoop is:           76
+ ATM iLoop is:           77
+ ATM iLoop is:           68
+ ATM iLoop is:           69
+ ATM iLoop is:           70
+ ATM iLoop is:           71
+ ATM iLoop is:           79
+ ATM iLoop is:           80
+ ATM iLoop is:           78
+ ATM iLoop is:           79
+ ATM iLoop is:           80
+ ATM iLoop is:           72
+ ATM iLoop is:           73
+ ATM iLoop is:           70
+ ATM iLoop is:           71
+ ATM iLoop is:           74
+ ATM iLoop is:           75
+ ATM iLoop is:           72
+ ATM iLoop is:           73
+ ATM iLoop is:           74
+ ATM iLoop is:           76
+ ATM iLoop is:           75
+ ATM iLoop is:           76
+ ATM iLoop is:           77
+ ATM iLoop is:           78
+ ATM iLoop is:           77
+ ATM iLoop is:           79
+ ATM iLoop is:           80
+ ATM iLoop is:           78
+ ATM iLoop is:           79
+ ATM iLoop is:           80
+ OCN iLoop is:            4
+ OCN iLoop is:            4
+ ATM iLoop is:           21
+ ATM iLoop is:           22
+ OCN iLoop is:            4
+ OCN iLoop is:            4
+ ATM iLoop is:           23
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           24
+ ATM iLoop is:           25
+ ATM iLoop is:           26
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           27
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           28
+ ATM iLoop is:           29
+ ATM iLoop is:           30
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           31
+ ATM iLoop is:           32
+ ATM iLoop is:           33
+ ATM iLoop is:           34
+ ATM iLoop is:           35
+ ATM iLoop is:           81
+ ATM iLoop is:           82
+ ATM iLoop is:           81
+ ATM iLoop is:           82
+ ATM iLoop is:           83
+ ATM iLoop is:           83
+ ATM iLoop is:           84
+ ATM iLoop is:           85
+ ATM iLoop is:           84
+ ATM iLoop is:           85
+ ATM iLoop is:           86
+ ATM iLoop is:           87
+ ATM iLoop is:           36
+ ATM iLoop is:           86
+ ATM iLoop is:           87
+ ATM iLoop is:           88
+ ATM iLoop is:           88
+ ATM iLoop is:           89
+ ATM iLoop is:           90
+ ATM iLoop is:           81
+ ATM iLoop is:           82
+ ATM iLoop is:           89
+ ATM iLoop is:           90
+ ATM iLoop is:           91
+ ATM iLoop is:           83
+ ATM iLoop is:           84
+ ATM iLoop is:           91
+ ATM iLoop is:           92
+ ATM iLoop is:           81
+ ATM iLoop is:           82
+ ATM iLoop is:           92
+ ATM iLoop is:           93
+ ATM iLoop is:           94
+ ATM iLoop is:           83
+ ATM iLoop is:           85
+ ATM iLoop is:           86
+ ATM iLoop is:           93
+ ATM iLoop is:           94
+ ATM iLoop is:           95
+ ATM iLoop is:           95
+ ATM iLoop is:           96
+ ATM iLoop is:           84
+ ATM iLoop is:           85
+ ATM iLoop is:           87
+ ATM iLoop is:           88
+ ATM iLoop is:           97
+ ATM iLoop is:           98
+ ATM iLoop is:           96
+ ATM iLoop is:           97
+ ATM iLoop is:           98
+ ATM iLoop is:           89
+ ATM iLoop is:           90
+ ATM iLoop is:           86
+ ATM iLoop is:           87
+ ATM iLoop is:           99
+ ATM iLoop is:          100
+ ATM iLoop is:           99
+ ATM iLoop is:           91
+ ATM iLoop is:           92
+ ATM iLoop is:          100
+ ATM iLoop is:           93
+ ATM iLoop is:           94
+ ATM iLoop is:           88
+ ATM iLoop is:           89
+ ATM iLoop is:           90
+ ATM iLoop is:           95
+ ATM iLoop is:           91
+ ATM iLoop is:           96
+ ATM iLoop is:           97
+ ATM iLoop is:           92
+ ATM iLoop is:           93
+ ATM iLoop is:           98
+ ATM iLoop is:           99
+ ATM iLoop is:          100
+ ATM iLoop is:           94
+ ATM iLoop is:           95
+ ATM iLoop is:           96
+ ATM iLoop is:           97
+ ATM iLoop is:           98
+ ATM iLoop is:           99
+ ATM iLoop is:           37
+ ATM iLoop is:          100
+ ATM iLoop is:           38
+ ATM iLoop is:           39
+ ATM iLoop is:           40
+ OCN iLoop is:            5
+ OCN iLoop is:            5
+ OCN iLoop is:            5
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            5
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            2
+ ATM iLoop is:          101
+ ATM iLoop is:          101
+ ATM iLoop is:          102
+ ATM iLoop is:          103
+ ATM iLoop is:          102
+ ATM iLoop is:          103
+ ATM iLoop is:          104
+ ATM iLoop is:          104
+ ATM iLoop is:          105
+ ATM iLoop is:          106
+ ATM iLoop is:          105
+ ATM iLoop is:          106
+ ATM iLoop is:          107
+ ATM iLoop is:          108
+ ATM iLoop is:          101
+ ATM iLoop is:          107
+ ATM iLoop is:          108
+ ATM iLoop is:          109
+ ATM iLoop is:          109
+ ATM iLoop is:          102
+ ATM iLoop is:          110
+ ATM iLoop is:          111
+ ATM iLoop is:          103
+ ATM iLoop is:          110
+ ATM iLoop is:          111
+ ATM iLoop is:          112
+ ATM iLoop is:          104
+ ATM iLoop is:          112
+ ATM iLoop is:          113
+ ATM iLoop is:          105
+ ATM iLoop is:          106
+ ATM iLoop is:          113
+ ATM iLoop is:          114
+ ATM iLoop is:          115
+ ATM iLoop is:          101
+ ATM iLoop is:          102
+ ATM iLoop is:          107
+ ATM iLoop is:          108
+ ATM iLoop is:          114
+ ATM iLoop is:          115
+ ATM iLoop is:          116
+ ATM iLoop is:          103
+ ATM iLoop is:          104
+ ATM iLoop is:          116
+ ATM iLoop is:          117
+ ATM iLoop is:          117
+ ATM iLoop is:          118
+ ATM iLoop is:          109
+ ATM iLoop is:          110
+ ATM iLoop is:          111
+ ATM iLoop is:          112
+ ATM iLoop is:          113
+ ATM iLoop is:          119
+ ATM iLoop is:          120
+ ATM iLoop is:          118
+ ATM iLoop is:          119
+ ATM iLoop is:          120
+ ATM iLoop is:          105
+ ATM iLoop is:          106
+ ATM iLoop is:          107
+ ATM iLoop is:          108
+ ATM iLoop is:          109
+ ATM iLoop is:          114
+ ATM iLoop is:          115
+ ATM iLoop is:          116
+ ATM iLoop is:          117
+ ATM iLoop is:          110
+ ATM iLoop is:          111
+ ATM iLoop is:          112
+ ATM iLoop is:          118
+ ATM iLoop is:          119
+ ATM iLoop is:          120
+ ATM iLoop is:          113
+ ATM iLoop is:          114
+ ATM iLoop is:          115
+ ATM iLoop is:          116
+ ATM iLoop is:          117
+ ATM iLoop is:          118
+ ATM iLoop is:          119
+ ATM iLoop is:          120
+ OCN iLoop is:            6
+ OCN iLoop is:            6
+ OCN iLoop is:            6
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            6
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          121
+ ATM iLoop is:          122
+ ATM iLoop is:          121
+ ATM iLoop is:          122
+ ATM iLoop is:          123
+ ATM iLoop is:          124
+ ATM iLoop is:          123
+ ATM iLoop is:          124
+ ATM iLoop is:          125
+ ATM iLoop is:          125
+ ATM iLoop is:          126
+ ATM iLoop is:          126
+ ATM iLoop is:          127
+ ATM iLoop is:          128
+ ATM iLoop is:          127
+ ATM iLoop is:          128
+ ATM iLoop is:          121
+ ATM iLoop is:          129
+ ATM iLoop is:          130
+ ATM iLoop is:          129
+ ATM iLoop is:          130
+ ATM iLoop is:          131
+ ATM iLoop is:          132
+ ATM iLoop is:          131
+ ATM iLoop is:          132
+ ATM iLoop is:          122
+ ATM iLoop is:          123
+ ATM iLoop is:          124
+ ATM iLoop is:          133
+ ATM iLoop is:          134
+ ATM iLoop is:          135
+ ATM iLoop is:          133
+ ATM iLoop is:          134
+ ATM iLoop is:          125
+ ATM iLoop is:          126
+ ATM iLoop is:          121
+ ATM iLoop is:          122
+ ATM iLoop is:          135
+ ATM iLoop is:          136
+ ATM iLoop is:          137
+ ATM iLoop is:          136
+ ATM iLoop is:          137
+ ATM iLoop is:          138
+ ATM iLoop is:          127
+ ATM iLoop is:          128
+ ATM iLoop is:          129
+ ATM iLoop is:          138
+ ATM iLoop is:          139
+ ATM iLoop is:          140
+ ATM iLoop is:          130
+ ATM iLoop is:          131
+ ATM iLoop is:          139
+ ATM iLoop is:          140
+ ATM iLoop is:          123
+ ATM iLoop is:          124
+ ATM iLoop is:          125
+ ATM iLoop is:          126
+ ATM iLoop is:          132
+ ATM iLoop is:          133
+ ATM iLoop is:          134
+ ATM iLoop is:          127
+ ATM iLoop is:          128
+ ATM iLoop is:          129
+ ATM iLoop is:          135
+ ATM iLoop is:          130
+ ATM iLoop is:          131
+ ATM iLoop is:          132
+ ATM iLoop is:          133
+ ATM iLoop is:          136
+ ATM iLoop is:          137
+ ATM iLoop is:          138
+ ATM iLoop is:          134
+ ATM iLoop is:          139
+ ATM iLoop is:          135
+ ATM iLoop is:          136
+ ATM iLoop is:          140
+ ATM iLoop is:          137
+ ATM iLoop is:          138
+ ATM iLoop is:          139
+ ATM iLoop is:          140
+ OCN iLoop is:            7
+ OCN iLoop is:            7
+ OCN iLoop is:            7
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            7
+ ATM iLoop is:           41
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           42
+ ATM iLoop is:           43
+ ATM iLoop is:           44
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           45
+ ATM iLoop is:           46
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           47
+ ATM iLoop is:           48
+ ATM iLoop is:          141
+ ATM iLoop is:          142
+ ATM iLoop is:          143
+ ATM iLoop is:          141
+ ATM iLoop is:          142
+ ATM iLoop is:          144
+ ATM iLoop is:          145
+ ATM iLoop is:          146
+ ATM iLoop is:          143
+ ATM iLoop is:          144
+ ATM iLoop is:          145
+ ATM iLoop is:          147
+ ATM iLoop is:          148
+ ATM iLoop is:          146
+ ATM iLoop is:          147
+ ATM iLoop is:           49
+ ATM iLoop is:          148
+ ATM iLoop is:          149
+ ATM iLoop is:          150
+ ATM iLoop is:          149
+ ATM iLoop is:          151
+ ATM iLoop is:          150
+ ATM iLoop is:          151
+ ATM iLoop is:          141
+ ATM iLoop is:          142
+ ATM iLoop is:          152
+ ATM iLoop is:          153
+ ATM iLoop is:          143
+ ATM iLoop is:          152
+ ATM iLoop is:          153
+ ATM iLoop is:          154
+ ATM iLoop is:          155
+ ATM iLoop is:          144
+ ATM iLoop is:          156
+ ATM iLoop is:          154
+ ATM iLoop is:          157
+ ATM iLoop is:          145
+ ATM iLoop is:          141
+ ATM iLoop is:          155
+ ATM iLoop is:          156
+ ATM iLoop is:          146
+ ATM iLoop is:          147
+ ATM iLoop is:          157
+ ATM iLoop is:          158
+ ATM iLoop is:          142
+ ATM iLoop is:          143
+ ATM iLoop is:          144
+ ATM iLoop is:          158
+ ATM iLoop is:          159
+ ATM iLoop is:          160
+ ATM iLoop is:          145
+ ATM iLoop is:          148
+ ATM iLoop is:          149
+ ATM iLoop is:          150
+ ATM iLoop is:          159
+ ATM iLoop is:          160
+ ATM iLoop is:          146
+ ATM iLoop is:          147
+ ATM iLoop is:          151
+ ATM iLoop is:          152
+ ATM iLoop is:          153
+ ATM iLoop is:          148
+ ATM iLoop is:          154
+ ATM iLoop is:          155
+ ATM iLoop is:           50
+ ATM iLoop is:          149
+ ATM iLoop is:          150
+ ATM iLoop is:          156
+ ATM iLoop is:          151
+ ATM iLoop is:          157
+ ATM iLoop is:          158
+ ATM iLoop is:          152
+ ATM iLoop is:          153
+ ATM iLoop is:          154
+ ATM iLoop is:          159
+ ATM iLoop is:          155
+ ATM iLoop is:          160
+ ATM iLoop is:          156
+ ATM iLoop is:          157
+ ATM iLoop is:          158
+ ATM iLoop is:          159
+ ATM iLoop is:          160
+ ATM iLoop is:           51
+ ATM iLoop is:           52
+ OCN iLoop is:            8
+ OCN iLoop is:            8
+ ATM iLoop is:           53
+ ATM iLoop is:           54
+ ATM iLoop is:           55
+ ATM iLoop is:           56
+ ATM iLoop is:           57
+ OCN iLoop is:            8
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           58
+ ATM iLoop is:           59
+ OCN iLoop is:            8
+ ATM iLoop is:           60
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          161
+ ATM iLoop is:          161
+ ATM iLoop is:          162
+ ATM iLoop is:          163
+ ATM iLoop is:          162
+ ATM iLoop is:          164
+ ATM iLoop is:          165
+ ATM iLoop is:          166
+ ATM iLoop is:          163
+ ATM iLoop is:          164
+ ATM iLoop is:          165
+ ATM iLoop is:          166
+ ATM iLoop is:          167
+ ATM iLoop is:          168
+ ATM iLoop is:          167
+ ATM iLoop is:          169
+ ATM iLoop is:          170
+ ATM iLoop is:          168
+ ATM iLoop is:          169
+ ATM iLoop is:          171
+ ATM iLoop is:          172
+ ATM iLoop is:          170
+ ATM iLoop is:          171
+ ATM iLoop is:          173
+ ATM iLoop is:          174
+ ATM iLoop is:          161
+ ATM iLoop is:          162
+ ATM iLoop is:          172
+ ATM iLoop is:          173
+ ATM iLoop is:          174
+ ATM iLoop is:          163
+ ATM iLoop is:          175
+ ATM iLoop is:          176
+ ATM iLoop is:          175
+ ATM iLoop is:          176
+ ATM iLoop is:          164
+ ATM iLoop is:          165
+ ATM iLoop is:          177
+ ATM iLoop is:          178
+ ATM iLoop is:          166
+ ATM iLoop is:          177
+ ATM iLoop is:          178
+ ATM iLoop is:          161
+ ATM iLoop is:          179
+ ATM iLoop is:          180
+ ATM iLoop is:          162
+ ATM iLoop is:          167
+ ATM iLoop is:          168
+ ATM iLoop is:          179
+ ATM iLoop is:          180
+ ATM iLoop is:          169
+ ATM iLoop is:          170
+ ATM iLoop is:          163
+ ATM iLoop is:          164
+ ATM iLoop is:          171
+ ATM iLoop is:          172
+ ATM iLoop is:          165
+ ATM iLoop is:          166
+ ATM iLoop is:          173
+ ATM iLoop is:          174
+ ATM iLoop is:          167
+ ATM iLoop is:          168
+ ATM iLoop is:          169
+ ATM iLoop is:          170
+ ATM iLoop is:          175
+ ATM iLoop is:          176
+ ATM iLoop is:          177
+ ATM iLoop is:          178
+ ATM iLoop is:          171
+ ATM iLoop is:          179
+ ATM iLoop is:          180
+ ATM iLoop is:          172
+ ATM iLoop is:          173
+ ATM iLoop is:          174
+ ATM iLoop is:          175
+ ATM iLoop is:          176
+ ATM iLoop is:          177
+ ATM iLoop is:          178
+ ATM iLoop is:          179
+ ATM iLoop is:          180
+ OCN iLoop is:            9
+ OCN iLoop is:            9
+ OCN iLoop is:            3
+ OCN iLoop is:            9
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            9
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          181
+ ATM iLoop is:          182
+ ATM iLoop is:          181
+ ATM iLoop is:          182
+ ATM iLoop is:          183
+ ATM iLoop is:          183
+ ATM iLoop is:          184
+ ATM iLoop is:          184
+ ATM iLoop is:          185
+ ATM iLoop is:          186
+ ATM iLoop is:          187
+ ATM iLoop is:          185
+ ATM iLoop is:          186
+ ATM iLoop is:          187
+ ATM iLoop is:          188
+ ATM iLoop is:          189
+ ATM iLoop is:          188
+ ATM iLoop is:          189
+ ATM iLoop is:          190
+ ATM iLoop is:          190
+ ATM iLoop is:          191
+ ATM iLoop is:          191
+ ATM iLoop is:          192
+ ATM iLoop is:          181
+ ATM iLoop is:          193
+ ATM iLoop is:          194
+ ATM iLoop is:          192
+ ATM iLoop is:          193
+ ATM iLoop is:          194
+ ATM iLoop is:          195
+ ATM iLoop is:          182
+ ATM iLoop is:          183
+ ATM iLoop is:          195
+ ATM iLoop is:          196
+ ATM iLoop is:          197
+ ATM iLoop is:          184
+ ATM iLoop is:          185
+ ATM iLoop is:          196
+ ATM iLoop is:          197
+ ATM iLoop is:          198
+ ATM iLoop is:          198
+ ATM iLoop is:          199
+ ATM iLoop is:          186
+ ATM iLoop is:          187
+ ATM iLoop is:          199
+ ATM iLoop is:          200
+ ATM iLoop is:          181
+ ATM iLoop is:          200
+ ATM iLoop is:          188
+ ATM iLoop is:          189
+ ATM iLoop is:          182
+ ATM iLoop is:          183
+ ATM iLoop is:          190
+ ATM iLoop is:          191
+ ATM iLoop is:          192
+ ATM iLoop is:          184
+ ATM iLoop is:          185
+ ATM iLoop is:          193
+ ATM iLoop is:          194
+ ATM iLoop is:          186
+ ATM iLoop is:          195
+ ATM iLoop is:          196
+ ATM iLoop is:          187
+ ATM iLoop is:          188
+ ATM iLoop is:          197
+ ATM iLoop is:          189
+ ATM iLoop is:          198
+ ATM iLoop is:          199
+ ATM iLoop is:          190
+ ATM iLoop is:          191
+ ATM iLoop is:          200
+ ATM iLoop is:          192
+ ATM iLoop is:          193
+ ATM iLoop is:          194
+ ATM iLoop is:          195
+ ATM iLoop is:          196
+ ATM iLoop is:          197
+ ATM iLoop is:          198
+ ATM iLoop is:          199
+ ATM iLoop is:          200
+ OCN iLoop is:           10
+ OCN iLoop is:           10
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           10
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           10
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          201
+ ATM iLoop is:          202
+ ATM iLoop is:          203
+ ATM iLoop is:          201
+ ATM iLoop is:          202
+ ATM iLoop is:          203
+ ATM iLoop is:          204
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          204
+ ATM iLoop is:          205
+ ATM iLoop is:          205
+ ATM iLoop is:          206
+ ATM iLoop is:          206
+ ATM iLoop is:          207
+ ATM iLoop is:          207
+ ATM iLoop is:          208
+ ATM iLoop is:          208
+ ATM iLoop is:          209
+ ATM iLoop is:          210
+ ATM iLoop is:          209
+ ATM iLoop is:          210
+ ATM iLoop is:          211
+ ATM iLoop is:          211
+ ATM iLoop is:          212
+ ATM iLoop is:          212
+ ATM iLoop is:          213
+ ATM iLoop is:          201
+ ATM iLoop is:          213
+ ATM iLoop is:          214
+ ATM iLoop is:          214
+ ATM iLoop is:          202
+ ATM iLoop is:          215
+ ATM iLoop is:          216
+ ATM iLoop is:          215
+ ATM iLoop is:          216
+ ATM iLoop is:          203
+ ATM iLoop is:          204
+ ATM iLoop is:          217
+ ATM iLoop is:          217
+ ATM iLoop is:          218
+ ATM iLoop is:          205
+ ATM iLoop is:          206
+ ATM iLoop is:          218
+ ATM iLoop is:          219
+ ATM iLoop is:          219
+ ATM iLoop is:          220
+ ATM iLoop is:          207
+ ATM iLoop is:          208
+ ATM iLoop is:          220
+ ATM iLoop is:          209
+ ATM iLoop is:          210
+ ATM iLoop is:          211
+ ATM iLoop is:          201
+ ATM iLoop is:          202
+ ATM iLoop is:          212
+ ATM iLoop is:          213
+ ATM iLoop is:          203
+ ATM iLoop is:          204
+ ATM iLoop is:          214
+ ATM iLoop is:          205
+ ATM iLoop is:          215
+ ATM iLoop is:          206
+ ATM iLoop is:          216
+ ATM iLoop is:          217
+ ATM iLoop is:          207
+ ATM iLoop is:          208
+ ATM iLoop is:          209
+ ATM iLoop is:          210
+ ATM iLoop is:          218
+ ATM iLoop is:          219
+ ATM iLoop is:          220
+ ATM iLoop is:          211
+ ATM iLoop is:          212
+ ATM iLoop is:          213
+ ATM iLoop is:          214
+ ATM iLoop is:          215
+ ATM iLoop is:          216
+ ATM iLoop is:          217
+ ATM iLoop is:          218
+ OCN iLoop is:           11
+ ATM iLoop is:          219
+ ATM iLoop is:          220
+ OCN iLoop is:           11
+ ATM iLoop is:           61
+ ATM iLoop is:           62
+ ATM iLoop is:           63
+ ATM iLoop is:           64
+ ATM iLoop is:           65
+ OCN iLoop is:           11
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           66
+ ATM iLoop is:           67
+ ATM iLoop is:           68
+ ATM iLoop is:           69
+ OCN iLoop is:           11
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           70
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           71
+ ATM iLoop is:           72
+ ATM iLoop is:           73
+ ATM iLoop is:           74
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           75
+ ATM iLoop is:           76
+ ATM iLoop is:           77
+ ATM iLoop is:          221
+ ATM iLoop is:          221
+ ATM iLoop is:          222
+ ATM iLoop is:          222
+ ATM iLoop is:          223
+ ATM iLoop is:          223
+ ATM iLoop is:          224
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          224
+ ATM iLoop is:          225
+ ATM iLoop is:          225
+ ATM iLoop is:          226
+ ATM iLoop is:          226
+ ATM iLoop is:          227
+ ATM iLoop is:          227
+ ATM iLoop is:          228
+ ATM iLoop is:          228
+ ATM iLoop is:          229
+ ATM iLoop is:          229
+ ATM iLoop is:          230
+ ATM iLoop is:          230
+ ATM iLoop is:          231
+ ATM iLoop is:          232
+ ATM iLoop is:          231
+ ATM iLoop is:          233
+ ATM iLoop is:          232
+ ATM iLoop is:          233
+ ATM iLoop is:          234
+ ATM iLoop is:          221
+ ATM iLoop is:          235
+ ATM iLoop is:          222
+ ATM iLoop is:          234
+ ATM iLoop is:          223
+ ATM iLoop is:          236
+ ATM iLoop is:          237
+ ATM iLoop is:          235
+ ATM iLoop is:          236
+ ATM iLoop is:          224
+ ATM iLoop is:          237
+ ATM iLoop is:          238
+ ATM iLoop is:          225
+ ATM iLoop is:          226
+ ATM iLoop is:          238
+ ATM iLoop is:          239
+ ATM iLoop is:          240
+ ATM iLoop is:          239
+ ATM iLoop is:          227
+ ATM iLoop is:          240
+ ATM iLoop is:          228
+ ATM iLoop is:          229
+ ATM iLoop is:          230
+ ATM iLoop is:          231
+ ATM iLoop is:          232
+ ATM iLoop is:          233
+ ATM iLoop is:          221
+ ATM iLoop is:          222
+ ATM iLoop is:          234
+ ATM iLoop is:          223
+ ATM iLoop is:           78
+ ATM iLoop is:          224
+ ATM iLoop is:          225
+ ATM iLoop is:          235
+ ATM iLoop is:          236
+ ATM iLoop is:          237
+ ATM iLoop is:          238
+ ATM iLoop is:          226
+ ATM iLoop is:          227
+ ATM iLoop is:          228
+ ATM iLoop is:          239
+ ATM iLoop is:          240
+ ATM iLoop is:          229
+ ATM iLoop is:          230
+ ATM iLoop is:          231
+ ATM iLoop is:          232
+ ATM iLoop is:          233
+ ATM iLoop is:          234
+ ATM iLoop is:           79
+ ATM iLoop is:          235
+ ATM iLoop is:          236
+ ATM iLoop is:          237
+ OCN iLoop is:           12
+ ATM iLoop is:          238
+ ATM iLoop is:          239
+ ATM iLoop is:          240
+ OCN iLoop is:           12
+ ATM iLoop is:           80
+ OCN iLoop is:           12
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           12
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            4
+ ATM iLoop is:          241
+ ATM iLoop is:          241
+ ATM iLoop is:          242
+ ATM iLoop is:          242
+ ATM iLoop is:          243
+ ATM iLoop is:          243
+ ATM iLoop is:          244
+ ATM iLoop is:          245
+ ATM iLoop is:          244
+ ATM iLoop is:          245
+ ATM iLoop is:          246
+ ATM iLoop is:          246
+ ATM iLoop is:          247
+ ATM iLoop is:          248
+ ATM iLoop is:          247
+ ATM iLoop is:          248
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          249
+ ATM iLoop is:          250
+ ATM iLoop is:          249
+ ATM iLoop is:          251
+ ATM iLoop is:          250
+ ATM iLoop is:          252
+ ATM iLoop is:          253
+ ATM iLoop is:          251
+ ATM iLoop is:          254
+ ATM iLoop is:          252
+ ATM iLoop is:          253
+ ATM iLoop is:          254
+ ATM iLoop is:          255
+ ATM iLoop is:          241
+ ATM iLoop is:          242
+ ATM iLoop is:          255
+ ATM iLoop is:          256
+ ATM iLoop is:          257
+ ATM iLoop is:          256
+ ATM iLoop is:          257
+ ATM iLoop is:          243
+ ATM iLoop is:          244
+ ATM iLoop is:          258
+ ATM iLoop is:          259
+ ATM iLoop is:          260
+ ATM iLoop is:          258
+ ATM iLoop is:          245
+ ATM iLoop is:          246
+ ATM iLoop is:          259
+ ATM iLoop is:          260
+ ATM iLoop is:          247
+ ATM iLoop is:          248
+ ATM iLoop is:          249
+ ATM iLoop is:          250
+ ATM iLoop is:          251
+ ATM iLoop is:          252
+ ATM iLoop is:          253
+ ATM iLoop is:          254
+ ATM iLoop is:          241
+ ATM iLoop is:          255
+ ATM iLoop is:          242
+ ATM iLoop is:          243
+ ATM iLoop is:          256
+ ATM iLoop is:          257
+ ATM iLoop is:          244
+ ATM iLoop is:          245
+ ATM iLoop is:          258
+ ATM iLoop is:          259
+ ATM iLoop is:          246
+ ATM iLoop is:          260
+ ATM iLoop is:          247
+ ATM iLoop is:          248
+ ATM iLoop is:          249
+ ATM iLoop is:          250
+ ATM iLoop is:          251
+ ATM iLoop is:          252
+ ATM iLoop is:          253
+ ATM iLoop is:          254
+ OCN iLoop is:           13
+ ATM iLoop is:          255
+ ATM iLoop is:          256
+ OCN iLoop is:           13
+ ATM iLoop is:          257
+ ATM iLoop is:          258
+ ATM iLoop is:          259
+ ATM iLoop is:          260
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           13
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           13
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          261
+ ATM iLoop is:          262
+ ATM iLoop is:          263
+ ATM iLoop is:          264
+ ATM iLoop is:          261
+ ATM iLoop is:          265
+ ATM iLoop is:          262
+ ATM iLoop is:          263
+ ATM iLoop is:          266
+ ATM iLoop is:          264
+ ATM iLoop is:          267
+ ATM iLoop is:          265
+ ATM iLoop is:          266
+ ATM iLoop is:          268
+ ATM iLoop is:          269
+ ATM iLoop is:          270
+ ATM iLoop is:          267
+ ATM iLoop is:          268
+ ATM iLoop is:          271
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          272
+ ATM iLoop is:          269
+ ATM iLoop is:          270
+ ATM iLoop is:          273
+ ATM iLoop is:          271
+ ATM iLoop is:          274
+ ATM iLoop is:          272
+ ATM iLoop is:          275
+ ATM iLoop is:          276
+ ATM iLoop is:          273
+ ATM iLoop is:          274
+ ATM iLoop is:          277
+ ATM iLoop is:          261
+ ATM iLoop is:          262
+ ATM iLoop is:          263
+ ATM iLoop is:          275
+ ATM iLoop is:          276
+ ATM iLoop is:          264
+ ATM iLoop is:          265
+ ATM iLoop is:          278
+ ATM iLoop is:          279
+ ATM iLoop is:          280
+ ATM iLoop is:          277
+ ATM iLoop is:          278
+ ATM iLoop is:          266
+ ATM iLoop is:          279
+ ATM iLoop is:          267
+ ATM iLoop is:          268
+ ATM iLoop is:          280
+ ATM iLoop is:          269
+ ATM iLoop is:          270
+ ATM iLoop is:          271
+ ATM iLoop is:          272
+ ATM iLoop is:          273
+ ATM iLoop is:          274
+ ATM iLoop is:          261
+ ATM iLoop is:          275
+ ATM iLoop is:          276
+ ATM iLoop is:          262
+ ATM iLoop is:          263
+ ATM iLoop is:          264
+ ATM iLoop is:          277
+ ATM iLoop is:          278
+ ATM iLoop is:          279
+ ATM iLoop is:          265
+ ATM iLoop is:          280
+ ATM iLoop is:          266
+ ATM iLoop is:          267
+ ATM iLoop is:          268
+ ATM iLoop is:          269
+ ATM iLoop is:          270
+ ATM iLoop is:          271
+ ATM iLoop is:          272
+ OCN iLoop is:           14
+ ATM iLoop is:          273
+ ATM iLoop is:          274
+ ATM iLoop is:          275
+ OCN iLoop is:           14
+ ATM iLoop is:          276
+ ATM iLoop is:          277
+ ATM iLoop is:          278
+ ATM iLoop is:          279
+ ATM iLoop is:          280
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           14
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           14
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          281
+ ATM iLoop is:          282
+ ATM iLoop is:          281
+ ATM iLoop is:          283
+ ATM iLoop is:          282
+ ATM iLoop is:          283
+ ATM iLoop is:          284
+ ATM iLoop is:          285
+ ATM iLoop is:          284
+ ATM iLoop is:          285
+ ATM iLoop is:          286
+ ATM iLoop is:          287
+ ATM iLoop is:          288
+ ATM iLoop is:          286
+ ATM iLoop is:          287
+ ATM iLoop is:          289
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          288
+ ATM iLoop is:          289
+ ATM iLoop is:          290
+ ATM iLoop is:          291
+ ATM iLoop is:          292
+ ATM iLoop is:          290
+ ATM iLoop is:          291
+ ATM iLoop is:          293
+ ATM iLoop is:          292
+ ATM iLoop is:          293
+ ATM iLoop is:          294
+ ATM iLoop is:          295
+ ATM iLoop is:          296
+ ATM iLoop is:          294
+ ATM iLoop is:          295
+ ATM iLoop is:          297
+ ATM iLoop is:          281
+ ATM iLoop is:          296
+ ATM iLoop is:          282
+ ATM iLoop is:          298
+ ATM iLoop is:          299
+ ATM iLoop is:          283
+ ATM iLoop is:          284
+ ATM iLoop is:          297
+ ATM iLoop is:          298
+ ATM iLoop is:          299
+ ATM iLoop is:          300
+ ATM iLoop is:          300
+ ATM iLoop is:          285
+ ATM iLoop is:          286
+ ATM iLoop is:          287
+ ATM iLoop is:          288
+ ATM iLoop is:          289
+ ATM iLoop is:          290
+ ATM iLoop is:          291
+ ATM iLoop is:          292
+ ATM iLoop is:          293
+ ATM iLoop is:           81
+ ATM iLoop is:          294
+ ATM iLoop is:          295
+ ATM iLoop is:          281
+ ATM iLoop is:          282
+ ATM iLoop is:          296
+ ATM iLoop is:          283
+ ATM iLoop is:          297
+ ATM iLoop is:          284
+ ATM iLoop is:          298
+ ATM iLoop is:          299
+ ATM iLoop is:          285
+ ATM iLoop is:          300
+ ATM iLoop is:          286
+ ATM iLoop is:          287
+ ATM iLoop is:          288
+ ATM iLoop is:          289
+ ATM iLoop is:          290
+ ATM iLoop is:          291
+ ATM iLoop is:          292
+ OCN iLoop is:           15
+ ATM iLoop is:          293
+ ATM iLoop is:          294
+ ATM iLoop is:          295
+ OCN iLoop is:           15
+ ATM iLoop is:          296
+ ATM iLoop is:          297
+ ATM iLoop is:          298
+ ATM iLoop is:          299
+ ATM iLoop is:          300
+ ATM iLoop is:           82
+ ATM iLoop is:           83
+ ATM iLoop is:           84
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           15
+ ATM iLoop is:           85
+ ATM iLoop is:           86
+ ATM iLoop is:           87
+ ATM iLoop is:           88
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           89
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           90
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           15
+ ATM iLoop is:           91
+ ATM iLoop is:           92
+ ATM iLoop is:           93
+ ATM iLoop is:           94
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:           95
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          301
+ ATM iLoop is:           96
+ ATM iLoop is:          302
+ ATM iLoop is:          303
+ ATM iLoop is:          304
+ ATM iLoop is:          301
+ ATM iLoop is:          302
+ ATM iLoop is:          305
+ ATM iLoop is:          306
+ ATM iLoop is:          303
+ ATM iLoop is:          304
+ ATM iLoop is:          307
+ ATM iLoop is:          308
+ ATM iLoop is:          305
+ ATM iLoop is:          306
+ ATM iLoop is:          309
+ ATM iLoop is:          307
+ ATM iLoop is:          310
+ ATM iLoop is:          308
+ ATM iLoop is:          309
+ ATM iLoop is:          311
+ ATM iLoop is:          312
+ ATM iLoop is:          310
+ ATM iLoop is:          311
+ ATM iLoop is:          313
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          312
+ ATM iLoop is:          314
+ ATM iLoop is:          315
+ ATM iLoop is:          313
+ ATM iLoop is:          316
+ ATM iLoop is:          314
+ ATM iLoop is:          317
+ ATM iLoop is:          318
+ ATM iLoop is:          315
+ ATM iLoop is:          319
+ ATM iLoop is:          316
+ ATM iLoop is:          317
+ ATM iLoop is:           97
+ ATM iLoop is:          301
+ ATM iLoop is:          302
+ ATM iLoop is:          320
+ ATM iLoop is:          303
+ ATM iLoop is:          318
+ ATM iLoop is:          319
+ ATM iLoop is:          320
+ ATM iLoop is:          304
+ ATM iLoop is:          305
+ ATM iLoop is:          306
+ ATM iLoop is:          307
+ ATM iLoop is:          308
+ ATM iLoop is:          309
+ ATM iLoop is:          310
+ ATM iLoop is:          311
+ ATM iLoop is:          312
+ ATM iLoop is:          313
+ ATM iLoop is:          314
+ ATM iLoop is:          301
+ ATM iLoop is:          315
+ ATM iLoop is:          316
+ ATM iLoop is:          302
+ ATM iLoop is:          303
+ ATM iLoop is:          317
+ ATM iLoop is:          318
+ ATM iLoop is:           98
+ ATM iLoop is:          319
+ ATM iLoop is:          304
+ ATM iLoop is:          305
+ ATM iLoop is:          306
+ ATM iLoop is:          307
+ ATM iLoop is:          320
+ ATM iLoop is:          308
+ ATM iLoop is:          309
+ OCN iLoop is:           16
+ ATM iLoop is:          310
+ ATM iLoop is:          311
+ OCN iLoop is:           16
+ ATM iLoop is:          312
+ ATM iLoop is:          313
+ ATM iLoop is:          314
+ ATM iLoop is:          315
+ ATM iLoop is:          316
+ ATM iLoop is:           99
+ ATM iLoop is:          317
+ ATM iLoop is:          318
+ ATM iLoop is:          319
+ ATM iLoop is:          320
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          100
+ OCN iLoop is:           16
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           16
+ ATM iLoop is:          321
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          322
+ ATM iLoop is:          323
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          324
+ ATM iLoop is:          321
+ ATM iLoop is:          322
+ ATM iLoop is:          325
+ ATM iLoop is:          323
+ ATM iLoop is:          324
+ ATM iLoop is:          325
+ ATM iLoop is:          326
+ ATM iLoop is:          327
+ ATM iLoop is:          326
+ ATM iLoop is:          327
+ ATM iLoop is:          328
+ ATM iLoop is:          329
+ ATM iLoop is:          330
+ ATM iLoop is:          328
+ ATM iLoop is:          329
+ ATM iLoop is:          331
+ ATM iLoop is:          330
+ ATM iLoop is:          331
+ ATM iLoop is:          332
+ ATM iLoop is:          333
+ ATM iLoop is:          334
+ ATM iLoop is:          335
+ ATM iLoop is:          332
+ ATM iLoop is:          333
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          336
+ ATM iLoop is:          337
+ ATM iLoop is:          334
+ ATM iLoop is:          338
+ ATM iLoop is:          335
+ ATM iLoop is:          336
+ ATM iLoop is:          337
+ ATM iLoop is:          339
+ ATM iLoop is:          340
+ ATM iLoop is:          321
+ ATM iLoop is:          322
+ ATM iLoop is:          338
+ ATM iLoop is:          339
+ ATM iLoop is:          340
+ ATM iLoop is:          323
+ ATM iLoop is:          324
+ ATM iLoop is:          325
+ ATM iLoop is:          326
+ ATM iLoop is:          327
+ ATM iLoop is:          328
+ ATM iLoop is:          329
+ ATM iLoop is:          330
+ ATM iLoop is:          331
+ ATM iLoop is:          332
+ ATM iLoop is:          333
+ ATM iLoop is:          334
+ ATM iLoop is:          335
+ ATM iLoop is:          321
+ ATM iLoop is:          322
+ ATM iLoop is:          336
+ ATM iLoop is:          337
+ ATM iLoop is:          323
+ ATM iLoop is:          324
+ ATM iLoop is:          338
+ ATM iLoop is:          339
+ ATM iLoop is:          340
+ ATM iLoop is:          325
+ ATM iLoop is:          326
+ ATM iLoop is:          327
+ OCN iLoop is:           17
+ ATM iLoop is:          328
+ ATM iLoop is:          329
+ ATM iLoop is:          330
+ ATM iLoop is:          331
+ OCN iLoop is:           17
+ ATM iLoop is:          332
+ ATM iLoop is:          333
+ ATM iLoop is:          334
+ ATM iLoop is:          335
+ ATM iLoop is:          336
+ ATM iLoop is:          337
+ ATM iLoop is:          338
+ ATM iLoop is:          339
+ ATM iLoop is:          340
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           17
+ OCN iLoop is:            5
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           17
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          341
+ ATM iLoop is:          342
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          343
+ ATM iLoop is:          344
+ ATM iLoop is:          341
+ ATM iLoop is:          342
+ ATM iLoop is:          345
+ ATM iLoop is:          343
+ ATM iLoop is:          346
+ ATM iLoop is:          344
+ ATM iLoop is:          345
+ ATM iLoop is:          347
+ ATM iLoop is:          346
+ ATM iLoop is:          348
+ ATM iLoop is:          347
+ ATM iLoop is:          348
+ ATM iLoop is:          349
+ ATM iLoop is:          350
+ ATM iLoop is:          349
+ ATM iLoop is:          351
+ ATM iLoop is:          350
+ ATM iLoop is:          351
+ ATM iLoop is:          352
+ ATM iLoop is:          353
+ ATM iLoop is:          352
+ ATM iLoop is:          354
+ ATM iLoop is:          353
+ ATM iLoop is:          354
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          355
+ ATM iLoop is:          356
+ ATM iLoop is:          355
+ ATM iLoop is:          357
+ ATM iLoop is:          358
+ ATM iLoop is:          356
+ ATM iLoop is:          357
+ ATM iLoop is:          359
+ ATM iLoop is:          360
+ ATM iLoop is:          358
+ ATM iLoop is:          359
+ ATM iLoop is:          360
+ ATM iLoop is:          341
+ ATM iLoop is:          342
+ ATM iLoop is:          343
+ ATM iLoop is:          344
+ ATM iLoop is:          345
+ ATM iLoop is:          346
+ ATM iLoop is:          347
+ ATM iLoop is:          348
+ ATM iLoop is:          349
+ ATM iLoop is:          350
+ ATM iLoop is:          351
+ ATM iLoop is:          352
+ ATM iLoop is:          353
+ ATM iLoop is:          341
+ ATM iLoop is:          342
+ ATM iLoop is:          354
+ ATM iLoop is:          355
+ ATM iLoop is:          356
+ ATM iLoop is:          343
+ ATM iLoop is:          344
+ ATM iLoop is:          357
+ ATM iLoop is:          358
+ ATM iLoop is:          359
+ ATM iLoop is:          345
+ ATM iLoop is:          346
+ ATM iLoop is:          360
+ ATM iLoop is:          347
+ ATM iLoop is:          348
+ ATM iLoop is:          349
+ OCN iLoop is:           18
+ ATM iLoop is:          350
+ ATM iLoop is:          351
+ OCN iLoop is:           18
+ ATM iLoop is:          352
+ ATM iLoop is:          353
+ ATM iLoop is:          354
+ ATM iLoop is:          355
+ ATM iLoop is:          356
+ ATM iLoop is:          357
+ ATM iLoop is:          358
+ ATM iLoop is:          359
+ ATM iLoop is:          360
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           18
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           18
+ ATM iLoop is:          361
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          362
+ ATM iLoop is:          363
+ ATM iLoop is:          364
+ ATM iLoop is:          365
+ ATM iLoop is:          361
+ ATM iLoop is:          362
+ ATM iLoop is:          363
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          366
+ ATM iLoop is:          364
+ ATM iLoop is:          367
+ ATM iLoop is:          365
+ ATM iLoop is:          368
+ ATM iLoop is:          366
+ ATM iLoop is:          369
+ ATM iLoop is:          367
+ ATM iLoop is:          368
+ ATM iLoop is:          369
+ ATM iLoop is:          370
+ ATM iLoop is:          371
+ ATM iLoop is:          370
+ ATM iLoop is:          372
+ ATM iLoop is:          371
+ ATM iLoop is:          372
+ ATM iLoop is:          373
+ ATM iLoop is:          374
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          373
+ ATM iLoop is:          375
+ ATM iLoop is:          374
+ ATM iLoop is:          376
+ ATM iLoop is:          377
+ ATM iLoop is:          375
+ ATM iLoop is:          378
+ ATM iLoop is:          376
+ ATM iLoop is:          377
+ ATM iLoop is:          379
+ ATM iLoop is:          378
+ ATM iLoop is:          380
+ ATM iLoop is:          379
+ ATM iLoop is:          361
+ ATM iLoop is:          380
+ ATM iLoop is:          362
+ ATM iLoop is:          363
+ ATM iLoop is:          364
+ ATM iLoop is:          365
+ ATM iLoop is:          366
+ ATM iLoop is:          367
+ ATM iLoop is:          368
+ ATM iLoop is:          369
+ ATM iLoop is:          370
+ ATM iLoop is:          371
+ ATM iLoop is:          372
+ ATM iLoop is:          373
+ ATM iLoop is:          361
+ ATM iLoop is:          374
+ ATM iLoop is:          375
+ ATM iLoop is:          362
+ ATM iLoop is:          363
+ ATM iLoop is:          376
+ ATM iLoop is:          377
+ ATM iLoop is:          364
+ ATM iLoop is:          365
+ ATM iLoop is:          378
+ ATM iLoop is:          366
+ ATM iLoop is:          379
+ ATM iLoop is:          380
+ ATM iLoop is:          367
+ OCN iLoop is:           19
+ ATM iLoop is:          368
+ ATM iLoop is:          369
+ ATM iLoop is:          370
+ ATM iLoop is:          371
+ ATM iLoop is:          372
+ OCN iLoop is:           19
+ ATM iLoop is:          373
+ ATM iLoop is:          374
+ ATM iLoop is:          375
+ ATM iLoop is:          376
+ ATM iLoop is:          377
+ ATM iLoop is:          378
+ ATM iLoop is:          379
+ ATM iLoop is:          380
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           19
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          101
+ OCN iLoop is:           19
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          102
+ ATM iLoop is:          103
+ ATM iLoop is:          104
+ ATM iLoop is:          381
+ ATM iLoop is:          105
+ ATM iLoop is:          382
+ ATM iLoop is:          383
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          381
+ ATM iLoop is:          382
+ ATM iLoop is:          384
+ ATM iLoop is:          385
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          383
+ ATM iLoop is:          386
+ ATM iLoop is:          384
+ ATM iLoop is:          387
+ ATM iLoop is:          388
+ ATM iLoop is:          385
+ ATM iLoop is:          386
+ ATM iLoop is:          389
+ ATM iLoop is:          387
+ ATM iLoop is:          390
+ ATM iLoop is:          391
+ ATM iLoop is:          388
+ ATM iLoop is:          389
+ ATM iLoop is:          106
+ ATM iLoop is:          392
+ ATM iLoop is:          390
+ ATM iLoop is:          393
+ ATM iLoop is:          394
+ ATM iLoop is:          391
+ ATM iLoop is:          392
+ ATM iLoop is:          393
+ ATM iLoop is:          394
+ ATM iLoop is:          395
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          395
+ ATM iLoop is:          396
+ ATM iLoop is:          397
+ ATM iLoop is:          396
+ ATM iLoop is:          397
+ ATM iLoop is:          398
+ ATM iLoop is:          399
+ ATM iLoop is:          400
+ ATM iLoop is:          398
+ ATM iLoop is:          399
+ ATM iLoop is:          400
+ ATM iLoop is:          381
+ ATM iLoop is:          382
+ ATM iLoop is:          383
+ ATM iLoop is:          107
+ ATM iLoop is:          384
+ ATM iLoop is:          385
+ ATM iLoop is:          386
+ ATM iLoop is:          387
+ ATM iLoop is:          388
+ ATM iLoop is:          389
+ ATM iLoop is:          390
+ ATM iLoop is:          391
+ ATM iLoop is:          392
+ ATM iLoop is:          393
+ ATM iLoop is:          381
+ ATM iLoop is:          108
+ ATM iLoop is:          394
+ ATM iLoop is:          395
+ ATM iLoop is:          382
+ ATM iLoop is:          383
+ ATM iLoop is:          396
+ ATM iLoop is:          384
+ ATM iLoop is:          397
+ ATM iLoop is:          398
+ ATM iLoop is:          385
+ ATM iLoop is:          386
+ ATM iLoop is:          399
+ ATM iLoop is:          400
+ OCN iLoop is:           20
+ ATM iLoop is:          387
+ ATM iLoop is:          388
+ ATM iLoop is:          389
+ ATM iLoop is:          390
+ OCN iLoop is:           20
+ ATM iLoop is:          109
+ ATM iLoop is:          391
+ ATM iLoop is:          392
+ ATM iLoop is:          393
+ ATM iLoop is:          394
+ ATM iLoop is:          395
+ ATM iLoop is:          110
+ ATM iLoop is:          396
+ ATM iLoop is:          397
+ ATM iLoop is:          398
+ ATM iLoop is:          399
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          400
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          111
+ ATM iLoop is:          112
+ OCN iLoop is:           20
+ ATM iLoop is:          113
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          114
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          115
+ ATM iLoop is:          116
+ ATM iLoop is:          117
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           20
+ ATM iLoop is:          118
+ ATM iLoop is:          119
+ ATM iLoop is:          120
+ ATM iLoop is:          401
+ ATM iLoop is:          402
+ ATM iLoop is:          401
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          403
+ ATM iLoop is:          402
+ ATM iLoop is:          403
+ ATM iLoop is:          404
+ ATM iLoop is:          405
+ ATM iLoop is:          406
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          404
+ ATM iLoop is:          405
+ ATM iLoop is:          407
+ ATM iLoop is:          408
+ ATM iLoop is:          406
+ ATM iLoop is:          407
+ ATM iLoop is:          409
+ ATM iLoop is:          410
+ ATM iLoop is:          411
+ ATM iLoop is:          412
+ ATM iLoop is:          408
+ ATM iLoop is:          409
+ ATM iLoop is:          410
+ ATM iLoop is:          413
+ ATM iLoop is:          414
+ ATM iLoop is:          411
+ ATM iLoop is:          412
+ ATM iLoop is:          413
+ ATM iLoop is:          414
+ ATM iLoop is:          415
+ ATM iLoop is:          416
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          417
+ ATM iLoop is:          418
+ ATM iLoop is:          419
+ ATM iLoop is:          420
+ ATM iLoop is:          415
+ ATM iLoop is:          416
+ ATM iLoop is:          417
+ ATM iLoop is:          418
+ ATM iLoop is:          419
+ ATM iLoop is:          420
+ ATM iLoop is:          401
+ ATM iLoop is:          402
+ ATM iLoop is:          403
+ ATM iLoop is:          404
+ ATM iLoop is:          405
+ ATM iLoop is:          406
+ ATM iLoop is:          407
+ ATM iLoop is:          408
+ ATM iLoop is:          409
+ ATM iLoop is:          410
+ ATM iLoop is:          411
+ ATM iLoop is:          412
+ ATM iLoop is:          413
+ ATM iLoop is:          414
+ ATM iLoop is:          401
+ ATM iLoop is:          402
+ ATM iLoop is:          415
+ ATM iLoop is:          416
+ ATM iLoop is:          417
+ ATM iLoop is:          403
+ ATM iLoop is:          404
+ ATM iLoop is:          418
+ ATM iLoop is:          419
+ ATM iLoop is:          420
+ OCN iLoop is:           21
+ ATM iLoop is:          405
+ ATM iLoop is:          406
+ ATM iLoop is:          407
+ ATM iLoop is:          408
+ OCN iLoop is:           21
+ ATM iLoop is:          409
+ ATM iLoop is:          410
+ ATM iLoop is:          411
+ ATM iLoop is:          412
+ ATM iLoop is:          413
+ ATM iLoop is:          414
+ ATM iLoop is:          415
+ ATM iLoop is:          416
+ ATM iLoop is:          417
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          418
+ ATM iLoop is:          419
+ ATM iLoop is:          420
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           21
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           21
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          421
+ ATM iLoop is:          422
+ ATM iLoop is:          423
+ ATM iLoop is:          421
+ ATM iLoop is:          422
+ ATM iLoop is:          424
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          423
+ ATM iLoop is:          424
+ ATM iLoop is:          425
+ ATM iLoop is:          426
+ ATM iLoop is:          427
+ ATM iLoop is:          428
+ ATM iLoop is:          425
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          429
+ ATM iLoop is:          426
+ ATM iLoop is:          427
+ ATM iLoop is:          430
+ ATM iLoop is:          428
+ ATM iLoop is:          431
+ ATM iLoop is:          429
+ ATM iLoop is:          432
+ ATM iLoop is:          430
+ ATM iLoop is:          431
+ ATM iLoop is:          433
+ ATM iLoop is:          434
+ ATM iLoop is:          435
+ ATM iLoop is:          432
+ ATM iLoop is:          436
+ ATM iLoop is:          437
+ ATM iLoop is:          438
+ ATM iLoop is:          433
+ ATM iLoop is:          434
+ ATM iLoop is:          435
+ ATM iLoop is:          436
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          439
+ ATM iLoop is:          440
+ OCN iLoop is:            6
+ ATM iLoop is:          437
+ ATM iLoop is:          438
+ ATM iLoop is:          439
+ ATM iLoop is:          440
+ ATM iLoop is:          421
+ ATM iLoop is:          422
+ ATM iLoop is:          423
+ ATM iLoop is:          424
+ ATM iLoop is:          425
+ ATM iLoop is:          426
+ ATM iLoop is:          427
+ ATM iLoop is:          428
+ ATM iLoop is:          429
+ ATM iLoop is:          430
+ ATM iLoop is:          431
+ ATM iLoop is:          432
+ ATM iLoop is:          433
+ ATM iLoop is:          434
+ ATM iLoop is:          421
+ ATM iLoop is:          422
+ ATM iLoop is:          435
+ ATM iLoop is:          436
+ ATM iLoop is:          437
+ ATM iLoop is:          438
+ ATM iLoop is:          423
+ ATM iLoop is:          424
+ OCN iLoop is:           22
+ ATM iLoop is:          439
+ ATM iLoop is:          440
+ ATM iLoop is:          425
+ ATM iLoop is:          426
+ ATM iLoop is:          427
+ ATM iLoop is:          428
+ OCN iLoop is:           22
+ ATM iLoop is:          429
+ ATM iLoop is:          430
+ ATM iLoop is:          431
+ ATM iLoop is:          432
+ ATM iLoop is:          433
+ ATM iLoop is:          434
+ ATM iLoop is:          435
+ ATM iLoop is:          436
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          437
+ ATM iLoop is:          438
+ ATM iLoop is:          439
+ ATM iLoop is:          440
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           22
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           22
+ ATM iLoop is:          441
+ ATM iLoop is:          442
+ ATM iLoop is:          443
+ ATM iLoop is:          444
+ ATM iLoop is:          441
+ ATM iLoop is:          442
+ ATM iLoop is:          445
+ ATM iLoop is:          446
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          447
+ ATM iLoop is:          443
+ ATM iLoop is:          444
+ ATM iLoop is:          448
+ ATM iLoop is:          445
+ ATM iLoop is:          449
+ ATM iLoop is:          446
+ ATM iLoop is:          447
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          450
+ ATM iLoop is:          451
+ ATM iLoop is:          452
+ ATM iLoop is:          448
+ ATM iLoop is:          449
+ ATM iLoop is:          453
+ ATM iLoop is:          454
+ ATM iLoop is:          450
+ ATM iLoop is:          455
+ ATM iLoop is:          451
+ ATM iLoop is:          456
+ ATM iLoop is:          457
+ ATM iLoop is:          458
+ ATM iLoop is:          452
+ ATM iLoop is:          453
+ ATM iLoop is:          454
+ ATM iLoop is:          455
+ ATM iLoop is:          456
+ ATM iLoop is:          457
+ ATM iLoop is:          459
+ ATM iLoop is:          460
+ ATM iLoop is:          458
+ ATM iLoop is:          459
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          460
+ ATM iLoop is:          441
+ ATM iLoop is:          442
+ ATM iLoop is:          443
+ ATM iLoop is:          444
+ ATM iLoop is:          445
+ ATM iLoop is:          446
+ ATM iLoop is:          447
+ ATM iLoop is:          448
+ ATM iLoop is:          449
+ ATM iLoop is:          450
+ ATM iLoop is:          451
+ ATM iLoop is:          452
+ ATM iLoop is:          453
+ ATM iLoop is:          454
+ ATM iLoop is:          441
+ ATM iLoop is:          442
+ OCN iLoop is:           23
+ ATM iLoop is:          455
+ ATM iLoop is:          456
+ ATM iLoop is:          457
+ ATM iLoop is:          458
+ ATM iLoop is:          443
+ ATM iLoop is:          444
+ ATM iLoop is:          459
+ OCN iLoop is:           23
+ ATM iLoop is:          445
+ ATM iLoop is:          446
+ ATM iLoop is:          460
+ ATM iLoop is:          447
+ ATM iLoop is:          448
+ ATM iLoop is:          449
+ ATM iLoop is:          450
+ ATM iLoop is:          451
+ ATM iLoop is:          452
+ ATM iLoop is:          453
+ ATM iLoop is:          454
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          455
+ ATM iLoop is:          456
+ ATM iLoop is:          457
+ ATM iLoop is:          458
+ ATM iLoop is:          459
+ ATM iLoop is:          460
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           23
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           23
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          461
+ ATM iLoop is:          462
+ ATM iLoop is:          463
+ ATM iLoop is:          464
+ ATM iLoop is:          465
+ ATM iLoop is:          461
+ ATM iLoop is:          466
+ ATM iLoop is:          462
+ ATM iLoop is:          463
+ ATM iLoop is:          467
+ ATM iLoop is:          468
+ ATM iLoop is:          469
+ ATM iLoop is:          464
+ ATM iLoop is:          465
+ ATM iLoop is:          470
+ ATM iLoop is:          471
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          466
+ ATM iLoop is:          467
+ ATM iLoop is:          472
+ ATM iLoop is:          473
+ ATM iLoop is:          468
+ ATM iLoop is:          469
+ ATM iLoop is:          474
+ ATM iLoop is:          475
+ ATM iLoop is:          476
+ ATM iLoop is:          470
+ ATM iLoop is:          477
+ ATM iLoop is:          471
+ ATM iLoop is:          478
+ ATM iLoop is:          472
+ ATM iLoop is:          479
+ ATM iLoop is:          480
+ ATM iLoop is:          473
+ ATM iLoop is:          474
+ ATM iLoop is:          475
+ ATM iLoop is:          476
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          477
+ ATM iLoop is:          478
+ ATM iLoop is:          479
+ ATM iLoop is:          480
+ ATM iLoop is:          461
+ ATM iLoop is:          462
+ ATM iLoop is:          463
+ ATM iLoop is:          464
+ ATM iLoop is:          465
+ ATM iLoop is:          466
+ ATM iLoop is:          467
+ ATM iLoop is:          468
+ ATM iLoop is:          469
+ ATM iLoop is:          470
+ ATM iLoop is:          471
+ ATM iLoop is:          472
+ ATM iLoop is:          473
+ OCN iLoop is:           24
+ ATM iLoop is:          474
+ ATM iLoop is:          475
+ ATM iLoop is:          476
+ ATM iLoop is:          461
+ ATM iLoop is:          462
+ ATM iLoop is:          463
+ ATM iLoop is:          464
+ ATM iLoop is:          477
+ ATM iLoop is:          478
+ ATM iLoop is:          465
+ ATM iLoop is:          479
+ ATM iLoop is:          480
+ OCN iLoop is:           24
+ ATM iLoop is:          466
+ ATM iLoop is:          467
+ ATM iLoop is:          468
+ ATM iLoop is:          469
+ ATM iLoop is:          470
+ ATM iLoop is:          471
+ ATM iLoop is:          472
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          473
+ ATM iLoop is:          474
+ ATM iLoop is:          475
+ ATM iLoop is:          476
+ ATM iLoop is:          477
+ ATM iLoop is:          478
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          479
+ ATM iLoop is:          480
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           24
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          121
+ ATM iLoop is:          122
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          481
+ OCN iLoop is:           24
+ ATM iLoop is:          482
+ ATM iLoop is:          483
+ ATM iLoop is:          484
+ ATM iLoop is:          123
+ ATM iLoop is:          485
+ ATM iLoop is:          486
+ ATM iLoop is:          487
+ ATM iLoop is:          481
+ ATM iLoop is:          488
+ ATM iLoop is:          482
+ ATM iLoop is:          483
+ ATM iLoop is:          489
+ ATM iLoop is:          490
+ ATM iLoop is:          491
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          484
+ ATM iLoop is:          485
+ ATM iLoop is:          492
+ ATM iLoop is:          493
+ ATM iLoop is:          486
+ ATM iLoop is:          494
+ ATM iLoop is:          495
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          487
+ ATM iLoop is:          488
+ ATM iLoop is:          489
+ ATM iLoop is:          490
+ ATM iLoop is:          496
+ ATM iLoop is:          497
+ ATM iLoop is:          498
+ ATM iLoop is:          499
+ ATM iLoop is:          500
+ ATM iLoop is:          491
+ ATM iLoop is:          492
+ ATM iLoop is:          124
+ ATM iLoop is:          493
+ ATM iLoop is:          494
+ ATM iLoop is:          495
+ ATM iLoop is:          496
+ ATM iLoop is:          497
+ ATM iLoop is:          498
+ ATM iLoop is:          499
+ ATM iLoop is:          500
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          125
+ ATM iLoop is:          481
+ ATM iLoop is:          126
+ ATM iLoop is:          482
+ ATM iLoop is:          483
+ ATM iLoop is:          484
+ ATM iLoop is:          485
+ ATM iLoop is:          486
+ ATM iLoop is:          487
+ ATM iLoop is:          488
+ ATM iLoop is:          489
+ ATM iLoop is:          490
+ ATM iLoop is:          491
+ ATM iLoop is:          492
+ OCN iLoop is:           25
+ ATM iLoop is:          481
+ ATM iLoop is:          127
+ ATM iLoop is:          493
+ ATM iLoop is:          494
+ ATM iLoop is:          495
+ ATM iLoop is:          482
+ ATM iLoop is:          496
+ ATM iLoop is:          483
+ ATM iLoop is:          484
+ ATM iLoop is:          497
+ ATM iLoop is:          485
+ ATM iLoop is:          486
+ ATM iLoop is:          498
+ ATM iLoop is:          499
+ OCN iLoop is:           25
+ ATM iLoop is:          500
+ ATM iLoop is:          487
+ ATM iLoop is:          488
+ ATM iLoop is:          489
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          490
+ ATM iLoop is:          491
+ ATM iLoop is:          492
+ ATM iLoop is:          493
+ ATM iLoop is:          494
+ ATM iLoop is:          495
+ ATM iLoop is:          128
+ ATM iLoop is:          496
+ ATM iLoop is:          497
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          498
+ ATM iLoop is:          499
+ ATM iLoop is:          500
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          129
+ ATM iLoop is:          130
+ ATM iLoop is:          131
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           25
+ ATM iLoop is:          132
+ ATM iLoop is:          133
+ ATM iLoop is:          134
+ ATM iLoop is:          135
+ ATM iLoop is:          136
+ ATM iLoop is:          501
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           25
+ ATM iLoop is:          502
+ ATM iLoop is:          503
+ ATM iLoop is:          504
+ ATM iLoop is:          505
+ ATM iLoop is:          506
+ ATM iLoop is:          137
+ ATM iLoop is:          507
+ ATM iLoop is:          508
+ ATM iLoop is:          501
+ ATM iLoop is:          502
+ ATM iLoop is:          509
+ ATM iLoop is:          510
+ ATM iLoop is:          511
+ ATM iLoop is:          512
+ ATM iLoop is:          513
+ ATM iLoop is:          503
+ ATM iLoop is:          504
+ ATM iLoop is:          514
+ ATM iLoop is:          505
+ ATM iLoop is:          506
+ ATM iLoop is:          507
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          515
+ ATM iLoop is:          516
+ ATM iLoop is:          517
+ ATM iLoop is:          518
+ ATM iLoop is:          508
+ ATM iLoop is:          509
+ ATM iLoop is:          510
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          519
+ ATM iLoop is:          511
+ ATM iLoop is:          520
+ ATM iLoop is:          512
+ ATM iLoop is:          513
+ ATM iLoop is:          514
+ ATM iLoop is:          515
+ ATM iLoop is:          516
+ ATM iLoop is:          138
+ ATM iLoop is:          517
+ ATM iLoop is:          518
+ ATM iLoop is:          519
+ ATM iLoop is:          520
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          139
+ ATM iLoop is:          501
+ ATM iLoop is:          502
+ ATM iLoop is:          140
+ ATM iLoop is:          503
+ ATM iLoop is:          504
+ ATM iLoop is:          505
+ ATM iLoop is:          506
+ ATM iLoop is:          507
+ ATM iLoop is:          508
+ OCN iLoop is:           26
+ ATM iLoop is:          509
+ ATM iLoop is:          510
+ ATM iLoop is:          511
+ ATM iLoop is:          512
+ ATM iLoop is:          513
+ ATM iLoop is:          514
+ ATM iLoop is:          515
+ ATM iLoop is:          516
+ ATM iLoop is:          501
+ ATM iLoop is:          502
+ ATM iLoop is:          503
+ ATM iLoop is:          517
+ ATM iLoop is:          518
+ OCN iLoop is:           26
+ ATM iLoop is:          504
+ ATM iLoop is:          519
+ ATM iLoop is:          505
+ ATM iLoop is:          520
+ ATM iLoop is:          506
+ ATM iLoop is:          507
+ ATM iLoop is:          508
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          509
+ ATM iLoop is:          510
+ ATM iLoop is:          511
+ ATM iLoop is:          512
+ ATM iLoop is:          513
+ ATM iLoop is:          514
+ ATM iLoop is:          515
+ ATM iLoop is:          516
+ ATM iLoop is:          517
+ ATM iLoop is:          518
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          519
+ ATM iLoop is:          520
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           26
+ ATM iLoop is:          521
+ ATM iLoop is:          522
+ ATM iLoop is:          523
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          524
+ ATM iLoop is:          525
+ ATM iLoop is:          526
+ OCN iLoop is:           26
+ ATM iLoop is:          527
+ ATM iLoop is:          528
+ ATM iLoop is:          529
+ ATM iLoop is:          521
+ ATM iLoop is:          530
+ ATM iLoop is:          522
+ ATM iLoop is:          523
+ ATM iLoop is:          531
+ ATM iLoop is:          532
+ ATM iLoop is:          524
+ ATM iLoop is:          525
+ ATM iLoop is:          533
+ ATM iLoop is:          534
+ ATM iLoop is:          526
+ ATM iLoop is:          527
+ ATM iLoop is:          528
+ ATM iLoop is:          535
+ ATM iLoop is:          536
+ ATM iLoop is:          537
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          538
+ ATM iLoop is:          529
+ ATM iLoop is:          530
+ ATM iLoop is:          531
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          539
+ ATM iLoop is:          540
+ ATM iLoop is:          532
+ ATM iLoop is:          533
+ ATM iLoop is:          534
+ ATM iLoop is:          535
+ ATM iLoop is:          536
+ ATM iLoop is:          537
+ ATM iLoop is:          538
+ ATM iLoop is:          539
+ ATM iLoop is:          540
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          521
+ ATM iLoop is:          522
+ ATM iLoop is:          523
+ ATM iLoop is:          524
+ ATM iLoop is:          525
+ ATM iLoop is:          526
+ OCN iLoop is:           27
+ ATM iLoop is:          527
+ ATM iLoop is:          528
+ ATM iLoop is:          529
+ ATM iLoop is:          530
+ ATM iLoop is:          531
+ ATM iLoop is:          532
+ ATM iLoop is:          533
+ ATM iLoop is:          534
+ ATM iLoop is:          535
+ ATM iLoop is:          536
+ ATM iLoop is:          521
+ ATM iLoop is:          522
+ OCN iLoop is:           27
+ ATM iLoop is:          537
+ ATM iLoop is:          523
+ ATM iLoop is:          538
+ ATM iLoop is:          524
+ ATM iLoop is:          539
+ ATM iLoop is:          540
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          525
+ ATM iLoop is:          526
+ ATM iLoop is:          527
+ ATM iLoop is:          528
+ ATM iLoop is:          529
+ ATM iLoop is:          530
+ ATM iLoop is:          531
+ ATM iLoop is:          532
+ ATM iLoop is:          533
+ ATM iLoop is:          534
+ ATM iLoop is:          535
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          536
+ ATM iLoop is:          537
+ ATM iLoop is:          538
+ ATM iLoop is:          539
+ ATM iLoop is:          540
+ OCN iLoop is:            7
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           27
+ ATM iLoop is:          541
+ ATM iLoop is:          542
+ ATM iLoop is:          543
+ ATM iLoop is:          544
+ ATM iLoop is:          545
+ ATM iLoop is:          546
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          547
+ ATM iLoop is:          548
+ ATM iLoop is:          549
+ OCN iLoop is:           27
+ ATM iLoop is:          541
+ ATM iLoop is:          542
+ ATM iLoop is:          550
+ ATM iLoop is:          551
+ ATM iLoop is:          543
+ ATM iLoop is:          552
+ ATM iLoop is:          553
+ ATM iLoop is:          544
+ ATM iLoop is:          545
+ ATM iLoop is:          554
+ ATM iLoop is:          546
+ ATM iLoop is:          555
+ ATM iLoop is:          556
+ ATM iLoop is:          547
+ ATM iLoop is:          548
+ ATM iLoop is:          557
+ ATM iLoop is:          549
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          558
+ ATM iLoop is:          559
+ ATM iLoop is:          550
+ ATM iLoop is:          551
+ ATM iLoop is:          552
+ ATM iLoop is:          560
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          553
+ ATM iLoop is:          554
+ ATM iLoop is:          555
+ ATM iLoop is:          556
+ ATM iLoop is:          557
+ ATM iLoop is:          558
+ ATM iLoop is:          559
+ ATM iLoop is:          560
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          541
+ ATM iLoop is:          542
+ ATM iLoop is:          543
+ ATM iLoop is:          544
+ ATM iLoop is:          545
+ OCN iLoop is:           28
+ ATM iLoop is:          546
+ ATM iLoop is:          547
+ ATM iLoop is:          548
+ ATM iLoop is:          549
+ ATM iLoop is:          550
+ ATM iLoop is:          551
+ ATM iLoop is:          552
+ ATM iLoop is:          553
+ ATM iLoop is:          554
+ OCN iLoop is:           28
+ ATM iLoop is:          555
+ ATM iLoop is:          556
+ ATM iLoop is:          557
+ ATM iLoop is:          541
+ ATM iLoop is:          542
+ ATM iLoop is:          558
+ ATM iLoop is:          559
+ ATM iLoop is:          560
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          543
+ ATM iLoop is:          544
+ ATM iLoop is:          545
+ ATM iLoop is:          546
+ ATM iLoop is:          547
+ ATM iLoop is:          548
+ ATM iLoop is:          549
+ ATM iLoop is:          550
+ ATM iLoop is:          551
+ ATM iLoop is:          552
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          553
+ ATM iLoop is:          554
+ ATM iLoop is:          555
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          556
+ ATM iLoop is:          557
+ ATM iLoop is:          558
+ ATM iLoop is:          559
+ ATM iLoop is:          560
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           28
+ ATM iLoop is:          561
+ ATM iLoop is:          562
+ ATM iLoop is:          563
+ ATM iLoop is:          564
+ ATM iLoop is:          565
+ ATM iLoop is:          566
+ ATM iLoop is:          567
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          568
+ ATM iLoop is:          561
+ ATM iLoop is:          569
+ ATM iLoop is:          570
+ ATM iLoop is:          571
+ OCN iLoop is:           28
+ ATM iLoop is:          562
+ ATM iLoop is:          563
+ ATM iLoop is:          564
+ ATM iLoop is:          572
+ ATM iLoop is:          573
+ ATM iLoop is:          574
+ ATM iLoop is:          565
+ ATM iLoop is:          566
+ ATM iLoop is:          575
+ ATM iLoop is:          567
+ ATM iLoop is:          568
+ ATM iLoop is:          576
+ ATM iLoop is:          569
+ ATM iLoop is:          577
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          578
+ ATM iLoop is:          579
+ ATM iLoop is:          570
+ ATM iLoop is:          571
+ ATM iLoop is:          572
+ ATM iLoop is:          580
+ ATM iLoop is:          573
+ ATM iLoop is:          574
+ ATM iLoop is:          575
+ ATM iLoop is:          576
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          577
+ ATM iLoop is:          578
+ ATM iLoop is:          579
+ ATM iLoop is:          580
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          561
+ ATM iLoop is:          562
+ ATM iLoop is:          563
+ ATM iLoop is:          564
+ ATM iLoop is:          565
+ ATM iLoop is:          566
+ OCN iLoop is:           29
+ ATM iLoop is:          567
+ ATM iLoop is:          568
+ ATM iLoop is:          569
+ ATM iLoop is:          570
+ ATM iLoop is:          571
+ ATM iLoop is:          572
+ ATM iLoop is:          573
+ ATM iLoop is:          574
+ OCN iLoop is:           29
+ ATM iLoop is:          575
+ ATM iLoop is:          576
+ ATM iLoop is:          561
+ ATM iLoop is:          562
+ ATM iLoop is:          577
+ ATM iLoop is:          578
+ ATM iLoop is:          579
+ ATM iLoop is:          580
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          563
+ ATM iLoop is:          564
+ ATM iLoop is:          565
+ ATM iLoop is:          566
+ ATM iLoop is:          567
+ ATM iLoop is:          568
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          569
+ ATM iLoop is:          570
+ ATM iLoop is:          571
+ ATM iLoop is:          572
+ ATM iLoop is:          573
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          574
+ ATM iLoop is:          575
+ ATM iLoop is:          576
+ ATM iLoop is:          577
+ ATM iLoop is:          578
+ ATM iLoop is:          579
+ ATM iLoop is:          580
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           29
+ ATM iLoop is:          581
+ ATM iLoop is:          582
+ ATM iLoop is:          583
+ ATM iLoop is:          584
+ ATM iLoop is:          585
+ ATM iLoop is:          586
+ ATM iLoop is:          587
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          588
+ ATM iLoop is:          589
+ ATM iLoop is:          590
+ ATM iLoop is:          581
+ ATM iLoop is:          582
+ OCN iLoop is:           29
+ ATM iLoop is:          583
+ ATM iLoop is:          591
+ ATM iLoop is:          592
+ ATM iLoop is:          593
+ ATM iLoop is:          584
+ ATM iLoop is:          585
+ ATM iLoop is:          594
+ ATM iLoop is:          586
+ ATM iLoop is:          587
+ ATM iLoop is:          595
+ ATM iLoop is:          596
+ ATM iLoop is:          597
+ ATM iLoop is:          588
+ ATM iLoop is:          589
+ ATM iLoop is:          590
+ ATM iLoop is:          598
+ ATM iLoop is:          599
+ ATM iLoop is:          600
+ ATM iLoop is:          591
+ ATM iLoop is:          592
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          593
+ ATM iLoop is:          594
+ ATM iLoop is:          595
+ ATM iLoop is:          596
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          597
+ ATM iLoop is:          598
+ ATM iLoop is:          599
+ ATM iLoop is:          600
+ ATM iLoop is:          141
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          142
+ ATM iLoop is:          581
+ ATM iLoop is:          582
+ ATM iLoop is:          583
+ OCN iLoop is:           30
+ ATM iLoop is:          584
+ ATM iLoop is:          585
+ ATM iLoop is:          586
+ ATM iLoop is:          143
+ ATM iLoop is:          587
+ ATM iLoop is:          588
+ ATM iLoop is:          589
+ ATM iLoop is:          590
+ OCN iLoop is:           30
+ ATM iLoop is:          144
+ ATM iLoop is:          591
+ ATM iLoop is:          592
+ ATM iLoop is:          593
+ ATM iLoop is:          594
+ ATM iLoop is:          595
+ ATM iLoop is:          581
+ ATM iLoop is:          582
+ ATM iLoop is:          596
+ ATM iLoop is:          597
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          583
+ ATM iLoop is:          598
+ ATM iLoop is:          599
+ ATM iLoop is:          600
+ ATM iLoop is:          584
+ ATM iLoop is:          585
+ ATM iLoop is:          586
+ ATM iLoop is:          587
+ ATM iLoop is:          588
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          589
+ ATM iLoop is:          590
+ ATM iLoop is:          591
+ ATM iLoop is:          145
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          592
+ ATM iLoop is:          593
+ ATM iLoop is:          594
+ ATM iLoop is:          595
+ ATM iLoop is:          596
+ ATM iLoop is:          597
+ ATM iLoop is:          598
+ ATM iLoop is:          599
+ ATM iLoop is:          600
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          146
+ ATM iLoop is:          147
+ ATM iLoop is:          148
+ OCN iLoop is:           30
+ ATM iLoop is:          149
+ ATM iLoop is:          601
+ ATM iLoop is:          150
+ ATM iLoop is:          602
+ ATM iLoop is:          603
+ ATM iLoop is:          604
+ ATM iLoop is:          605
+ ATM iLoop is:          606
+ ATM iLoop is:          607
+ ATM iLoop is:          608
+ ATM iLoop is:          609
+ ATM iLoop is:          601
+ ATM iLoop is:          602
+ ATM iLoop is:          610
+ ATM iLoop is:          611
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          603
+ ATM iLoop is:          612
+ ATM iLoop is:          613
+ ATM iLoop is:          614
+ ATM iLoop is:          604
+ ATM iLoop is:          605
+ ATM iLoop is:          151
+ OCN iLoop is:           30
+ ATM iLoop is:          615
+ ATM iLoop is:          616
+ ATM iLoop is:          606
+ ATM iLoop is:          607
+ ATM iLoop is:          617
+ ATM iLoop is:          618
+ ATM iLoop is:          608
+ ATM iLoop is:          609
+ ATM iLoop is:          619
+ ATM iLoop is:          620
+ ATM iLoop is:          610
+ ATM iLoop is:          611
+ ATM iLoop is:          612
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          613
+ ATM iLoop is:          614
+ ATM iLoop is:          615
+ ATM iLoop is:          616
+ ATM iLoop is:          617
+ ATM iLoop is:          618
+ ATM iLoop is:          619
+ ATM iLoop is:          620
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          152
+ ATM iLoop is:          153
+ ATM iLoop is:          154
+ ATM iLoop is:          155
+ ATM iLoop is:          156
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          157
+ OCN iLoop is:           31
+ ATM iLoop is:          601
+ ATM iLoop is:          602
+ ATM iLoop is:          603
+ ATM iLoop is:          604
+ ATM iLoop is:          605
+ ATM iLoop is:          606
+ ATM iLoop is:          607
+ ATM iLoop is:          608
+ ATM iLoop is:          609
+ ATM iLoop is:          158
+ OCN iLoop is:           31
+ ATM iLoop is:          610
+ ATM iLoop is:          611
+ ATM iLoop is:          612
+ ATM iLoop is:          613
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          614
+ ATM iLoop is:          615
+ ATM iLoop is:          616
+ ATM iLoop is:          617
+ ATM iLoop is:          601
+ ATM iLoop is:          602
+ ATM iLoop is:          618
+ ATM iLoop is:          619
+ ATM iLoop is:          620
+ ATM iLoop is:          159
+ ATM iLoop is:          603
+ ATM iLoop is:          604
+ ATM iLoop is:          605
+ ATM iLoop is:          606
+ ATM iLoop is:          607
+ ATM iLoop is:          608
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          609
+ ATM iLoop is:          610
+ ATM iLoop is:          611
+ ATM iLoop is:          612
+ ATM iLoop is:          160
+ ATM iLoop is:          613
+ ATM iLoop is:          614
+ ATM iLoop is:          615
+ ATM iLoop is:          616
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          617
+ ATM iLoop is:          618
+ ATM iLoop is:          619
+ ATM iLoop is:          620
+ OCN iLoop is:           31
+ ATM iLoop is:          621
+ ATM iLoop is:          622
+ ATM iLoop is:          623
+ ATM iLoop is:          624
+ ATM iLoop is:          625
+ ATM iLoop is:          626
+ ATM iLoop is:          627
+ ATM iLoop is:          628
+ ATM iLoop is:          629
+ ATM iLoop is:          630
+ ATM iLoop is:          621
+ ATM iLoop is:          631
+ ATM iLoop is:          632
+ ATM iLoop is:          633
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          622
+ ATM iLoop is:          623
+ ATM iLoop is:          634
+ ATM iLoop is:          624
+ ATM iLoop is:          635
+ ATM iLoop is:          636
+ ATM iLoop is:          625
+ ATM iLoop is:          626
+ ATM iLoop is:          637
+ ATM iLoop is:          627
+ OCN iLoop is:           31
+ ATM iLoop is:          638
+ ATM iLoop is:          639
+ ATM iLoop is:          628
+ ATM iLoop is:          629
+ ATM iLoop is:          630
+ ATM iLoop is:          640
+ ATM iLoop is:          631
+ ATM iLoop is:          632
+ ATM iLoop is:          633
+ ATM iLoop is:          634
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          635
+ ATM iLoop is:          636
+ ATM iLoop is:          637
+ ATM iLoop is:          638
+ ATM iLoop is:          639
+ ATM iLoop is:          640
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           32
+ ATM iLoop is:          621
+ ATM iLoop is:          622
+ ATM iLoop is:          623
+ ATM iLoop is:          624
+ ATM iLoop is:          625
+ ATM iLoop is:          626
+ ATM iLoop is:          627
+ ATM iLoop is:          628
+ ATM iLoop is:          629
+ OCN iLoop is:           32
+ ATM iLoop is:          630
+ ATM iLoop is:          631
+ ATM iLoop is:          632
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          633
+ ATM iLoop is:          634
+ ATM iLoop is:          635
+ ATM iLoop is:          636
+ ATM iLoop is:          637
+ ATM iLoop is:          638
+ ATM iLoop is:          639
+ ATM iLoop is:          640
+ ATM iLoop is:          621
+ ATM iLoop is:          622
+ ATM iLoop is:          623
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          624
+ ATM iLoop is:          625
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          626
+ ATM iLoop is:          627
+ ATM iLoop is:          628
+ ATM iLoop is:          629
+ ATM iLoop is:          630
+ ATM iLoop is:          631
+ ATM iLoop is:          632
+ ATM iLoop is:          633
+ ATM iLoop is:          634
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          635
+ ATM iLoop is:          636
+ ATM iLoop is:          637
+ ATM iLoop is:          638
+ ATM iLoop is:          639
+ ATM iLoop is:          640
+ OCN iLoop is:           32
+ ATM iLoop is:          641
+ ATM iLoop is:          642
+ ATM iLoop is:          643
+ ATM iLoop is:          644
+ ATM iLoop is:          645
+ ATM iLoop is:          646
+ ATM iLoop is:          647
+ ATM iLoop is:          648
+ ATM iLoop is:          649
+ ATM iLoop is:          650
+ ATM iLoop is:          651
+ ATM iLoop is:          652
+ ATM iLoop is:          641
+ ATM iLoop is:          642
+ ATM iLoop is:          643
+ ATM iLoop is:          644
+ ATM iLoop is:          653
+ ATM iLoop is:          654
+ ATM iLoop is:          655
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          656
+ ATM iLoop is:          645
+ ATM iLoop is:          646
+ ATM iLoop is:          647
+ ATM iLoop is:          657
+ ATM iLoop is:          658
+ ATM iLoop is:          659
+ ATM iLoop is:          648
+ ATM iLoop is:          649
+ ATM iLoop is:          650
+ ATM iLoop is:          651
+ ATM iLoop is:          652
+ OCN iLoop is:           32
+ ATM iLoop is:          660
+ ATM iLoop is:          653
+ ATM iLoop is:          654
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          655
+ ATM iLoop is:          656
+ ATM iLoop is:          657
+ ATM iLoop is:          658
+ ATM iLoop is:          659
+ ATM iLoop is:          660
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:            8
+ OCN iLoop is:           33
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          641
+ ATM iLoop is:          642
+ ATM iLoop is:          643
+ ATM iLoop is:          644
+ ATM iLoop is:          645
+ ATM iLoop is:          646
+ ATM iLoop is:          647
+ OCN iLoop is:           33
+ ATM iLoop is:          648
+ ATM iLoop is:          649
+ ATM iLoop is:          650
+ ATM iLoop is:          651
+ ATM iLoop is:          652
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          653
+ ATM iLoop is:          654
+ ATM iLoop is:          655
+ ATM iLoop is:          656
+ ATM iLoop is:          657
+ ATM iLoop is:          658
+ ATM iLoop is:          659
+ ATM iLoop is:          641
+ ATM iLoop is:          642
+ ATM iLoop is:          660
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          643
+ ATM iLoop is:          644
+ ATM iLoop is:          645
+ ATM iLoop is:          646
+ ATM iLoop is:          647
+ ATM iLoop is:          648
+ ATM iLoop is:          649
+ ATM iLoop is:          650
+ ATM iLoop is:          651
+ ATM iLoop is:          652
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          653
+ ATM iLoop is:          654
+ ATM iLoop is:          655
+ ATM iLoop is:          656
+ ATM iLoop is:          657
+ ATM iLoop is:          658
+ ATM iLoop is:          659
+ ATM iLoop is:          660
+ ATM iLoop is:          661
+ ATM iLoop is:          662
+ OCN iLoop is:           33
+ ATM iLoop is:          663
+ ATM iLoop is:          664
+ ATM iLoop is:          665
+ ATM iLoop is:          666
+ ATM iLoop is:          667
+ ATM iLoop is:          668
+ ATM iLoop is:          669
+ ATM iLoop is:          670
+ ATM iLoop is:          661
+ ATM iLoop is:          662
+ ATM iLoop is:          671
+ ATM iLoop is:          672
+ ATM iLoop is:          673
+ ATM iLoop is:          674
+ ATM iLoop is:          675
+ ATM iLoop is:          663
+ ATM iLoop is:          664
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          676
+ ATM iLoop is:          677
+ ATM iLoop is:          665
+ ATM iLoop is:          666
+ ATM iLoop is:          667
+ ATM iLoop is:          678
+ ATM iLoop is:          679
+ ATM iLoop is:          668
+ ATM iLoop is:          669
+ ATM iLoop is:          680
+ ATM iLoop is:          670
+ OCN iLoop is:           33
+ ATM iLoop is:          671
+ ATM iLoop is:          672
+ ATM iLoop is:          673
+ ATM iLoop is:          674
+ ATM iLoop is:          675
+ ATM iLoop is:          676
+ ATM iLoop is:          677
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          678
+ ATM iLoop is:          679
+ ATM iLoop is:          680
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           34
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          661
+ ATM iLoop is:          662
+ ATM iLoop is:          663
+ ATM iLoop is:          664
+ ATM iLoop is:          665
+ ATM iLoop is:          666
+ OCN iLoop is:           34
+ ATM iLoop is:          667
+ ATM iLoop is:          668
+ ATM iLoop is:          669
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          670
+ ATM iLoop is:          671
+ ATM iLoop is:          672
+ ATM iLoop is:          673
+ ATM iLoop is:          674
+ ATM iLoop is:          675
+ ATM iLoop is:          676
+ ATM iLoop is:          677
+ ATM iLoop is:          678
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          661
+ ATM iLoop is:          662
+ ATM iLoop is:          679
+ ATM iLoop is:          680
+ ATM iLoop is:          663
+ ATM iLoop is:          664
+ ATM iLoop is:          665
+ ATM iLoop is:          666
+ ATM iLoop is:          667
+ ATM iLoop is:          668
+ ATM iLoop is:          669
+ ATM iLoop is:          670
+ ATM iLoop is:          671
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          672
+ ATM iLoop is:          673
+ ATM iLoop is:          674
+ ATM iLoop is:          675
+ ATM iLoop is:          676
+ ATM iLoop is:          677
+ ATM iLoop is:          678
+ ATM iLoop is:          679
+ ATM iLoop is:          680
+ ATM iLoop is:          681
+ ATM iLoop is:          682
+ ATM iLoop is:          683
+ ATM iLoop is:          684
+ ATM iLoop is:          685
+ OCN iLoop is:           34
+ ATM iLoop is:          686
+ ATM iLoop is:          687
+ ATM iLoop is:          688
+ ATM iLoop is:          689
+ ATM iLoop is:          690
+ ATM iLoop is:          691
+ ATM iLoop is:          681
+ ATM iLoop is:          692
+ ATM iLoop is:          693
+ ATM iLoop is:          682
+ ATM iLoop is:          694
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          683
+ ATM iLoop is:          684
+ ATM iLoop is:          695
+ ATM iLoop is:          696
+ ATM iLoop is:          685
+ ATM iLoop is:          697
+ ATM iLoop is:          686
+ ATM iLoop is:          698
+ ATM iLoop is:          687
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          699
+ ATM iLoop is:          688
+ ATM iLoop is:          689
+ ATM iLoop is:          700
+ ATM iLoop is:          690
+ ATM iLoop is:          691
+ ATM iLoop is:          692
+ OCN iLoop is:           34
+ ATM iLoop is:          693
+ ATM iLoop is:          694
+ ATM iLoop is:          695
+ ATM iLoop is:          696
+ ATM iLoop is:          697
+ ATM iLoop is:          698
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          699
+ ATM iLoop is:          700
+ running empty CPL_ExecuteRH...
+ OCN iLoop is:           35
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          681
+ ATM iLoop is:          682
+ ATM iLoop is:          683
+ ATM iLoop is:          684
+ OCN iLoop is:           35
+ ATM iLoop is:          685
+ ATM iLoop is:          686
+ ATM iLoop is:          687
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          688
+ ATM iLoop is:          689
+ ATM iLoop is:          690
+ ATM iLoop is:          691
+ ATM iLoop is:          692
+ ATM iLoop is:          693
+ ATM iLoop is:          694
+ ATM iLoop is:          695
+ ATM iLoop is:          696
+ ATM iLoop is:          697
+ ATM iLoop is:          698
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          681
+ ATM iLoop is:          682
+ ATM iLoop is:          699
+ ATM iLoop is:          700
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          683
+ ATM iLoop is:          684
+ ATM iLoop is:          685
+ ATM iLoop is:          686
+ ATM iLoop is:          687
+ ATM iLoop is:          688
+ ATM iLoop is:          689
+ ATM iLoop is:          690
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          691
+ ATM iLoop is:          692
+ ATM iLoop is:          693
+ ATM iLoop is:          694
+ ATM iLoop is:          695
+ ATM iLoop is:          696
+ ATM iLoop is:          697
+ ATM iLoop is:          698
+ ATM iLoop is:          699
+ ATM iLoop is:          700
+ ATM iLoop is:          701
+ ATM iLoop is:          702
+ ATM iLoop is:          703
+ ATM iLoop is:          704
+ ATM iLoop is:          705
+ ATM iLoop is:          706
+ ATM iLoop is:          707
+ OCN iLoop is:           35
+ ATM iLoop is:          708
+ ATM iLoop is:          709
+ ATM iLoop is:          710
+ ATM iLoop is:          711
+ ATM iLoop is:          712
+ ATM iLoop is:          713
+ ATM iLoop is:          714
+ ATM iLoop is:          701
+ ATM iLoop is:          702
+ ATM iLoop is:          715
+ ATM iLoop is:          703
+ ATM iLoop is:          704
+ ATM iLoop is:          716
+ ATM iLoop is:          705
+ ATM iLoop is:          717
+ ATM iLoop is:          706
+ ATM iLoop is:          718
+ ATM iLoop is:          707
+ ATM iLoop is:          708
+ ATM iLoop is:          719
+ ATM iLoop is:          720
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          709
+ ATM iLoop is:          710
+ ATM iLoop is:          711
+ ATM iLoop is:          712
+ OCN iLoop is:           35
+ ATM iLoop is:          713
+ ATM iLoop is:          714
+ ATM iLoop is:          715
+ ATM iLoop is:          716
+ ATM iLoop is:          717
+ ATM iLoop is:          718
+ ATM iLoop is:          719
+ ATM iLoop is:          720
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          161
+ OCN iLoop is:           36
+ calling main finalize function
+ ATM iLoop is:          162
+ ATM iLoop is:          163
+ ATM iLoop is:          164
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          701
+ ATM iLoop is:          702
+ OCN iLoop is:           36
+ ATM iLoop is:          703
+ ATM iLoop is:          704
+ ATM iLoop is:          705
+ ATM iLoop is:          706
+ calling main finalize function
+ ATM iLoop is:          707
+ ATM iLoop is:          708
+ ATM iLoop is:          709
+ ATM iLoop is:          710
+ ATM iLoop is:          165
+ ATM iLoop is:          711
+ calling empty CPL_ReleaseRH...
+ ATM iLoop is:          712
+ ATM iLoop is:          713
+ ATM iLoop is:          714
+ ATM iLoop is:          715
+ ATM iLoop is:          716
+ ATM iLoop is:          717
+ ATM iLoop is:          701
+ ATM iLoop is:          718
+ ATM iLoop is:          719
+ ATM iLoop is:          720
+ ATM iLoop is:          702
+ ATM iLoop is:          703
+ ATM iLoop is:          704
+ ATM iLoop is:          705
+ ATM iLoop is:          706
+ ATM iLoop is:          166
+ calling empty CPL_ReleaseRH...
+ ATM iLoop is:          707
+ ATM iLoop is:          708
+ ATM iLoop is:          709
+ ATM iLoop is:          710
+ ATM iLoop is:          711
+ ATM iLoop is:          712
+ ATM iLoop is:          713
+ ATM iLoop is:          714
+ ATM iLoop is:          167
+ ATM iLoop is:          715
+ ATM iLoop is:          716
+ ATM iLoop is:          717
+ ATM iLoop is:          718
+ ATM iLoop is:          719
+ ATM iLoop is:          720
+ calling empty CPL_ReleaseRH...
+ OCN iLoop is:           36
+ ATM iLoop is:          168
+ calling main finalize function
+ ATM iLoop is:          169
+ ATM iLoop is:          170
+ ATM iLoop is:          171
+ ATM iLoop is:          172
+ ATM iLoop is:          173
+ ATM iLoop is:          174
+ ATM iLoop is:          175
+ ATM iLoop is:          176
+ calling empty CPL_ReleaseRH...
+ calling empty CPL_ReleaseRH...
+ OCN iLoop is:           36
+ calling main finalize function
+ ATM iLoop is:          177
+ ATM iLoop is:          178
+ ATM iLoop is:          179
+ ATM iLoop is:          180
+ calling empty CPL_ReleaseRH...
+ calling empty CPL_ReleaseRH...
+ OCN iLoop is:            9
+ calling empty CPL_ReleaseRH...
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          181
+ ATM iLoop is:          182
+ ATM iLoop is:          183
+ ATM iLoop is:          184
+ ATM iLoop is:          185
+ ATM iLoop is:          186
+ ATM iLoop is:          187
+ ATM iLoop is:          188
+ ATM iLoop is:          189
+ ATM iLoop is:          190
+ ATM iLoop is:          191
+ ATM iLoop is:          192
+ ATM iLoop is:          193
+ ATM iLoop is:          194
+ ATM iLoop is:          195
+ ATM iLoop is:          196
+ ATM iLoop is:          197
+ ATM iLoop is:          198
+ ATM iLoop is:          199
+ ATM iLoop is:          200
+ OCN iLoop is:           10
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          201
+ ATM iLoop is:          202
+ ATM iLoop is:          203
+ ATM iLoop is:          204
+ ATM iLoop is:          205
+ ATM iLoop is:          206
+ ATM iLoop is:          207
+ ATM iLoop is:          208
+ ATM iLoop is:          209
+ ATM iLoop is:          210
+ ATM iLoop is:          211
+ ATM iLoop is:          212
+ ATM iLoop is:          213
+ ATM iLoop is:          214
+ ATM iLoop is:          215
+ ATM iLoop is:          216
+ ATM iLoop is:          217
+ ATM iLoop is:          218
+ ATM iLoop is:          219
+ ATM iLoop is:          220
+ OCN iLoop is:           11
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          221
+ ATM iLoop is:          222
+ ATM iLoop is:          223
+ ATM iLoop is:          224
+ ATM iLoop is:          225
+ ATM iLoop is:          226
+ ATM iLoop is:          227
+ ATM iLoop is:          228
+ ATM iLoop is:          229
+ ATM iLoop is:          230
+ ATM iLoop is:          231
+ ATM iLoop is:          232
+ ATM iLoop is:          233
+ ATM iLoop is:          234
+ ATM iLoop is:          235
+ ATM iLoop is:          236
+ ATM iLoop is:          237
+ ATM iLoop is:          238
+ ATM iLoop is:          239
+ ATM iLoop is:          240
+ OCN iLoop is:           12
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          241
+ ATM iLoop is:          242
+ ATM iLoop is:          243
+ ATM iLoop is:          244
+ ATM iLoop is:          245
+ ATM iLoop is:          246
+ ATM iLoop is:          247
+ ATM iLoop is:          248
+ ATM iLoop is:          249
+ ATM iLoop is:          250
+ ATM iLoop is:          251
+ ATM iLoop is:          252
+ ATM iLoop is:          253
+ ATM iLoop is:          254
+ ATM iLoop is:          255
+ ATM iLoop is:          256
+ ATM iLoop is:          257
+ ATM iLoop is:          258
+ ATM iLoop is:          259
+ ATM iLoop is:          260
+ OCN iLoop is:           13
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          261
+ ATM iLoop is:          262
+ ATM iLoop is:          263
+ ATM iLoop is:          264
+ ATM iLoop is:          265
+ ATM iLoop is:          266
+ ATM iLoop is:          267
+ ATM iLoop is:          268
+ ATM iLoop is:          269
+ ATM iLoop is:          270
+ ATM iLoop is:          271
+ ATM iLoop is:          272
+ ATM iLoop is:          273
+ ATM iLoop is:          274
+ ATM iLoop is:          275
+ ATM iLoop is:          276
+ ATM iLoop is:          277
+ ATM iLoop is:          278
+ ATM iLoop is:          279
+ ATM iLoop is:          280
+ OCN iLoop is:           14
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          281
+ ATM iLoop is:          282
+ ATM iLoop is:          283
+ ATM iLoop is:          284
+ ATM iLoop is:          285
+ ATM iLoop is:          286
+ ATM iLoop is:          287
+ ATM iLoop is:          288
+ ATM iLoop is:          289
+ ATM iLoop is:          290
+ ATM iLoop is:          291
+ ATM iLoop is:          292
+ ATM iLoop is:          293
+ ATM iLoop is:          294
+ ATM iLoop is:          295
+ ATM iLoop is:          296
+ ATM iLoop is:          297
+ ATM iLoop is:          298
+ ATM iLoop is:          299
+ ATM iLoop is:          300
+ OCN iLoop is:           15
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          301
+ ATM iLoop is:          302
+ ATM iLoop is:          303
+ ATM iLoop is:          304
+ ATM iLoop is:          305
+ ATM iLoop is:          306
+ ATM iLoop is:          307
+ ATM iLoop is:          308
+ ATM iLoop is:          309
+ ATM iLoop is:          310
+ ATM iLoop is:          311
+ ATM iLoop is:          312
+ ATM iLoop is:          313
+ ATM iLoop is:          314
+ ATM iLoop is:          315
+ ATM iLoop is:          316
+ ATM iLoop is:          317
+ ATM iLoop is:          318
+ ATM iLoop is:          319
+ ATM iLoop is:          320
+ OCN iLoop is:           16
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          321
+ ATM iLoop is:          322
+ ATM iLoop is:          323
+ ATM iLoop is:          324
+ ATM iLoop is:          325
+ ATM iLoop is:          326
+ ATM iLoop is:          327
+ ATM iLoop is:          328
+ ATM iLoop is:          329
+ ATM iLoop is:          330
+ ATM iLoop is:          331
+ ATM iLoop is:          332
+ ATM iLoop is:          333
+ ATM iLoop is:          334
+ ATM iLoop is:          335
+ ATM iLoop is:          336
+ ATM iLoop is:          337
+ ATM iLoop is:          338
+ ATM iLoop is:          339
+ ATM iLoop is:          340
+ OCN iLoop is:           17
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          341
+ ATM iLoop is:          342
+ ATM iLoop is:          343
+ ATM iLoop is:          344
+ ATM iLoop is:          345
+ ATM iLoop is:          346
+ ATM iLoop is:          347
+ ATM iLoop is:          348
+ ATM iLoop is:          349
+ ATM iLoop is:          350
+ ATM iLoop is:          351
+ ATM iLoop is:          352
+ ATM iLoop is:          353
+ ATM iLoop is:          354
+ ATM iLoop is:          355
+ ATM iLoop is:          356
+ ATM iLoop is:          357
+ ATM iLoop is:          358
+ ATM iLoop is:          359
+ ATM iLoop is:          360
+ OCN iLoop is:           18
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          361
+ ATM iLoop is:          362
+ ATM iLoop is:          363
+ ATM iLoop is:          364
+ ATM iLoop is:          365
+ ATM iLoop is:          366
+ ATM iLoop is:          367
+ ATM iLoop is:          368
+ ATM iLoop is:          369
+ ATM iLoop is:          370
+ ATM iLoop is:          371
+ ATM iLoop is:          372
+ ATM iLoop is:          373
+ ATM iLoop is:          374
+ ATM iLoop is:          375
+ ATM iLoop is:          376
+ ATM iLoop is:          377
+ ATM iLoop is:          378
+ ATM iLoop is:          379
+ ATM iLoop is:          380
+ OCN iLoop is:           19
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          381
+ ATM iLoop is:          382
+ ATM iLoop is:          383
+ ATM iLoop is:          384
+ ATM iLoop is:          385
+ ATM iLoop is:          386
+ ATM iLoop is:          387
+ ATM iLoop is:          388
+ ATM iLoop is:          389
+ ATM iLoop is:          390
+ ATM iLoop is:          391
+ ATM iLoop is:          392
+ ATM iLoop is:          393
+ ATM iLoop is:          394
+ ATM iLoop is:          395
+ ATM iLoop is:          396
+ ATM iLoop is:          397
+ ATM iLoop is:          398
+ ATM iLoop is:          399
+ ATM iLoop is:          400
+ OCN iLoop is:           20
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          401
+ ATM iLoop is:          402
+ ATM iLoop is:          403
+ ATM iLoop is:          404
+ ATM iLoop is:          405
+ ATM iLoop is:          406
+ ATM iLoop is:          407
+ ATM iLoop is:          408
+ ATM iLoop is:          409
+ ATM iLoop is:          410
+ ATM iLoop is:          411
+ ATM iLoop is:          412
+ ATM iLoop is:          413
+ ATM iLoop is:          414
+ ATM iLoop is:          415
+ ATM iLoop is:          416
+ ATM iLoop is:          417
+ ATM iLoop is:          418
+ ATM iLoop is:          419
+ ATM iLoop is:          420
+ OCN iLoop is:           21
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          421
+ ATM iLoop is:          422
+ ATM iLoop is:          423
+ ATM iLoop is:          424
+ ATM iLoop is:          425
+ ATM iLoop is:          426
+ ATM iLoop is:          427
+ ATM iLoop is:          428
+ ATM iLoop is:          429
+ ATM iLoop is:          430
+ ATM iLoop is:          431
+ ATM iLoop is:          432
+ ATM iLoop is:          433
+ ATM iLoop is:          434
+ ATM iLoop is:          435
+ ATM iLoop is:          436
+ ATM iLoop is:          437
+ ATM iLoop is:          438
+ ATM iLoop is:          439
+ ATM iLoop is:          440
+ OCN iLoop is:           22
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          441
+ ATM iLoop is:          442
+ ATM iLoop is:          443
+ ATM iLoop is:          444
+ ATM iLoop is:          445
+ ATM iLoop is:          446
+ ATM iLoop is:          447
+ ATM iLoop is:          448
+ ATM iLoop is:          449
+ ATM iLoop is:          450
+ ATM iLoop is:          451
+ ATM iLoop is:          452
+ ATM iLoop is:          453
+ ATM iLoop is:          454
+ ATM iLoop is:          455
+ ATM iLoop is:          456
+ ATM iLoop is:          457
+ ATM iLoop is:          458
+ ATM iLoop is:          459
+ ATM iLoop is:          460
+ OCN iLoop is:           23
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          461
+ ATM iLoop is:          462
+ ATM iLoop is:          463
+ ATM iLoop is:          464
+ ATM iLoop is:          465
+ ATM iLoop is:          466
+ ATM iLoop is:          467
+ ATM iLoop is:          468
+ ATM iLoop is:          469
+ ATM iLoop is:          470
+ ATM iLoop is:          471
+ ATM iLoop is:          472
+ ATM iLoop is:          473
+ ATM iLoop is:          474
+ ATM iLoop is:          475
+ ATM iLoop is:          476
+ ATM iLoop is:          477
+ ATM iLoop is:          478
+ ATM iLoop is:          479
+ ATM iLoop is:          480
+ OCN iLoop is:           24
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          481
+ ATM iLoop is:          482
+ ATM iLoop is:          483
+ ATM iLoop is:          484
+ ATM iLoop is:          485
+ ATM iLoop is:          486
+ ATM iLoop is:          487
+ ATM iLoop is:          488
+ ATM iLoop is:          489
+ ATM iLoop is:          490
+ ATM iLoop is:          491
+ ATM iLoop is:          492
+ ATM iLoop is:          493
+ ATM iLoop is:          494
+ ATM iLoop is:          495
+ ATM iLoop is:          496
+ ATM iLoop is:          497
+ ATM iLoop is:          498
+ ATM iLoop is:          499
+ ATM iLoop is:          500
+ OCN iLoop is:           25
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          501
+ ATM iLoop is:          502
+ ATM iLoop is:          503
+ ATM iLoop is:          504
+ ATM iLoop is:          505
+ ATM iLoop is:          506
+ ATM iLoop is:          507
+ ATM iLoop is:          508
+ ATM iLoop is:          509
+ ATM iLoop is:          510
+ ATM iLoop is:          511
+ ATM iLoop is:          512
+ ATM iLoop is:          513
+ ATM iLoop is:          514
+ ATM iLoop is:          515
+ ATM iLoop is:          516
+ ATM iLoop is:          517
+ ATM iLoop is:          518
+ ATM iLoop is:          519
+ ATM iLoop is:          520
+ OCN iLoop is:           26
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          521
+ ATM iLoop is:          522
+ ATM iLoop is:          523
+ ATM iLoop is:          524
+ ATM iLoop is:          525
+ ATM iLoop is:          526
+ ATM iLoop is:          527
+ ATM iLoop is:          528
+ ATM iLoop is:          529
+ ATM iLoop is:          530
+ ATM iLoop is:          531
+ ATM iLoop is:          532
+ ATM iLoop is:          533
+ ATM iLoop is:          534
+ ATM iLoop is:          535
+ ATM iLoop is:          536
+ ATM iLoop is:          537
+ ATM iLoop is:          538
+ ATM iLoop is:          539
+ ATM iLoop is:          540
+ OCN iLoop is:           27
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          541
+ ATM iLoop is:          542
+ ATM iLoop is:          543
+ ATM iLoop is:          544
+ ATM iLoop is:          545
+ ATM iLoop is:          546
+ ATM iLoop is:          547
+ ATM iLoop is:          548
+ ATM iLoop is:          549
+ ATM iLoop is:          550
+ ATM iLoop is:          551
+ ATM iLoop is:          552
+ ATM iLoop is:          553
+ ATM iLoop is:          554
+ ATM iLoop is:          555
+ ATM iLoop is:          556
+ ATM iLoop is:          557
+ ATM iLoop is:          558
+ ATM iLoop is:          559
+ ATM iLoop is:          560
+ OCN iLoop is:           28
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          561
+ ATM iLoop is:          562
+ ATM iLoop is:          563
+ ATM iLoop is:          564
+ ATM iLoop is:          565
+ ATM iLoop is:          566
+ ATM iLoop is:          567
+ ATM iLoop is:          568
+ ATM iLoop is:          569
+ ATM iLoop is:          570
+ ATM iLoop is:          571
+ ATM iLoop is:          572
+ ATM iLoop is:          573
+ ATM iLoop is:          574
+ ATM iLoop is:          575
+ ATM iLoop is:          576
+ ATM iLoop is:          577
+ ATM iLoop is:          578
+ ATM iLoop is:          579
+ ATM iLoop is:          580
+ OCN iLoop is:           29
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          581
+ ATM iLoop is:          582
+ ATM iLoop is:          583
+ ATM iLoop is:          584
+ ATM iLoop is:          585
+ ATM iLoop is:          586
+ ATM iLoop is:          587
+ ATM iLoop is:          588
+ ATM iLoop is:          589
+ ATM iLoop is:          590
+ ATM iLoop is:          591
+ ATM iLoop is:          592
+ ATM iLoop is:          593
+ ATM iLoop is:          594
+ ATM iLoop is:          595
+ ATM iLoop is:          596
+ ATM iLoop is:          597
+ ATM iLoop is:          598
+ ATM iLoop is:          599
+ ATM iLoop is:          600
+ OCN iLoop is:           30
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          601
+ ATM iLoop is:          602
+ ATM iLoop is:          603
+ ATM iLoop is:          604
+ ATM iLoop is:          605
+ ATM iLoop is:          606
+ ATM iLoop is:          607
+ ATM iLoop is:          608
+ ATM iLoop is:          609
+ ATM iLoop is:          610
+ ATM iLoop is:          611
+ ATM iLoop is:          612
+ ATM iLoop is:          613
+ ATM iLoop is:          614
+ ATM iLoop is:          615
+ ATM iLoop is:          616
+ ATM iLoop is:          617
+ ATM iLoop is:          618
+ ATM iLoop is:          619
+ ATM iLoop is:          620
+ OCN iLoop is:           31
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          621
+ ATM iLoop is:          622
+ ATM iLoop is:          623
+ ATM iLoop is:          624
+ ATM iLoop is:          625
+ ATM iLoop is:          626
+ ATM iLoop is:          627
+ ATM iLoop is:          628
+ ATM iLoop is:          629
+ ATM iLoop is:          630
+ ATM iLoop is:          631
+ ATM iLoop is:          632
+ ATM iLoop is:          633
+ ATM iLoop is:          634
+ ATM iLoop is:          635
+ ATM iLoop is:          636
+ ATM iLoop is:          637
+ ATM iLoop is:          638
+ ATM iLoop is:          639
+ ATM iLoop is:          640
+ OCN iLoop is:           32
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          641
+ ATM iLoop is:          642
+ ATM iLoop is:          643
+ ATM iLoop is:          644
+ ATM iLoop is:          645
+ ATM iLoop is:          646
+ ATM iLoop is:          647
+ ATM iLoop is:          648
+ ATM iLoop is:          649
+ ATM iLoop is:          650
+ ATM iLoop is:          651
+ ATM iLoop is:          652
+ ATM iLoop is:          653
+ ATM iLoop is:          654
+ ATM iLoop is:          655
+ ATM iLoop is:          656
+ ATM iLoop is:          657
+ ATM iLoop is:          658
+ ATM iLoop is:          659
+ ATM iLoop is:          660
+ OCN iLoop is:           33
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          661
+ ATM iLoop is:          662
+ ATM iLoop is:          663
+ ATM iLoop is:          664
+ ATM iLoop is:          665
+ ATM iLoop is:          666
+ ATM iLoop is:          667
+ ATM iLoop is:          668
+ ATM iLoop is:          669
+ ATM iLoop is:          670
+ ATM iLoop is:          671
+ ATM iLoop is:          672
+ ATM iLoop is:          673
+ ATM iLoop is:          674
+ ATM iLoop is:          675
+ ATM iLoop is:          676
+ ATM iLoop is:          677
+ ATM iLoop is:          678
+ ATM iLoop is:          679
+ ATM iLoop is:          680
+ OCN iLoop is:           34
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          681
+ ATM iLoop is:          682
+ ATM iLoop is:          683
+ ATM iLoop is:          684
+ ATM iLoop is:          685
+ ATM iLoop is:          686
+ ATM iLoop is:          687
+ ATM iLoop is:          688
+ ATM iLoop is:          689
+ ATM iLoop is:          690
+ ATM iLoop is:          691
+ ATM iLoop is:          692
+ ATM iLoop is:          693
+ ATM iLoop is:          694
+ ATM iLoop is:          695
+ ATM iLoop is:          696
+ ATM iLoop is:          697
+ ATM iLoop is:          698
+ ATM iLoop is:          699
+ ATM iLoop is:          700
+ OCN iLoop is:           35
+ running empty CPL_ExecuteRH...
+ running empty CPL_ExecuteRH...
+ ATM iLoop is:          701
+ ATM iLoop is:          702
+ ATM iLoop is:          703
+ ATM iLoop is:          704
+ ATM iLoop is:          705
+ ATM iLoop is:          706
+ ATM iLoop is:          707
+ ATM iLoop is:          708
+ ATM iLoop is:          709
+ ATM iLoop is:          710
+ ATM iLoop is:          711
+ ATM iLoop is:          712
+ ATM iLoop is:          713
+ ATM iLoop is:          714
+ ATM iLoop is:          715
+ ATM iLoop is:          716
+ ATM iLoop is:          717
+ ATM iLoop is:          718
+ ATM iLoop is:          719
+ ATM iLoop is:          720
+ OCN iLoop is:           36
+ calling main finalize function
+ calling empty CPL_ReleaseRH...
+ calling empty CPL_ReleaseRH...
