@@ -28,16 +28,16 @@ module mod_esmf_ocn
   use mod_types
 
 
-! ---- ESMF_JULIA BEGIN ----
+! ---- ESMF_PY BEGIN ----
     USE, INTRINSIC :: ISO_C_BINDING
-! ---- ESMF_JULIA END ----
+! ---- ESMF_PY END ----
  
 
 
 !
   implicit none
 
-! ---- ESMF_JULIA BEGIN ----
+! ---- ESMF_PY BEGIN ----
     INTERFACE
       INTEGER FUNCTION MARCOISCOOL_PYMODEL_INIT(thread_id, comm) BIND(C, name="MARCOISCOOL_PYMODEL_INIT")
         import :: C_INT
@@ -45,7 +45,16 @@ module mod_esmf_ocn
         INTEGER(C_INT) :: comm
       END FUNCTION MARCOISCOOL_PYMODEL_INIT
     END INTERFACE
-! ---- ESMF_JULIA END ----'
+
+    INTERFACE
+      INTEGER FUNCTION MARCOISCOOL_PYMODEL_FINAL(thread_id, comm) BIND(C, name="MARCOISCOOL_PYMODEL_INIT")
+        import :: C_INT
+        INTEGER(C_INT) :: thread_id
+        INTEGER(C_INT) :: comm
+      END FUNCTION MARCOISCOOL_PYMODEL_FINAL
+    END INTERFACE
+
+! ---- ESMF_PY END ----
 
 !
 
@@ -60,15 +69,6 @@ module mod_esmf_ocn
 !
   contains
 !
-
-!      INTEGER FUNCTION MARCOISCOOL_PYMODEL_INIT(a, b)
-!        implicit none
-!        INTEGER :: a, b
-
-        
-!        MARCOISCOOL_PYMODEL_INIT=a+b
-!      END FUNCTION MARCOISCOOL_PYMODEL_INIT
-
 
   subroutine OCN_SetServices(gcomp, rc)
 !
@@ -107,6 +107,16 @@ module mod_esmf_ocn
                             specRoutine=OCN_Run, rc = rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
+
+  ! ---- ESMF_PY BEGIN ----
+
+  call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_FINALIZE,         &
+                               phaseLabelList=(/"FPDV00p1"/),       &
+                               userRoutine=OCN_Final, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+  
+  ! ---- ESMF_PY END ----
 
   end subroutine OCN_SetServices
 !
@@ -239,11 +249,49 @@ module mod_esmf_ocn
   !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
   !!     line=__LINE__, file=FILENAME)) return
 
+
+! ---- ESMF_PY BEGIN ----
     print *, "Calling function: MARCOISCOOL_PYMODEL_INIT"
     print *, MARCOISCOOL_PYMODEL_INIT(myThid, comm)
+! ---- ESMF_PY END ----
 
 
   end subroutine
+
+! ---- ESMF_PY BEGIN ----
+  subroutine OCN_Final(gcomp, importState, exportState, clock, rc)
+
+    type(ESMF_GridComp)  :: gcomp
+    type(ESMF_State)     :: importState, exportState
+    type(ESMF_Clock)     :: clock
+    integer, intent(out) :: rc
+
+    integer :: myThid = 1
+    integer :: comm, localPet, petCount
+    character(ESMF_MAXSTR) :: gname
+
+    type(ESMF_VM) :: vm
+    
+    print *, "[Fortran Code] Finalizing..."
+      
+    rc = ESMF_SUCCESS
+
+    call ESMF_GridCompGet(gcomp, name=gname, vm=vm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+        line=__LINE__, file=FILENAME)) return
+
+    call ESMF_VMGet(vm, localPet=localPet, petCount=petCount,         &
+                    mpiCommunicator=comm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+        line=__LINE__, file=FILENAME)) return
+
+
+    print *, MARCOISCOOL_PYMODEL_FINAL(myThid, comm)
+  
+  end subroutine
+! ---- ESMF_PY END ----
+
+!
 !
 !-----------------------------------------------------------------------
 !     Ocean Check Import Fields
