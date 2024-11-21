@@ -24,7 +24,7 @@ endif
 
 include $(ESMFMKFILE)
 
-version=3.13
+version=3.10
 pyfull=python$(version)
 PY_ROOT=/home/t2hsu/miniconda3/envs/mpi
 PY_INC=$(PY_ROOT)/include/$(pyfull)

@@ -9,7 +9,7 @@ rm -rf build/*
 cp coupledSolver/* build
 
 # build the test coupler
-cd coupledSolver
+cd build
 
 # set the path of ESMF installation
 ./Allmake.sh
