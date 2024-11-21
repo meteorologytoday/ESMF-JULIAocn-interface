@@ -5,20 +5,16 @@ from pprint import pprint
 
 class OceanModel:
     
-    def __init__(self, rank, comm, config_grid_file="config_grid.toml"):
+    def __init__(self, rank, comm):
 
         print("You are in the OceanModel constructor (ta-da)!")
         
         self.comm = comm 
         self.rank = self.comm.Get_rank()
-        self.config_grid = toml.load(config_grid_file)
+        self.config_grid = toml.load("config_grid.toml")
 
         number_of_pet = self.comm.Get_size()
-       
-        cf = self.config_grid
- 
-        sNx = cf["sNx"]
-        sNy = cf["sNy"]
+        
         nSx = cf["nSx"]
         nSy = cf["nSy"]
         nPx = cf["nPx"]
@@ -29,29 +25,32 @@ class OceanModel:
 
         total_hgrid = Nx * Ny
         
-        if Nx != sNx * nSx * nPx:
-            self.error("Nx must equal to sNx * nSx * nPx.")
+        if Nx % (nSx*nPx) != 0:
+            self.error("Nx should be a multiple of nSx * nPx.")
  
-        if Ny != sNy * nSy * nPy:
-            self.error("Ny must equal to sNy * nSy * nPy.")
+        if Ny % (nSy*nPy) != 0:
+            self.error("Ny should be a multiple of nSy * nPy.")
         
 
-        if nSx != 1 or nSy != 1 :
-            self.error("Currently I only support nSx = nSy = 1.")
+        #if nSx != 1 or nSy != 1 :
+        #    raise Error("Currently I only support nSx = nSy = 1.")
 
         expected_number_of_pet = nPx * nPy
         if number_of_pet != expected_number_of_pet:
             self.error("expected_number_of_pet = %d but I only have %d pet" % (expected_number_of_pet, number_of_pet,))
         
-        grids_per_pet_x = sNx * nSx
-        grids_per_pet_y = sNy * nSy
+        grids_per_tile_x = cf["Nx"] // (nPx * nSx)
+        grids_per_pet_x = grids_per_tile_x * nSx
 
-        pet_idx_y = self.rank // nPx
-        pet_idx_x = self.rank % nPx
+        grids_per_tile_y = cf["Ny"] // (nPx * nSx)
+        grids_per_pet_y = grids_per_tile_y * nSy
 
 
-        self.myXGlobalLo = [ grids_per_pet_x * pet_idx_x + sNx * i for i in range(nSx) ]
-        self.myYGlobalLo = [ grids_per_pet_y * pet_idx_y + sNy * j for j in range(nSy) ]
+        pet_idx_y = self.rank // grids_per_pet_x
+        pet_idx_x = self.rank % grids_per_pet_x
+
+        self.myXGlobalLo = [ grids_per_pet_x * pet_idx_x + grids_per_tile_x * i for i in range(nSx) ]
+        self.myYGlobalLo = [ grids_per_pet_y * pet_idx_y + grids_per_tile_y * j for j in range(nSy) ]
 
 
 
@@ -64,18 +63,14 @@ class OceanModel:
             self.printlog("Printing config_grid: ")
             pprint(self.config_grid, indent=4)
 
-        self.printlog("myXGlobalLo = %s", str(self.myXGlobalLo))
-        self.printlog("myYGlobalLo = %s", str(self.myYGlobalLo))
-    
+            self.printlog("myXGlobalLo = ", self.myXGlobalLo)
+            self.printlog("myYGlobalLo = ", self.myYGlobalLo)
+        
 
 
     def printlog(self, fmtstr, *args):
-       
-        if len(args) != 0: 
-            s = fmtstr % args
-
-        else:
-            s = fmtstr
+        
+        s = fmtstr % args
         print("[Rank=%d/%d] %s" % (self.rank, self.comm.Get_size(), s))
     
     def error(self, fmtstr, *args):
@@ -120,10 +115,9 @@ if __name__ == "__main__":
     rank = MPI.COMM_WORLD.Get_rank()
     size = MPI.COMM_WORLD.Get_size()
   
-    model = OceanModel(rank, MPI.COMM_WORLD, "pyocnmodel_code/config_grid.toml")
+    model = OceanModel(rank, 1)
  
     print("Rank = ", rank)
     print("Size = ", size)
     
     print(model.getDomainInfo()) 
-    model.report()

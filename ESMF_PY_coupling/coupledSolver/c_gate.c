@@ -20,12 +20,11 @@ MPI_Fint f_MPI_Comm_c2f(int *comm) {
 */
 
 
-void MARCOISCOOL_PYMODEL_INIT( int thread_id, int Fcomm) {
+void MARCOISCOOL_PYMODEL_INIT( int thread_id, int fcomm) {
 
-    printf("[C code] received Fcomm = %ld\n", Fcomm);
-    MPI_Comm comm = MPI_Comm_f2c(Fcomm);
+    MPI_Comm comm = MPI_Comm_f2c(fcomm);
 
-    // Step 2: Initialize the Python interpreter
+    // Initialize the Python interpreter
     printf("[C Code] Initialize Python\n");
     Py_Initialize();
 

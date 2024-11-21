@@ -496,11 +496,6 @@ module mod_esmf_ocn
   print *, "myYGlobalLo = ", myYGlobalLo
 ! ---- ESMF_PY END ----
 
-
-    nx = 10
-    ny = 10
-    nPx = 2
-    nPy = 1
 !
 !-----------------------------------------------------------------------
 !     Get gridded component 
@@ -511,13 +506,15 @@ module mod_esmf_ocn
       line=__LINE__, file=FILENAME)) return
 !
   if (.not.allocated(deBlockList)) then
-    allocate(deBlockList(2,2,1:2))
+    allocate(deBlockList(2,2,1:nPx*nPy))
   end if
-
-  deBlockList(:,1,1) = (/ 1, 1/)
-  deBlockList(:,2,1) = (/ 5, ny/)
-  deBlockList(:,1,2) = (/ 6, 1/)
-  deBlockList(:,2,2) = (/nx, ny/)
+!
+  do tile = 1, (nPx*nPy)
+    deBlockList(1,1,tile) = mpi_myXGlobalLo(tile)
+    deBlockList(1,2,tile) = mpi_myXGlobalLo(tile)+sNx-1
+    deBlockList(2,1,tile) = mpi_myYGlobalLo(tile) 
+    deBlockList(2,2,tile) = mpi_myYGlobalLo(tile)+sNy-1
+  end do
 
 
 !-----------------------------------------------------------------------

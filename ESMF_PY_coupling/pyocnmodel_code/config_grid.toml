@@ -1,19 +1,20 @@
 
 
-sNx = 10
-sNy = 10
+sNx = 20
+sNy = 20
+
+nSx = 1 # number of tiles per processor
+nSy = 1
+
+nPx = 3 # number of processors. 
+nPy = 2
 
 OLx = 3
 OLy = 3
 
-nSx = 10 # number of tiles per processor
-nSy = 5
 
-nPx = 1 # number of processors. 
-nPy = 1
-
-Nx = 360
-Ny = 180
+Nx = 60
+Ny = 40
 Nr = 5
 
 

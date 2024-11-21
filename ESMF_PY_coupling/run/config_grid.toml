@@ -1,0 +1,20 @@
+
+
+sNx = 10
+sNy = 10
+
+OLx = 3
+OLy = 3
+
+nSx = 1 # number of tiles per processor
+nSy = 1
+
+nPx = 2 # number of processors. 
+nPy = 1
+
+Nx = 10
+Ny = 10
+Nr = 5
+
+
+
