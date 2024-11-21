@@ -419,7 +419,7 @@ module mod_esmf_atm
                            status=ESMF_FILESTATUS_NEW, rc=rc)
     end if
   end do
-  print *, "debug finished!"
+  print *, "ATM debug finished!"
 !
   end subroutine ATM_SetGridArrays
 !

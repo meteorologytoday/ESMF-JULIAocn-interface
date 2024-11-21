@@ -118,6 +118,7 @@ module mod_esmf_ocn
   call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_INITIALIZE,       &
                                phaseLabelList=(/"IPDv00p2"/),       &
                                userRoutine=OCN_Init2, rc=rc)
+    
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
@@ -180,21 +181,21 @@ module mod_esmf_ocn
   ! that ESMF has already called MPI_INIT and respond appropriately.  
   !! call wrf_init( no_init1=.TRUE. )
 
-  call NUOPC_Advertise(exportState,                                 &
-      StandardName="sea_surface_temperature", name="sst", rc=rc)
-  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-      line=__LINE__, file=FILENAME)) return
+  !call NUOPC_Advertise(exportState,                                 &
+  !    StandardName="sea_surface_temperature", name="sst", rc=rc)
+  !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+  !    line=__LINE__, file=FILENAME)) return
 
-  call NUOPC_Advertise(importState,                                 &
-      StandardName="air_pressure_at_sea_level", name="pmsl", rc=rc)
-  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-      line=__LINE__, file=FILENAME)) return
+  !call NUOPC_Advertise(importState,                                 &
+  !    StandardName="air_pressure_at_sea_level", name="pmsl", rc=rc)
+  !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+  !    line=__LINE__, file=FILENAME)) return
 
-  call NUOPC_Advertise(importState,                                 &
-      StandardName="surface_net_downward_shortwave_flux",           &
-      name="rsns", rc=rc)
-  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-      line=__LINE__, file=FILENAME)) return
+  !call NUOPC_Advertise(importState,                                 &
+  !    StandardName="surface_net_downward_shortwave_flux",           &
+  !    name="rsns", rc=rc)
+  !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+  !    line=__LINE__, file=FILENAME)) return
 
   end subroutine
 !
@@ -248,38 +249,24 @@ module mod_esmf_ocn
       line=__LINE__, file=FILENAME)) return
   PRINT *, "setting grid arrays finished ..."
   
-  !! ocnGridOut = ocnGridIn
-  !! PRINT *, "copy grid arrays finished ..."
+  ocnGridOut = ocnGridIn
+  PRINT *, "copy grid arrays finished ..."
 
-  !! field = ESMF_FieldCreate(name="sst", grid=ocnGridOut,             &
-  !!   typekind=ESMF_TYPEKIND_R8, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! call NUOPC_Realize(exportState, field=field, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-
-  !! field = ESMF_FieldCreate(name="pmsl", grid=ocnGridIn,             &
-  !!   typekind=ESMF_TYPEKIND_R8, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! call NUOPC_Realize(importState, field=field, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-
-  !! field = ESMF_FieldCreate(name="rsns", grid=ocnGridIn,             &
-  !!   typekind=ESMF_TYPEKIND_R8, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! call NUOPC_Realize(importState, field=field, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
+  !PRINT *, "CREATE and REALIZE: SST"
+  !field = ESMF_FieldCreate(name="sst", grid=ocnGridOut,             &
+  !   typekind=ESMF_TYPEKIND_R8, rc=rc)
+  ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+  !     line=__LINE__, file=FILENAME)) return
+  ! call NUOPC_Realize(exportState, field=field, rc=rc)
+  ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+  !     line=__LINE__, file=FILENAME)) return
 
 
   !! call OCN_SetInitData(gcomp, ocnGridIn, ocnGridOut, rc)
   !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
   !!     line=__LINE__, file=FILENAME)) return
 
+  PRINT *, "Exiting OCN_Init2"
 
 
   end subroutine
@@ -612,7 +599,7 @@ module mod_esmf_ocn
 !     Assign grid to gridded component 
 !-----------------------------------------------------------------------
 !
-    if (debugLevel >= 1) then
+    if ( (debugLevel >= 1) .and. .false. ) then
 
       call ESMF_GridCompSet(gcomp, grid=gridIn, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
@@ -631,7 +618,7 @@ module mod_esmf_ocn
                            status=ESMF_FILESTATUS_NEW, rc=rc)
     end if
   end do
-  print *, "debug finished!"
+  print *, "OCN debug finished!"
 !
   end subroutine OCN_SetGridArrays
 !

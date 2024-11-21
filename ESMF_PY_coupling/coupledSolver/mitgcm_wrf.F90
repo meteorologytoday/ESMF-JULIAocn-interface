@@ -52,12 +52,13 @@ program esmf_application
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=__FILE__))                                &
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
-  PRINT *, "DEBUGLEVEL ESMF is: ", debugLevel
+  PRINT *, "[MITGCM_WRF] DEBUGLEVEL ESMF is: ", debugLevel
 !
 !-----------------------------------------------------------------------
 !     Register component 
 !-----------------------------------------------------------------------
 !
+  PRINT *, "[MITGCM_WRF] Registering components:"
   call ESMF_GridCompSetServices(esmComp, ESM_SetServices,           &
                                 userRc=urc, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -80,10 +81,15 @@ program esmf_application
 !     Initialize component
 !-----------------------------------------------------------------------
 !
+  PRINT *, "[MITGCM_WRF] Initializing Grid..."
   call ESMF_GridCompInitialize(esmComp, userRc=urc, rc=rc)
+  PRINT *, "[MITGCM_WRF] Right after Grid..."
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=__FILE__))                                &
+      PRINT *, "[MITGCM_WRF] Something goes wrong..."
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      
+  PRINT *, "[MITGCM_WRF] Do another check..."
   if (ESMF_LogFoundError(rcToCheck=urc, msg=ESMF_LOGERR_PASSTHRU,   &
       line=__LINE__, file=__FILE__))                                &
       call ESMF_Finalize(endflag=ESMF_END_ABORT)

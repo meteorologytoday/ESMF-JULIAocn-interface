@@ -24,7 +24,7 @@ endif
 
 include $(ESMFMKFILE)
 
-version=3.13
+version=3.10
 pyfull=python$(version)
 PY_ROOT=/home/t2hsu/miniconda3/envs/mpi
 PY_INC=$(PY_ROOT)/include/$(pyfull)
@@ -53,18 +53,19 @@ PY_COMPILE_OPT_C=-L$(PY_LIB) -I$(PY_INC) -l$(pyfull)
 
 # -----------------------------------------------------------------------------
 esmf_application: mod_config.o   \
+                  mitgcm_wrf.o   \
                   mod_types.o    \
+                  mod_esmf_ocn.o \
                   mod_esmf_atm.o \
 			      mod_esmf_cpl.o \
 				  mod_esmf_esm.o \
-                  mitgcm_wrf.o   \
-                  mod_esmf_ocn.o \
                   c_gate.o 
 
 
 	$(ESMF_F90LINKER) $(ESMF_F90LINKOPTS) $(ESMF_F90LINKPATHS) $(ESMF_F90LINKRPATHS) -L${PWD} $(PY_COMPILE_OPT_C) -o $@ $^ $(ESMF_F90ESMFLINKLIBS)
 
 # module dependencies:
+mitgcm_wrf.o: mod_esmf_esm.o
 mod_esmf_esm.o: mod_esmf_ocn.o mod_esmf_atm.o mod_types.o
 mod_esmf_cpl.o: 
 mod_esmf_ocn.o: mod_types.o c_gate.o
