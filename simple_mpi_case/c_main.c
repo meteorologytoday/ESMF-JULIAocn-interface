@@ -85,6 +85,8 @@ int main(int argc, char *argv[]) {
     (void) jl_eval_string("using MPI");
     
     (void) jl_eval_string("if MPI.Initialized() ;  println(\"MPI is initialized.\") ; else ; println(\"Warning: MPI is not initialized.\") ; end ");
+    (void) jl_eval_string("println(\"Size of MPI.COMM_WORLD = \", MPI.Comm_size(MPI.COMM_WORLD))");
+    (void) jl_eval_string("println(\"Rank of MPI.COMM_WORLD = \", MPI.Comm_rank(MPI.COMM_WORLD))");
     
     sprintf(cmd, "comm = MPI.Comm(%ld)", MPI_COMM_WORLD);
     printf("Goinig to evaluate:\n");
@@ -95,7 +97,7 @@ int main(int argc, char *argv[]) {
     
     (void) jl_eval_string("println(\"Printing Comm\")");
     (void) jl_eval_string("println(comm)");
-    (void) jl_eval_string("println(MPI.Comm_rank(comm))");
+    (void) jl_eval_string("println(MPI.Comm_rank(MPI.COMM_WORLD))");
 
     jl_atexit_hook(0);
 

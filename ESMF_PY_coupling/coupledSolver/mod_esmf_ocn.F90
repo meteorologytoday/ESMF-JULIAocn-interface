@@ -54,6 +54,29 @@ module mod_esmf_ocn
       END FUNCTION MARCOISCOOL_PYMODEL_FINAL
     END INTERFACE
 
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_PYMODEL_getDomainInfo(           &
+        sNx, sNy, OLx, OLy, nSx, nSy, nPx, nPy, Nx, Ny, Nr,         &
+        myXGlobalLo, myYGlobalLo                                    &
+    ) BIND(C, name="MARCOISCOOL_PYMODEL_getDomainInfo")
+        import :: C_INT
+        INTEGER(C_INT), intent(inout) :: sNx
+        INTEGER(C_INT), intent(inout) :: sNy
+        INTEGER(C_INT), intent(inout) :: OLx
+        INTEGER(C_INT), intent(inout) :: OLy
+        INTEGER(C_INT), intent(inout) :: nSx
+        INTEGER(C_INT), intent(inout) :: nSy
+        INTEGER(C_INT), intent(inout) :: nPx
+        INTEGER(C_INT), intent(inout) :: nPy
+        INTEGER(C_INT), intent(inout) :: Nx
+        INTEGER(C_INT), intent(inout) :: Ny
+        INTEGER(C_INT), intent(inout) :: Nr
+        INTEGER(C_INT), intent(inout) :: myXGlobalLo
+        INTEGER(C_INT), intent(inout) :: myYGlobalLo
+      END SUBROUTINE MARCOISCOOL_PYMODEL_getDomainInfo
+    END INTERFACE
+
+
 ! ---- ESMF_PY END ----
 
 !
@@ -212,11 +235,19 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  !! PRINT *, "setting grid arrays..."
-  !! call OCN_SetGridArrays(gcomp, petCount, localPet, ocnGridIn,rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! PRINT *, "setting grid arrays finished ..."
+
+! ---- ESMF_PY BEGIN ----
+    print *, "Calling function: MARCOISCOOL_PYMODEL_INIT"
+    print *, MARCOISCOOL_PYMODEL_INIT(myThid, comm)
+! ---- ESMF_PY END ----
+
+
+  PRINT *, "setting grid arrays..."
+  call OCN_SetGridArrays(gcomp, petCount, localPet, ocnGridIn,rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+  PRINT *, "setting grid arrays finished ..."
+  
   !! ocnGridOut = ocnGridIn
   !! PRINT *, "copy grid arrays finished ..."
 
@@ -249,11 +280,6 @@ module mod_esmf_ocn
   !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
   !!     line=__LINE__, file=FILENAME)) return
 
-
-! ---- ESMF_PY BEGIN ----
-    print *, "Calling function: MARCOISCOOL_PYMODEL_INIT"
-    print *, MARCOISCOOL_PYMODEL_INIT(myThid, comm)
-! ---- ESMF_PY END ----
 
 
   end subroutine
@@ -399,6 +425,13 @@ module mod_esmf_ocn
   type(ESMF_VM) :: vm
   character(ESMF_MAXSTR) :: cname
 
+! ---- ESMF_PY BEGIN ----
+  INTEGER sNx, sNy, OLx, OLy, nSx, nSy, nPx, nPy
+  INTEGER Nr
+!  INTEGER Nx, Ny, Nr, i, j, bi, bj
+  INTEGER myXGlobalLo, myYGlobalLo
+! ---- ESMF_PY END ----
+
   integer :: myThid = 1
   integer :: k, m, n, p, iG, jG
   character(ESMF_MAXSTR) :: name
@@ -420,6 +453,34 @@ module mod_esmf_ocn
 !-----------------------------------------------------------------------
 !
   rc = ESMF_SUCCESS
+
+! ---- ESMF_PY BEGIN ----
+  CALL MARCOISCOOL_PYMODEL_getDomainInfo(                           &
+                       sNx, sNy, OLx, OLy,                          &
+                       nSx, nSy, nPx, nPy, Nx, Ny, Nr,              &
+                       myXGlobalLo, myYGlobalLo                     &
+  )
+
+  print *, "sNx = ", sNx 
+  print *, "sNy = ", sNy
+  print *, "OLx = ", OLx
+  print *, "OLy = ", OLy
+  print *, "nSx = ", nSx 
+  print *, "nSy = ", nSy
+  print *, "nPx = ", nPx
+  print *, "nPy = ", nPy
+  print *, "Nx = ", Nx
+  print *, "Ny = ", Ny
+  print *, "Nr = ", Nr
+  print *, "myXGlobalLo = ", myXGlobalLo
+  print *, "myYGlobalLo = ", myYGlobalLo
+! ---- ESMF_PY END ----
+
+
+    nx = 10
+    ny = 10
+
+
 !
 !-----------------------------------------------------------------------
 !     Get gridded component 

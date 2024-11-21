@@ -18,3 +18,4 @@ rm -rf launch
 
 rm -rf __pycache__/
 rm -rf *.py
+rm -rf *.toml
