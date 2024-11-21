@@ -1,16 +1,39 @@
 #include <stdio.h>
+#include <mpi.h>
 #include <Python.h>
+#include <mpi4py/mpi4py.h>
 
 extern "C" {
 
 static PyObject *pPOMInst = NULL;
 
-void MARCOISCOOL_PYMODEL_INIT( int* thread_id, int* comm_id ) {
+/*
+MPI_Fint f_MPI_Comm_c2f(int *comm) {
 
+    printf("[C code] received comm = %ld\n", *comm);
+    MPI_Comm_f2c(*comm);
+    printf("[C code] c2f called.\n");
+    
+
+    return MPI_Comm_c2f(*comm);
+}
+*/
+
+
+void MARCOISCOOL_PYMODEL_INIT( int thread_id, int Fcomm) {
+
+    printf("[C code] received Fcomm = %ld\n", Fcomm);
+    MPI_Comm comm = MPI_Comm_f2c(Fcomm);
 
     // Step 2: Initialize the Python interpreter
     printf("[C Code] Initialize Python\n");
     Py_Initialize();
+
+    printf("[C Code] Try to import_mpi4py();\n");
+    import_mpi4py();
+    printf("[C Code] Try to create a new stuff\n");
+    PyObject *pCommon = PyMPIComm_New(comm);
+
 
     printf("[C Code] Add searching path\n");
     PyObject *sys_path = PySys_GetObject("path");
@@ -29,7 +52,7 @@ void MARCOISCOOL_PYMODEL_INIT( int* thread_id, int* comm_id ) {
     Py_XDECREF(pPOMModule);
 
     printf("[C Code] Calling constructor...\n");
-    PyObject *pArgs  = PyTuple_Pack(2, PyLong_FromLong(*thread_id), PyLong_FromLong(*comm_id));
+    PyObject *pArgs  = PyTuple_Pack(2, PyLong_FromLong(thread_id), pCommon);
     pPOMInst = PyObject_CallObject(pClass, pArgs);
     Py_XDECREF(pClass);
     Py_XDECREF(pArgs);
@@ -37,12 +60,12 @@ void MARCOISCOOL_PYMODEL_INIT( int* thread_id, int* comm_id ) {
     printf("[C Code] Printing report...\n");
     PyObject *pFuncReport = PyObject_GetAttrString(pPOMInst, "report");
     PyObject_CallObject(pFuncReport, NULL);
-    
+ 
     Py_XDECREF(pFuncReport);
     
 }
 
-void MARCOISCOOL_PYMODEL_FINAL( int* thread_id, int* comm_id ) {
+void MARCOISCOOL_PYMODEL_FINAL( int thread_id, int comm_id ) {
 
     printf("[C Code] Finalizing PYTHON...\n");
     Py_Finalize();

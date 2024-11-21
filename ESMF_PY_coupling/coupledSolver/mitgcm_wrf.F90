@@ -84,9 +84,10 @@ program esmf_application
   PRINT *, "[MITGCM_WRF] Initializing Grid..."
   call ESMF_GridCompInitialize(esmComp, userRc=urc, rc=rc)
   PRINT *, "[MITGCM_WRF] Right after Grid..."
+  PRINT *, "[MITGCM_WRF] urc = ", urc
+  PRINT *, "[MITGCM_WRF]  rc = ",  rc
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=__FILE__))                                &
-      PRINT *, "[MITGCM_WRF] Something goes wrong..."
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
       
   PRINT *, "[MITGCM_WRF] Do another check..."

@@ -5,22 +5,16 @@ from pprint import pprint
 
 class OceanModel:
     
-    def __init__(self, rank, comm_id):
+    def __init__(self, rank, comm):
 
-        print("You are in the OceanModel constructor!")
-
-
-        self.comm = MPI.COMM_WORLD
-        self.comm_id = comm_id
+        print("You are in the OceanModel constructor (ta-da)!")
+        
+        self.comm = comm 
         self.rank = self.comm.Get_rank()
         self.config_grid = toml.load("config_grid.toml")
 
     def report(self):
  
-        if self.comm_id != 0:
-            print("Warning: comm_id is not zero. This is not COMM_WORLD.")
-
-       
         print(f'Python: Rank {self.comm.Get_rank()} of {self.comm.Get_size()}')
 
 

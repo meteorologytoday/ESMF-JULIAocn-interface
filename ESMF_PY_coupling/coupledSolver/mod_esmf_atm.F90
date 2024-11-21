@@ -232,7 +232,7 @@ module mod_esmf_atm
   
   rc = ESMF_SUCCESS
 
-  print *, "ATM iLoop is: ", iLoopATM
+  !print *, "ATM iLoop is: ", iLoopATM
 
   ! call ATM_Get(gcomp, iLoopATM, rc)
 

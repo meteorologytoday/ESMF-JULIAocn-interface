@@ -107,6 +107,16 @@ module mod_esmf_esm
   type(ESMF_TimeInterval) :: esmTimeStep
   type(ESMF_Calendar) :: esmCal
   type(ESMF_Clock) :: esmClock
+
+! ---- ESMF_PY BEGIN ----
+  integer, allocatable :: petListATM(:), petListOCN(:)
+  integer :: cpuATM, cpuOCN
+
+  cpuATM = 5
+  cpuOCN = 2
+! ---- ESMF_PY END ----
+
+
 !
   rc = ESMF_SUCCESS
   print *, "calling ESM_SetModelServices function"
@@ -115,9 +125,23 @@ module mod_esmf_esm
 !     SetServices for model components 
 !-----------------------------------------------------------------------
 !
+
+! ---- ESMF_PY BEGIN ----
+  allocate(petListATM(cpuATM))
+  do i=1,cpuATM
+    petListATM(i) = i-1
+  enddo
+
+  allocate(petListOCN(cpuOCN))
+  do i=1,cpuOCN
+    petListOCN(i) = cpuATM + i - 1 
+  enddo
+
+! ---- ESMF_PY END ----
+
   print *, "setting ATM services"
   call NUOPC_DriverAddComp(driver, "ATM", ATM_SetServices,           &
-                           comp=child, rc=rc)
+                           petList=petListATM, comp=child, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
   call ESMF_AttributeSet(child, name="Verbosity", value="high",     &
@@ -127,13 +151,21 @@ module mod_esmf_esm
 
   print *, "setting OCN services"
   call NUOPC_DriverAddComp(driver, "OCN", OCN_SetServices,           &
-                           comp=child, rc=rc)
+                           petList=petListOCN, comp=child, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
   call ESMF_AttributeSet(child, name="Verbosity", value="high",     &
                          rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
+
+
+! ---- ESMF_PY BEGIN ----
+  deallocate(petListATM)
+  deallocate(petListOCN)
+! ---- ESMF_PY END ----
+
+
 
 !
 !-----------------------------------------------------------------------

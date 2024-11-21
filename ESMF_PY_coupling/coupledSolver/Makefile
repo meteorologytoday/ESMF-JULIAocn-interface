@@ -24,13 +24,14 @@ endif
 
 include $(ESMFMKFILE)
 
-version=3.10
+version=3.13
 pyfull=python$(version)
 PY_ROOT=/home/t2hsu/miniconda3/envs/mpi
-PY_INC=$(PY_ROOT)/include/$(pyfull)
-PY_LIB=$(PY_ROOT)/lib
-
-PY_COMPILE_OPT_C=-L$(PY_LIB) -I$(PY_INC) -l$(pyfull)
+PY_INC_FLAG=-I$(PY_ROOT)/include/$(pyfull) -I$(PY_ROOT)/lib/$(pyfull)/site-packages/mpi4py/include
+PY_LIB_FLAG=-L$(PY_ROOT)/lib
+PY_LD_FLAG=-l$(pyfull) -lmpi4py
+ 
+PY_COMPILE_OPT_C=$(PY_LIB_FLAG) $(PY_INC_FLAG) -l$(pyfull)
 
 
 ################################################################################
