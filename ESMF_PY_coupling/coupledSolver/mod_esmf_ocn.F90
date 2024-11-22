@@ -453,7 +453,7 @@ module mod_esmf_ocn
 ! ---- ESMF_PY END ----
 
   integer :: myThid = 1
-  integer :: k, m, n, p, iG, jG
+  integer :: k, m, n, p, iG, jG, tile
   character(ESMF_MAXSTR) :: name
   real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
   type(ESMF_Array) :: arrX, arrY
@@ -508,13 +508,21 @@ module mod_esmf_ocn
   if (.not.allocated(deBlockList)) then
     allocate(deBlockList(2,2,1:nPx*nPy))
   end if
+
+
+
+  deBlockList(:,1,1) = (/ 1, 1/)
+  deBlockList(:,2,1) = (/ 5, ny/)
+  deBlockList(:,1,2) = (/ 6, 1/)
+  deBlockList(:,2,2) = (/nx, ny/)
+
 !
-  do tile = 1, (nPx*nPy)
-    deBlockList(1,1,tile) = mpi_myXGlobalLo(tile)
-    deBlockList(1,2,tile) = mpi_myXGlobalLo(tile)+sNx-1
-    deBlockList(2,1,tile) = mpi_myYGlobalLo(tile) 
-    deBlockList(2,2,tile) = mpi_myYGlobalLo(tile)+sNy-1
-  end do
+!  do tile = 1, (nPx*nPy)
+!    deBlockList(1,1,tile) = mpi_myXGlobalLo(tile)
+!    deBlockList(1,2,tile) = mpi_myXGlobalLo(tile)+sNx-1
+!    deBlockList(2,1,tile) = mpi_myYGlobalLo(tile) 
+!    deBlockList(2,2,tile) = mpi_myYGlobalLo(tile)+sNy-1
+!  end do
 
 
 !-----------------------------------------------------------------------

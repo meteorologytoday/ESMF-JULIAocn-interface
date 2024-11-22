@@ -2,6 +2,7 @@ from mpi4py import MPI
 import toml
 from pprint import pprint
 
+import numpy as np
 
 class OceanModel:
     
@@ -13,8 +14,41 @@ class OceanModel:
         self.rank = self.comm.Get_rank()
         self.config_grid = toml.load(config_grid_file)
 
+
+      
+        self.checkGrid()
+        
+        self.initGrid()
+
+    def initGrid(self):
+ 
+        cf = self.config_grid
+ 
+        sNx = cf["sNx"]
+        sNy = cf["sNy"]
+        nSx = cf["nSx"]
+        nSy = cf["nSy"]
+        nPx = cf["nPx"]
+        nPy = cf["nPy"]
+        Nx = cf["Nx"]
+        Ny = cf["Ny"]
+        Nr = cf["Nr"]
+         
+        mask_sT  = np.array(())
+        da_sT    = np.zeros_like(mask_sT)
+        dxU_sT   = np.zeros_like(mask_sT)
+        dyV_sT   = np.zeros_like(mask_sT)
+
+
+        self.vars = dict(
+            
+        ) 
+        
+
+    def checkGrid(self):
+        
         number_of_pet = self.comm.Get_size()
-       
+ 
         cf = self.config_grid
  
         sNx = cf["sNx"]
@@ -90,9 +124,10 @@ class OceanModel:
 
         cf = self.config_grid
         
-        
-        myXGlobalLo = self.rank * 5   
-        myYGlobalLo = self.rank * 10   
+       
+        # For now we only support nSx = nSy = 1 
+        myXGlobalLo = self.myXGlobalLo[0]
+        myYGlobalLo = self.myYGlobalLo[0]
      
         return (
             cf["sNx"],
@@ -111,7 +146,12 @@ class OceanModel:
         )
 
        
+
+    def getExportStates(self):
         
+        arr = np.zeros((3, 4, 5), dtype=np.int32)
+        arr[:] = np.arange(60).reshape(arr.shape)
+        return arr 
 
 
 
@@ -127,3 +167,5 @@ if __name__ == "__main__":
     
     print(model.getDomainInfo()) 
     model.report()
+
+    model.getExportStates()
