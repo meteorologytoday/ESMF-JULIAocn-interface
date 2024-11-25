@@ -1,45 +1,63 @@
 #include <stdio.h>
 #include <julia.h>
+#include <mpi.h>
 
 extern "C" {
 
-void MARCOISCOOL_addnums( int* thread_id, int* comm ) 
-{
-    //int c = (*a) + (*b);  /* convert pointers to values, then add them */
-    //printf("sum of %i and %i is %i\n", (*a), (*b), c );
-
-
+void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
+    MPI_Comm comm = MPI_Comm_f2c(fcomm);
 
     jl_init();
-    (void) jl_eval_string("include(\"myjulia.jl\")");
-    (void) jl_eval_string("println(\"Say something...\")");
-
-    printf("Getting function\n");
-    jl_function_t *add_numbers = jl_get_function(jl_main_module, "add_numbers");
-    //jl_module_t *jl_base_module = jl_get_module(jl_main_module, "base");
-
-    printf("Boxing values...\n");
-    jl_value_t *boxed_thread_id = jl_box_int64((int)(*thread_id)); 
-    jl_value_t *boxed_comm      = jl_box_int64((int)(*comm)) ;
-    printf("Calling Julia function\n");
-    jl_value_t *result  = jl_call2(add_numbers, boxed_thread_id, boxed_comm);
     
-    // Handle exception
-    if (jl_exception_occurred()) {
-        jl_value_t *ex = jl_exception_occurred();
-        jl_exception_clear();  // Clear the exception so that we can continue
-        jl_function_t *jl_string_func = jl_get_function(jl_base_module, "string");
-        jl_value_t *str = jl_call1(jl_string_func, ex);  // Convert the exception to a string
-        const char *errmsg = jl_string_ptr(str);
-        printf("Error occurred: %s\n", errmsg);
-    } else {
-        printf("Julia code executed successfully.\n");
-    }
+    printf("[C Code] Loading Julia stuff...\n");
+    (void) jl_eval_string("include(\"MPI_essentials.jl\")");
 
 
+    printf("[C Code] Boxing the communicator...\n");
+    // Convert the MPI communicator to a Julia value
+    jl_value_t *comm_value = jl_box_int64((int64_t)comm);
+    
+    // Call a Julia function
+    printf("[C Code] Calling passMPICommunicator\n");
+    jl_function_t *func = jl_get_function(jl_main_module, "passMPICommunicator");
+    jl_call1(func, comm_value);
+    
+    printf("[C Code] Loading JlOceanModel.jl\n");
+    (void) jl_eval_string("include(\"JlOceanModel.jl\")");
+    
+    printf("[C Code] Done loading JlOceanModel.jl\n");
+    printf("[C Code] ##########################\n");
+
+
+}
+
+void MARCOISCOOL_JLMODEL_FINAL( int thread_id, int fcomm) {
+
+    printf("[C Code] Finalizing JULIA...\n");
     jl_atexit_hook(0);
 
 }
 
+void MARCOISCOOL_JLMODEL_getDomainInfo( \
+    int*  sNx, \
+    int*  sNy, \
+    int*  OLx, \
+    int*  OLy, \
+    int*  nSx, \
+    int*  nSy, \
+    int*  nPx, \
+    int*  nPy, \
+    int*  Nx, \
+    int*  Ny, \
+    int*  Nr, \
+    int*  myXGlobalLo, \
+    int*  myYGlobalLo  \
+) {
+ 
+    
+
+
 }
 
+
+}

@@ -4,9 +4,10 @@ echo "cleaning the current folder"
 ./Allclean
 
 echo "copying the NUOPC--WRF code..."
-cp ../coupledSolver/esmf_application .
-cp ../coupledSolver/namelist.rc .
-cp ../coupledSolver/myjulia.jl .
+cp ../build/esmf_application .
+cp ../build/namelist.rc .
+cp ../jlocnmodel_code/* .
 
 echo "running the NUOPC--WRF code..."
-mpirun -np 5 ./esmf_application
+export ESMF_LOGLEVEL=TRACE
+mpirun -np 7 ./esmf_application

@@ -28,24 +28,65 @@ module mod_esmf_ocn
   use mod_types
 
 
-! ---- ESMF_JULIA BEGIN ----
+! ---- ESMF_PY BEGIN ----
     USE, INTRINSIC :: ISO_C_BINDING
-! ---- ESMF_JULIA END ----
+! ---- ESMF_PY END ----
  
 
 
 !
   implicit none
 
-! ---- ESMF_JULIA BEGIN ----
+! ---- ESMF_PY BEGIN ----
+
     INTERFACE
-      INTEGER FUNCTION MARCOISCOOL_addnums(thread_id, comm) BIND(C, name="MARCOISCOOL_addnums")
-        import :: C_INT
-        INTEGER(C_INT) :: thread_id
-        INTEGER(C_INT) :: comm
-      END FUNCTION MARCOISCOOL_addnums
+      INTEGER FUNCTION MPI_Comm_c2f(c_handle) bind(C, name="f_MPI_Comm_c2f")
+        IMPORT :: C_PTR
+        TYPE(C_PTR), VALUE :: c_handle
+      END FUNCTION
     END INTERFACE
-! ---- ESMF_JULIA END ----'
+
+
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_JLMODEL_INIT(thread_id, comm) BIND(C, name="MARCOISCOOL_JLMODEL_INIT")
+        import :: C_INT
+        INTEGER(C_INT), VALUE :: thread_id
+        INTEGER(C_INT), VALUE :: comm
+      END SUBROUTINE MARCOISCOOL_JLMODEL_INIT
+    END INTERFACE
+
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_JLMODEL_FINAL(thread_id, comm) BIND(C, name="MARCOISCOOL_JLMODEL_FINAL")
+        import :: C_INT
+        INTEGER(C_INT), VALUE :: thread_id
+        INTEGER(C_INT), VALUE :: comm
+      END SUBROUTINE MARCOISCOOL_JLMODEL_FINAL
+    END INTERFACE
+
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_JLMODEL_getDomainInfo(           &
+        sNx, sNy, OLx, OLy, nSx, nSy, nPx, nPy, Nx, Ny, Nr,         &
+        myXGlobalLo, myYGlobalLo                                    &
+    ) BIND(C, name="MARCOISCOOL_JLMODEL_getDomainInfo")
+        import :: C_INT
+        INTEGER(C_INT), intent(inout) :: sNx
+        INTEGER(C_INT), intent(inout) :: sNy
+        INTEGER(C_INT), intent(inout) :: OLx
+        INTEGER(C_INT), intent(inout) :: OLy
+        INTEGER(C_INT), intent(inout) :: nSx
+        INTEGER(C_INT), intent(inout) :: nSy
+        INTEGER(C_INT), intent(inout) :: nPx
+        INTEGER(C_INT), intent(inout) :: nPy
+        INTEGER(C_INT), intent(inout) :: Nx
+        INTEGER(C_INT), intent(inout) :: Ny
+        INTEGER(C_INT), intent(inout) :: Nr
+        INTEGER(C_INT), intent(inout) :: myXGlobalLo
+        INTEGER(C_INT), intent(inout) :: myYGlobalLo
+      END SUBROUTINE MARCOISCOOL_JLMODEL_getDomainInfo
+    END INTERFACE
+
+
+! ---- ESMF_PY END ----
 
 !
 
@@ -60,15 +101,6 @@ module mod_esmf_ocn
 !
   contains
 !
-
-!      INTEGER FUNCTION MARCOISCOOL_addnums(a, b)
-!        implicit none
-!        INTEGER :: a, b
-
-        
-!        MARCOISCOOL_addnums=a+b
-!      END FUNCTION MARCOISCOOL_addnums
-
 
   subroutine OCN_SetServices(gcomp, rc)
 !
@@ -95,6 +127,7 @@ module mod_esmf_ocn
   call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_INITIALIZE,       &
                                phaseLabelList=(/"IPDv00p2"/),       &
                                userRoutine=OCN_Init2, rc=rc)
+    
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
@@ -107,6 +140,16 @@ module mod_esmf_ocn
                             specRoutine=OCN_Run, rc = rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
+
+  ! ---- ESMF_PY BEGIN ----
+
+  call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_FINALIZE,         &
+                               phaseLabelList=(/"FPDV00p1"/),       &
+                               userRoutine=OCN_Final, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+  
+  ! ---- ESMF_PY END ----
 
   end subroutine OCN_SetServices
 !
@@ -163,6 +206,7 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
+
   end subroutine
 !
 !-----------------------------------------------------------------------
@@ -171,6 +215,7 @@ module mod_esmf_ocn
 !
   subroutine OCN_Init2(gcomp, importState, exportState, clock, rc)
 
+  USE ISO_C_BINDING
   type(ESMF_GridComp)  :: gcomp
   type(ESMF_State)     :: importState, exportState
   type(ESMF_Clock)     :: clock
@@ -185,9 +230,12 @@ module mod_esmf_ocn
   type(ESMF_Grid) :: ocnGridIn
   type(ESMF_Grid) :: ocnGridOut
 
-  integer :: myThid = 1
-  integer :: comm, localPet, petCount
+  integer :: myThid = 1, mpisize, f_comm
+  integer, TARGET :: comm
+  integer :: localPet, petCount
   character(ESMF_MAXSTR) :: gname
+  
+  TYPE(C_PTR) :: comm_ptr
 !
   type(ESMF_VM) :: vm
   
@@ -202,48 +250,94 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  !! PRINT *, "setting grid arrays..."
-  !! call OCN_SetGridArrays(gcomp, petCount, localPet, ocnGridIn,rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! PRINT *, "setting grid arrays finished ..."
-  !! ocnGridOut = ocnGridIn
-  !! PRINT *, "copy grid arrays finished ..."
-
-  !! field = ESMF_FieldCreate(name="sst", grid=ocnGridOut,             &
-  !!   typekind=ESMF_TYPEKIND_R8, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! call NUOPC_Realize(exportState, field=field, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-
-  !! field = ESMF_FieldCreate(name="pmsl", grid=ocnGridIn,             &
-  !!   typekind=ESMF_TYPEKIND_R8, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! call NUOPC_Realize(importState, field=field, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-
-  !! field = ESMF_FieldCreate(name="rsns", grid=ocnGridIn,             &
-  !!   typekind=ESMF_TYPEKIND_R8, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
-  !! call NUOPC_Realize(importState, field=field, rc=rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
+  call MPI_Comm_size(comm, mpisize)
+  print *, "!!!!!!!!!!!!!!! MPI Communicator = ", comm, "; mpisize = ", mpisize, "; localpet = ", localpet
+! ---- ESMF_PY BEGIN ----
+    print *, "Calling function: MARCOISCOOL_JLMODEL_INIT"
+    
+    !comm_ptr = C_LOC(comm)
+    !f_comm = MPI_Comm_c2f(comm_ptr)
+    !print *, "f_comm = ", f_comm
+    CALL MARCOISCOOL_JLMODEL_INIT(myThid, comm)
+! ---- ESMF_PY END ----
 
 
-  !! call OCN_SetInitData(gcomp, ocnGridIn, ocnGridOut, rc)
-  !! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !!     line=__LINE__, file=FILENAME)) return
+  PRINT *, "setting grid arrays..."
+  call OCN_SetGridArrays(gcomp, petCount, localPet, ocnGridIn,rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+  PRINT *, "setting grid arrays finished ..."
+  
+  ocnGridOut = ocnGridIn
+  PRINT *, "copy grid arrays finished ..."
 
-    print *, "Calling function: MARCOISCOOL_addnums"
-    print *, MARCOISCOOL_addnums(myThid, comm)
+   field = ESMF_FieldCreate(name="sst", grid=ocnGridOut,             &
+     typekind=ESMF_TYPEKIND_R8, rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+   call NUOPC_Realize(exportState, field=field, rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+
+   field = ESMF_FieldCreate(name="pmsl", grid=ocnGridIn,             &
+     typekind=ESMF_TYPEKIND_R8, rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+   call NUOPC_Realize(importState, field=field, rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+
+   field = ESMF_FieldCreate(name="rsns", grid=ocnGridIn,             &
+     typekind=ESMF_TYPEKIND_R8, rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+   call NUOPC_Realize(importState, field=field, rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+
+   !call OCN_SetInitData(gcomp, ocnGridIn, ocnGridOut, rc)
+   !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+   !    line=__LINE__, file=FILENAME)) return
+
+  PRINT *, "Exiting OCN_Init2"
 
 
   end subroutine
+
+! ---- ESMF_PY BEGIN ----
+  subroutine OCN_Final(gcomp, importState, exportState, clock, rc)
+
+    type(ESMF_GridComp)  :: gcomp
+    type(ESMF_State)     :: importState, exportState
+    type(ESMF_Clock)     :: clock
+    integer, intent(out) :: rc
+
+    integer :: myThid = 1
+    integer :: comm, localPet, petCount
+    character(ESMF_MAXSTR) :: gname
+
+    type(ESMF_VM) :: vm
+    
+    print *, "[Fortran Code] Finalizing..."
+      
+    rc = ESMF_SUCCESS
+
+    call ESMF_GridCompGet(gcomp, name=gname, vm=vm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+        line=__LINE__, file=FILENAME)) return
+
+    call ESMF_VMGet(vm, localPet=localPet, petCount=petCount,         &
+                    mpiCommunicator=comm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+        line=__LINE__, file=FILENAME)) return
+
+
+    CALL MARCOISCOOL_JLMODEL_FINAL(myThid, comm)
+  
+  end subroutine
+! ---- ESMF_PY END ----
+
+!
 !
 !-----------------------------------------------------------------------
 !     Ocean Check Import Fields
@@ -351,8 +445,15 @@ module mod_esmf_ocn
   type(ESMF_VM) :: vm
   character(ESMF_MAXSTR) :: cname
 
+! ---- ESMF_PY BEGIN ----
+  INTEGER sNx, sNy, OLx, OLy, nSx, nSy, nPx, nPy
+  INTEGER Nr
+!  INTEGER Nx, Ny, Nr, i, j, bi, bj
+  INTEGER myXGlobalLo, myYGlobalLo, localN
+! ---- ESMF_PY END ----
+
   integer :: myThid = 1
-  integer :: k, m, n, p, iG, jG
+  integer :: k, m, n, p, iG, jG, tile
   character(ESMF_MAXSTR) :: name
   real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
   type(ESMF_Array) :: arrX, arrY
@@ -372,6 +473,29 @@ module mod_esmf_ocn
 !-----------------------------------------------------------------------
 !
   rc = ESMF_SUCCESS
+
+! ---- ESMF_PY BEGIN ----
+  CALL MARCOISCOOL_JLMODEL_getDomainInfo(                           &
+                       sNx, sNy, OLx, OLy,                          &
+                       nSx, nSy, nPx, nPy, Nx, Ny, Nr,              &
+                       myXGlobalLo, myYGlobalLo                     &
+  )
+
+  print *, "sNx = ", sNx 
+  print *, "sNy = ", sNy
+  print *, "OLx = ", OLx
+  print *, "OLy = ", OLy
+  print *, "nSx = ", nSx 
+  print *, "nSy = ", nSy
+  print *, "nPx = ", nPx
+  print *, "nPy = ", nPy
+  print *, "Nx = ", Nx
+  print *, "Ny = ", Ny
+  print *, "Nr = ", Nr
+  print *, "myXGlobalLo = ", myXGlobalLo
+  print *, "myYGlobalLo = ", myYGlobalLo
+! ---- ESMF_PY END ----
+
 !
 !-----------------------------------------------------------------------
 !     Get gridded component 
@@ -382,14 +506,25 @@ module mod_esmf_ocn
       line=__LINE__, file=FILENAME)) return
 !
   if (.not.allocated(deBlockList)) then
-    allocate(deBlockList(2,2,1:2))
+    allocate(deBlockList(2,2,1:nPx*nPy))
   end if
+
+
 
   deBlockList(:,1,1) = (/ 1, 1/)
   deBlockList(:,2,1) = (/ 5, ny/)
   deBlockList(:,1,2) = (/ 6, 1/)
   deBlockList(:,2,2) = (/nx, ny/)
+
 !
+!  do tile = 1, (nPx*nPy)
+!    deBlockList(1,1,tile) = mpi_myXGlobalLo(tile)
+!    deBlockList(1,2,tile) = mpi_myXGlobalLo(tile)+sNx-1
+!    deBlockList(2,1,tile) = mpi_myYGlobalLo(tile) 
+!    deBlockList(2,2,tile) = mpi_myYGlobalLo(tile)+sNy-1
+!  end do
+
+
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
 !-----------------------------------------------------------------------
@@ -474,18 +609,29 @@ module mod_esmf_ocn
 !     Fill the pointers    
 !-----------------------------------------------------------------------
 !
-    do n = 1, nx
+
+    print *, "!!!!!!!!!!!!! localpet = ", localpet
+    print *, "!!!!!!!!!!!!! j = ", j
+    print *, "Size of array ptrX dim1: ", size(ptrX, 1)
+    print *, "Size of array ptrX dim2: ", size(ptrX, 2)
+    print *, "Size of array ptrX dim1 lbound: ", lbound(ptrX, 1)
+    print *, "Size of array ptrX dim1 ubound: ", ubound(ptrX, 1)
+    print *, "Size of array ptrX dim2 lbound: ", lbound(ptrX, 2)
+    print *, "Size of array ptrX dim2 ubound: ", ubound(ptrX, 2)
+
+    do n = 1, nx/nPx  ! nx/nPx = size of tile
       do m = 1, ny
+        localN = localPet * (nx/nPx) + n
         !! TODO: pseudo mesh
-        print *, "loop n is: ", n, " m is: ", m
-        print *, "ocnMesh n is: ", n, " m is: ", m
-        ptrX(n,m) = 0 + (360.0d0/nx)*(n-0.5d0)
-        ptrY(n,m) = -90 + (180.0d0/ny)*(m-0.5d0)
-        print *, "ocean meshX is: ", ptrX(n,m)
-        print *, "ocean meshY is: ", ptrY(n,m)
+        !print *, "loop n is: ", n, ", localN is: ", localN, ", m is: ", m
+        !print *, "ocnMesh n is: ", n, " m is: ", m
+        ptrX(localN,m) = 0 + (360.0d0/nx)*(localN-0.5d0)
+        ptrY(localN,m) = -90 + (180.0d0/ny)*(m-0.5d0)
+        !print *, "ocean meshX is: ", ptrX(localN,m)
+        !print *, "ocean meshY is: ", ptrY(localN,m)
       end do
     end do
-    print *, "ocean array filled!"
+    print *, "ocean array filled!  localpet =", localpet
 !
 !-----------------------------------------------------------------------
 !     Nullify pointers 
@@ -498,31 +644,59 @@ module mod_esmf_ocn
       nullify(ptrX)
     end if
     print *, "ptr nullified!"
+
+    call ESMF_GridCompSet(gcomp, grid=gridIn, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
+                line=__LINE__, file=FILENAME)) return
+
+
+
+  end do
+
+
 !
 !-----------------------------------------------------------------------
 !     Assign grid to gridded component 
 !-----------------------------------------------------------------------
 !
-    if (debugLevel >= 1) then
+    if ( (debugLevel >= 1)) then
 
-      call ESMF_GridCompSet(gcomp, grid=gridIn, rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
-                             line=__LINE__, file=FILENAME)) return
+      print *, "Output ocean grid for localpet = ", localpet
       call ESMF_GridGetCoord(gridIn,                                &
                              staggerLoc=ESMF_STAGGERLOC_CENTER,     &
                              coordDim=1, array=arrX, rc=rc)
+      print *, "localpet= ", localpet, "; after getcoordx rc=", rc
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
+                             line=__LINE__, file=FILENAME)) return
+
       call ESMF_GridGetCoord(gridIn,                                &
                              staggerLoc=ESMF_STAGGERLOC_CENTER,     &
                              coordDim=2, array=arrY, rc=rc)
+      print *, "localpet= ", localpet, "; after getcoordy rc=", rc
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
+                             line=__LINE__, file=FILENAME)) return
+
       write (ofile, "(A6,I3.3,A3)") "ocn_xa", localPet, ".nc"
+      print *, "Ouptut file: ", ofile, "; localpet = ", localpet, "; rc=", rc
       call ESMF_ArrayWrite(arrX, filename=ofile,                    &
-                           status=ESMF_FILESTATUS_NEW, rc=rc)
+                           status=ESMF_FILESTATUS_REPLACE, rc=rc)
+      print *, "afte rc = ", rc
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
+                             line=__LINE__, file=FILENAME)) return
+
+
       write (ofile, "(A6,I3.3,A3)") "ocn_ya", localPet, ".nc"
+      print *, "Ouptut file: ", ofile, "; localpet = ", localpet, "; rc=", rc
       call ESMF_ArrayWrite(arrY, filename=ofile,                    &
-                           status=ESMF_FILESTATUS_NEW, rc=rc)
+                           status=ESMF_FILESTATUS_REPLACE, rc=rc)
+      print *, "afte rc = ", rc
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,&
+                             line=__LINE__, file=FILENAME)) return
+
+        print *, "Finished output ocean grid for localpet = ", localpet
     end if
-  end do
-  print *, "debug finished!"
+
+  print *, "OCN debug finished!"
 !
   end subroutine OCN_SetGridArrays
 !

@@ -2,4 +2,4 @@
 
 make distclean
 
-make 
+make -j4 
