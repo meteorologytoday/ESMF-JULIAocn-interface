@@ -1,118 +1,23 @@
+from mpi4py import MPI
+import toml
+from pprint import pprint
 
-module OceanModel
+import numpy as np
 
-    using MPI
-    using TOML
+class OceanModel:
+    
+    def __init__(self, rank, comm, config_grid_file="config_grid.toml"):
 
-    mutable struct Env
+        print("You are in the OceanModel constructor (ta-da)!")
         
-        model_config_file :: String
-        model_config :: Dict
+        self.comm = comm 
+        self.rank = self.comm.Get_rank()
+        self.config_grid = toml.load(config_grid_file)
 
-        function Env(
-            model_config_file :: String ="model_config.toml",
-        )
 
-            println("Parsing file: ", model_config_file)
-            model_config = TOML.parsefile(model_config_file)
-            
-            return new(
-                model_config_file,
-                model_config,
-            )
-        end
-    end
-
-    mutable struct State
-        function State(env)
-            return new()
-        end
-    end
-
-    mutable struct Core
-        function Core(env)
-            return new()
-        end
-    end
-
-    mutable struct Model
-
-        env   :: Env
-        state :: State 
-        core  :: Core
-        comm  :: MPI.Comm
+      
+        self.checkGrid()
         
-        function Model(
-            env :: Env;
-            comm :: Union{MPI.Comm, Nothing} = nothing,
-        )
-        
-            println("You are in the OceanModel constructor (ta-da)!")
-            
-            state = State(env)
-            core  = Core(env)
-
-            if comm == nothing
-                println("Communicator not received. Using default : MPI.COMM_WORLD")
-                comm = MPI.COMM_WORLD
-            end
-            
-            o = new(
-                env,
-                state,
-                core,
-                comm,
-            )
-
-            return o
-
-        end
-
-
-
-    end
-
-    function report(m :: Model)
-        println("MPI information:")
-        println(" - MPI : ", m.comm)
-        println(" - MPI Size: ", MPI.Comm_size(m.comm))
-        println(" - MPI Rank: ", MPI.Comm_rank(m.comm))
-        
-        println("End of Report")
-    end
-
-    function createOceanModel(
-        config_file :: String;
-        comm :: Union{MPI.Comm, Nothing} = nothing,
-    )
-
-        model = nothing
-
-        try
-            println("Initiating Env...")
-            
-            env = OceanModel.Env(config_file)
-            model = OceanModel.Model(env ; comm=comm)
-            println("Report ocean model...")
-            OceanModel.report(model)
-
-        catch e
-
-            println("Exception occurs: ", e) 
-            
-        end
-
-        if model == nothing
-            println("Model is `nothing`. There must be some error during model creation. Please check.")
-        end
-        
-        return model
-    end
-end
-
-
-
-#=        
         self.initGrid()
 
     def initGrid(self):
@@ -264,32 +169,3 @@ if __name__ == "__main__":
     model.report()
 
     model.getExportStates()
-
-
-def getDomainInfo(self):
-
-    cf = self.config_grid
-    
-   
-    # For now we only support nSx = nSy = 1 
-    myXGlobalLo = self.myXGlobalLo[0]
-    myYGlobalLo = self.myYGlobalLo[0]
- 
-    return (
-        cf["sNx"],
-        cf["sNy"],
-        cf["OLx"],
-        cf["OLy"],
-        cf["nSx"],
-        cf["nSy"],
-        cf["nPx"],
-        cf["nPy"],
-        cf["Nx"],
-        cf["Ny"],
-        cf["Nr"],
-        myXGlobalLo,
-        myYGlobalLo,
-    )
-
-end
-=#
