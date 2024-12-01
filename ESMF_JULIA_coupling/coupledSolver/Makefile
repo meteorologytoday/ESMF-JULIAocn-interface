@@ -24,7 +24,7 @@ endif
 
 include $(ESMFMKFILE)
 
-JL_ROOT=/home/t2hsu/julia/julia-1.9.3
+JL_ROOT=/home/t2hsu/julia/julia-1.11.1
 JL_INC=$(JL_ROOT)/include/julia
 JL_LIB=$(JL_ROOT)/lib
 

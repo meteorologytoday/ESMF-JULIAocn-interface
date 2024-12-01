@@ -34,7 +34,7 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     // Call a Julia function
     printf("[C Code] Calling passMPICommunicator\n");
     jl_function_t *func = jl_get_function(jl_main_module, "passMPICommunicator");
-    (void) jl_call1(func, comm_value);
+    jl_call1(func, comm_value);
  
     if (jl_exception_occurred()) {
         printf("Exception occurred after I pass MPI Communicator: %s\n", jl_string_ptr(jl_exception_occurred()));
@@ -53,7 +53,6 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     snprintf(cmd, buffer_size, "model = Main.OceanModel.createOceanModel(\"model_config.toml\"; comm=COMM_ROOT)");
     printf("Going to eval: %s\n", cmd);
     (void) jl_eval_string(cmd);
-    ocean_model = (jl_value_t *) jl_eval_string("model");
 
     if (jl_exception_occurred()) {
         printf("Exception occurred after eval ocean model: %s\n", jl_string_ptr(jl_exception_occurred()));
@@ -91,51 +90,66 @@ void MARCOISCOOL_JLMODEL_getDomainInfo( \
     
     printf("[C Code] Getting domain info...\n");
 
-    size_t param_len = 13;
     jl_value_t* array_type = jl_apply_array_type((jl_value_t*) jl_int64_type, 1);
-    jl_array_t* param          = jl_alloc_array_1d(array_type, param_len);
+    jl_array_t* param          = jl_alloc_array_1d(array_type, 13);
     int64_t *paramData = jl_array_data(param, int64_t);
-    for (size_t i = 0; i < jl_array_nrows(param); i++) {
-        paramData[i] = 0;
-    }
+    for (size_t i = 0; i < jl_array_nrows(param); i++)
+        param[i] = 0;
 
     jl_function_t *func = jl_eval_string("OceanModel.getDomainInfo");
-    (void) jl_call2(func, (jl_value_t *) ocean_model, (jl_value_t*) param);
+    jl_call1(func, (jl_value_t*) param);
 
-    for(int i=0; i < jl_array_nrows(param); i+=1) {
+    if jl_typeis(ret, jl_tuple_type)) {
+        // Get the length of the tuple
+        size_t len = jl_array_len((jl_array_t*) ret);
+        printf("Tuple length: %zu\n", len);
+        
+        if (len!=13) {
+            printf("Error: Expect the return of getDomainInfo to be a tuple of 13 elements. Now I get %d.\n", len);
+            exit(1);
+        }
+        
+        // Unpack the first element (Integer: 42)
+        for(int i=0; i<len; i+=1) {
 
-        int64_t value = paramData[i];
+            jl_value_t *elem = jl_get_nth_field(ret, i);
+            int64_t value = jl_unbox_int64(elem);
 
-        if (i == 0) {
-            *sNx = value;
-        } else if (i == 1) {
-            *sNy = value;
-        } else if (i == 2) {
-            *OLx = value;
-        } else if (i == 3) {
-            *OLy = value;
-        } else if (i == 4) {
-            *nSx = value;
-        } else if (i == 5) {
-            *nSy = value;
-        } else if (i == 6) {
-            *nPx = value;
-        } else if (i == 7) {
-            *nPy = value;
-        } else if (i == 8) {
-            *Nx = value;
-        } else if (i == 9) {
-            *Ny = value;
-        } else if (i == 10) {
-            *Nr = value;
-        } else if (i == 11) {
-            *myXGlobalLo = value;
-        } else if (i == 12) {
-            *myYGlobalLo = value;
+            if (i == 0) {
+                *sNx = value;
+            } else if (i == 1) {
+                *sNy = value;
+            } else if (i == 2) {
+                *OLx = value;
+            } else if (i == 3) {
+                *OLy = value;
+            } else if (i == 4) {
+                *nSx = value;
+            } else if (i == 5) {
+                *nSy = value;
+            } else if (i == 6) {
+                *nPx = value;
+            } else if (i == 7) {
+                *nPy = value;
+            } else if (i == 8) {
+                *Nx = value;
+            } else if (i == 9) {
+                *Ny = value;
+            } else if (i == 10) {
+                *Nr = value;
+            } else if (i == 11) {
+                *myXGlobalLo = value;
+            } else if (i == 12) {
+                *myYGlobalLo = value;
+            }
+
         }
 
+    } else {
+        printf("Error: return of getDomainInfo is not a tuple.\n");
+        exit(1);
     }
-
+    
     printf("[C Code] Exiting getDomainInfo\n");
 
 } 
