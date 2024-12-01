@@ -9,4 +9,6 @@ include("OceanModel/JlOceanModel.jl")
 model = OceanModel.createOceanModel("model_config.toml"; comm=MPI.COMM_WORLD)
 
 
-println(OceanModel.getDomainInfo(model))
+params = zeros(Int64, 13)
+OceanModel.getDomainInfo(model, params)
+println(params)

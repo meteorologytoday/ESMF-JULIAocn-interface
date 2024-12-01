@@ -55,9 +55,11 @@ module OceanModel
     end
 
 
-    function getDomainInfo(m :: Model)
+    function getDomainInfo(
+        m :: Model,
+        params :: Vector{Int64},
+    )
 
-        result = nothing
         gd = m.env.gd
 
         try
@@ -66,7 +68,8 @@ module OceanModel
             myYGlobalLo = gd.myYGlobalLo[1]
             println("Ready to send domain info...")
             
-            result = (
+            
+            for (i, value) in enumerate((
                 gd.sNx,
                 gd.sNy,
                 gd.OLx,
@@ -80,7 +83,9 @@ module OceanModel
                 gd.Nr,
                 myXGlobalLo,
                 myYGlobalLo,
-            )
+            ))
+                params[i] = value
+            end
  
         catch e
 
@@ -89,9 +94,6 @@ module OceanModel
           
         end
 
-        println("Gonna return : ", result)
-    
-        return result
     end
 end
 
