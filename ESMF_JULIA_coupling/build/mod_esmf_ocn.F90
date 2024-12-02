@@ -447,13 +447,6 @@ module mod_esmf_ocn
 
   nextTime = currTime + timeStep
 
-  write (msg_to_model, '(A)') "My msg... ho ho ho... "
-  msg_to_model = trim(msg_to_model) // C_NULL_CHAR
-  print *, "Gonna send: ", msg_to_model
-  call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
-
-
-
   call ESMF_ClockPrint(clock, options="currTime", &
          preString="### [ClockPrint] Current Time: ", rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -482,7 +475,7 @@ module mod_esmf_ocn
          '(I4.4,"-",I2.2,"-",I2.2,"_",I2.2,":",I2.2,":",I2.2)') &
          TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
  
-  write (msg_to_model, '(A,A,A)') "{'subject':'sendTime', 'time': '", trim(timestr_compact), "'}"
+  write (msg_to_model, '(A,A,A)') '{"subject":"sendTime", "time": "', trim(timestr_compact), '"}'
   msg_to_model = trim(msg_to_model) // C_NULL_CHAR
   call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
 

@@ -105,9 +105,16 @@ module OceanModel
         
         @printf("I receive this message: %s\n", msg)
 
-        @printf("Parsed as JSON: \n")
-        parsed = JSON.parse(json_string)
-        JSON.print(parsed, 4)
+        try
+            @printf("Parsed as JSON: \n")
+            parsed = JSON.parse(msg)
+            JSON.print(parsed, 4)
+        catch e
+            println("Exception occurs: ", e) 
+            throw(e)
+        end
+
+
     end
 end
 
