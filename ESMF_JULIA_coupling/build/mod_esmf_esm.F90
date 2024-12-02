@@ -214,7 +214,7 @@ module mod_esmf_esm
       line=__LINE__, file=FILENAME)) return
 !
   call ESMF_TimeSet(esmStopTime, yy=2009, mm=1, dd=01,               &
-                    h=12, m=0, s=0,                                  &
+                    h=2, m=0, s=0,                                  &
                     calkindflag=ESMF_CALKIND_GREGORIAN,             &
                     rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &

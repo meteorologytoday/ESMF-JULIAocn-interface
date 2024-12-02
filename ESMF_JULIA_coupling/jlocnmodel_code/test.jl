@@ -10,5 +10,8 @@ model = OceanModel.createOceanModel("model_config.toml"; comm=MPI.COMM_WORLD)
 
 
 params = zeros(Int64, 13)
-OceanModel.getDomainInfo(model, params)
+OceanModel.getDomainInfo!(model, params)
 println(params)
+
+
+OceanModel.receiveMessage!(model, "TEST MSG")

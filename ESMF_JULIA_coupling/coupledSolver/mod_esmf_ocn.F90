@@ -85,6 +85,16 @@ module mod_esmf_ocn
       END SUBROUTINE MARCOISCOOL_JLMODEL_getDomainInfo
     END INTERFACE
 
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_JLMODEL_sendInfo2Model(            &
+        msg                                                     &
+    ) BIND(C, name="MARCOISCOOL_JLMODEL_sendInfo2Model")
+        IMPORT 
+        TYPE(C_PTR), VALUE :: msg
+      END SUBROUTINE MARCOISCOOL_JLMODEL_sendInfo2Model
+    END INTERFACE
+
+
 
 ! ---- ESMF_PY END ----
 
@@ -395,6 +405,7 @@ module mod_esmf_ocn
 !
   subroutine OCN_Run(gcomp, rc)
 
+  use, intrinsic :: iso_c_binding
   TYPE(ESMF_GridComp)       :: gcomp
   INTEGER, INTENT(  OUT)    :: rc
 
@@ -408,14 +419,72 @@ module mod_esmf_ocn
   TYPE(ESMF_Clock),    POINTER :: p_clock
 
   ! Local variables
-  TYPE(ESMF_Time) :: currentTime, nextTime
-  TYPE(ESMF_TimeInterval) :: runLength     ! how long to run in this call
+  TYPE(ESMF_Time) :: currTime, nextTime
+  TYPE(ESMF_TimeInterval) :: timeStep     ! how long to run in this call
   CHARACTER(LEN=256) :: timeStr
   TYPE(ESMF_StateIntent_Flag) :: stateintent
   INTEGER :: itemCount
   INTEGER :: iLoopOCN = 1
+ 
+  CHARACTER(LEN=4096), TARGET :: msg_to_model
+  CHARACTER(LEN=40) :: timestr_compact
+  INTEGER :: TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
   
   rc = ESMF_SUCCESS
+
+  ! Get the clock and import/export states
+  call NUOPC_ModelGet(gcomp, modelClock=clock,                      &
+                      importState=importState,                      &
+                      exportState=exportState, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+  ! Get the clock detail information
+  call ESMF_ClockGet(clock, currTime=currTime, timeStep=timeStep,   &
+                     rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  nextTime = currTime + timeStep
+
+  write (msg_to_model, '(A)') "My msg... ho ho ho... "
+  msg_to_model = trim(msg_to_model) // C_NULL_CHAR
+  print *, "Gonna send: ", msg_to_model
+  call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
+
+
+
+  call ESMF_ClockPrint(clock, options="currTime", &
+         preString="### [ClockPrint] Current Time: ", rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  call ESMF_TimePrint(currTime,                                     &
+         preString="##### Current Time: ", rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+
+  call ESMF_TimePrint(nextTime,                                     &
+         preString="##### Next    Time: ", rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  call ESMF_TimeGet(currTime, YY=TIME_YY, MM=TIME_MM, DD=TIME_DD,   &
+                    H=TIME_H, M=TIME_M, S=TIME_S,                   &
+                    rc=rc &
+  )
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  
+  write (timestr_compact,                                               &
+         '(I4.4,"-",I2.2,"-",I2.2,"_",I2.2,":",I2.2,":",I2.2)') &
+         TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
+ 
+  write (msg_to_model, '(A,A,A)') "{'subject':'sendTime', 'time': '", trim(timestr_compact), "'}"
+  msg_to_model = trim(msg_to_model) // C_NULL_CHAR
+  call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
 
   print *, "OCN iLoop is: ", iLoopOCN
 

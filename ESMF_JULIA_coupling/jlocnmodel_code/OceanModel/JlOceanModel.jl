@@ -3,6 +3,8 @@ module OceanModel
 
     using MPI
     using TOML
+    using Printf
+    using JSON
 
     include("Grid.jl")
     include("Env.jl")
@@ -55,7 +57,7 @@ module OceanModel
     end
 
 
-    function getDomainInfo(
+    function getDomainInfo!(
         m :: Model,
         params :: Vector{Int64},
     )
@@ -94,6 +96,18 @@ module OceanModel
           
         end
 
+    end
+
+    function receiveMessage!(
+        model :: Model,
+        msg   :: String,
+    )
+        
+        @printf("I receive this message: %s\n", msg)
+
+        @printf("Parsed as JSON: \n")
+        parsed = JSON.parse(json_string)
+        JSON.print(parsed, 4)
     end
 end
 
