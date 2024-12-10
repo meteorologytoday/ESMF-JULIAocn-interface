@@ -1,7 +1,7 @@
 include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
-include(joinpath(@__DIR__, "..", "dyn_core", "ENGINE_EMOM.jl"))
-include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
-include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "BinaryIO.jl"))
+#include(joinpath(@__DIR__, "..", "dyn_core", "ENGINE_EMOM.jl"))
+#include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
+#include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "BinaryIO.jl"))
 #include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "ProgramTunnel_fs_new.jl"))
 
 using MPI
@@ -11,8 +11,8 @@ using JSON
 using TOML
 
 #using .ProgramTunnel_fs
-using .BinaryIO
-using .LogSystem
+#using .BinaryIO
+#using .LogSystem
 
 function parse_commandline()
 
@@ -66,7 +66,11 @@ parsed = parse_commandline()
 
 
 
-MPI.Init()
+#MPI.Init()
+
+
+
+
 comm = MPI.COMM_WORLD
 rank = MPI.Comm_rank(comm)
 is_master = rank == 0
