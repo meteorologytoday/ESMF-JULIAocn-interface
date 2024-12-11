@@ -13,7 +13,7 @@ passMPICommunicator(MPI.COMM_WORLD)
 
 
 @printf("Create an empty interface\n")
-cpl_funcs = ControlInterface.createEmptyCouplerFunctions()
+cpl_funcs = SingleColumnOceanModel.createCouplerFunctions()
 
 @printf("Setup an interface\n")
 interface = ControlInterface.Interface(
