@@ -9,15 +9,14 @@ using Printf
 include("MPITools/MPI_essentials.jl")
 include("Interface/ControlInterface.jl")
 include("SingleColumnOceanModel/SingleColumnOceanModel.jl")
-include("driver.jl")
+include("Driver.jl")
+
+using .ControlInterface
+using .SingleColumnOceanModel
+using .Driver
 
 
 config_file = "config_SingleColumnOceanModel.toml"
-
-
-
-
-
 
 @printf("Initialize MPI.\n")
 MPI.Init()
@@ -28,6 +27,9 @@ passMPICommunicator(MPI.COMM_WORLD)
 @printf("My rank is %d of size %d. Am I the master? %s\n", RANK, MPI.Comm_size(COMM), string(IS_MASTER))
 
 
+# Still need to think about what is the advandage
+# of separating the initilization of an interface.
+# I.e. why can't I do createInterface ?
 @printf("Create an empty interface\n")
 cpl_funcs = SingleColumnOceanModel.createCouplerFunctions()
 
@@ -36,8 +38,16 @@ interface = ControlInterface.Interface(
     config_file,
 )
 
-@printf("Run model?\n")
+OMMODULE = SingleColumnOceanModel
 
+
+@printf("Run model...\n")
+
+Driver.runModel(
+    OMMODULE,
+    COMM,
+    config_file,
+)
 
 @printf("End of file %s\n", @__FILE__)
 

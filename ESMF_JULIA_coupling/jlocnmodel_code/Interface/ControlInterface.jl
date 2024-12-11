@@ -38,7 +38,7 @@ module ControlInterface
         function Interface(
             config_file :: String
         )
-
+            
             config = TOML.parsefile(config_file)
             timetype = getproperty(CFTime, Symbol(config["MODEL_MISC"]["timetype"])) 
             

@@ -1,6 +1,6 @@
 module LogSystem
 
-    using Formatting
+    using Printf
     using MPI
     
     export writeLog
@@ -11,7 +11,9 @@ module LogSystem
         rank = MPI.Comm_rank(comm)
 
         if force || rank == 0
-            println(format(args...))
+            
+            s = Printf.format(args...)
+            @printf("%s\n", s)
         end
     end
 end

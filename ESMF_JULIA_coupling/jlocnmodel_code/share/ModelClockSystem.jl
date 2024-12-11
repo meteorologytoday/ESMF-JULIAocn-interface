@@ -2,7 +2,8 @@ module ModelClockSystem
 
     export ModelAlarm, ModelClock, advanceClock!, setClock!, addAlarm!, clock2str, dt2str, dt2tuple, dropRungAlarm!
 
-    using CFTime, Formatting
+    using Printf
+    using CFTime
 
     using Dates
     using Dates: CompoundPeriod
@@ -108,7 +109,7 @@ module ModelClockSystem
     function ringAlarm!(mc :: ModelClock, alarm :: ModelAlarm)
         #println("alarm.time = $(alarm.time). done = $(alarm.done)")
         if ! alarm.done
-            println(format("Alarm '{:s}' rings at {:s}", alarm.name, dt2str(alarm.time)))
+            println(@sprintf("Alarm '%s' rings at %s", alarm.name, dt2str(alarm.time)))
 
             for callback in alarm.callbacks
                 callback(mc, alarm)
@@ -145,7 +146,7 @@ module ModelClockSystem
     end
 
     function dt2str(dt)
-        return format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", dt2tuple(dt)...)
+        return @sprintf("%04d-%02d-%02d %02d:%02d:%02d", dt2tuple(dt)...)
     end
 
     function dt2tuple(dt)
