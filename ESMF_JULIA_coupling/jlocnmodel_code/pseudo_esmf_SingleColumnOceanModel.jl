@@ -1,7 +1,23 @@
 using Printf
 @printf("Running %s\n", @__FILE__)
+
+
+@printf("This program emulate what ESMF is doing, serving as a debugging tool.\n")
+@printf("This program also has the potential to serve as a future prototype of Julia centered coupler.\n")
+
+
 include("MPITools/MPI_essentials.jl")
 include("Interface/ControlInterface.jl")
+include("SingleColumnOceanModel/SingleColumnOceanModel.jl")
+include("driver.jl")
+
+
+config_file = "config_SingleColumnOceanModel.toml"
+
+
+
+
+
 
 @printf("Initialize MPI.\n")
 MPI.Init()
