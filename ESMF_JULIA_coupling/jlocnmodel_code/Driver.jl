@@ -4,12 +4,17 @@ using JLD2
 using MPI
 using Printf
 
+#include(normpath(joinpath(dirname(@__FILE__), "share", "module_include.jl")))
+
+
+
+
 if !(:LogSystem in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "share", "LogSystem.jl")))
 end
 
-if !(:ModelClockSystem in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "share", "ModelClockSystem.jl")))
+if !(:ModelTimeManagement in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "share", "ModelTimeManagement.jl")))
 end
 
 if !(:Config in names(Main))
@@ -34,6 +39,7 @@ module Driver
     using ..LogSystem
     using ..Config
     using ..ControlInterface
+    using ..ModelTimeManagement
    
     include("configs/driver_configs.jl")
  
@@ -116,7 +122,7 @@ module Driver
 
             end
 
-            writeLog("### Simulation time start: %s", Dates.format(t_start, "yyyy-mm-dd HH:MM:SS"))
+            writeLog("### Simulation time start: %s", string(t_start))
              
         end
 
@@ -126,7 +132,7 @@ module Driver
 
 
         # copy the start time by adding 0 seconds
-        beg_datetime = t_start + Dates.Second(0)
+        beg_datetime = copy_partial(t_start)
 
         # Construct model clock
         clock = ModelClock("Model", beg_datetime)

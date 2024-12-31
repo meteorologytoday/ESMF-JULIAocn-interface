@@ -1,4 +1,16 @@
-include( normpath(joinpath("..", "Interface", "ControlInterface.jl")) )
+
+
+if !(:ControlInterface in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "Interface", "ControlInterface.jl")))
+end
+
+if !(:ModelTimeManagement in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ModelTimeManagement.jl")))
+end
+
+
+
+
 
 module SingleColumnOceanModel
 
@@ -7,6 +19,7 @@ module SingleColumnOceanModel
     using Printf
     using JSON
     using ..ControlInterface
+    using ..ModelTimeManagement
 
     include("Grid.jl")
     include("Env.jl")
@@ -139,10 +152,15 @@ module SingleColumnOceanModel
             cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
             Δt = Dates.Second(parse(Float64, msg["DT"]))
             =#
-            read_restart = false
-            cesm_coupler_time = 
 
-            return read_restart, cesm_coupler_time, Δt
+            time_cfg = ModelTimeConfig(0.0, Rational(1))
+            t_start = ModelTime(time_cfg, 0)
+
+            Δiter = 1
+            read_restart = false
+            cesm_coupler_time = t_start 
+
+            return read_restart, cesm_coupler_time, Δiter
             
         end
 

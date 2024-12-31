@@ -7,19 +7,19 @@ module ModelClockSystem
 
     mutable struct ModelAlarm
         name      :: String
-        time      :: Float64  #
+        model_time      :: Float64  #
         priority  :: Integer   # There might be multiple alarms ring at the same time. And if order is important, then the higher the number the higher the priority.
         callbacks :: Array{Function, 1}
-        recurring :: Union{Nothing, Period, CompoundPeriod, Function}
+        recurring :: Union{Nothing, Function}
         done      :: Bool
     end
 
     function isEarlier(x :: ModelAlarm, y :: ModelAlarm)
-        return (x.time < y.time) || ( (x.time == y.time) && (x.priority > y.priority))
+        return (x.model_time < y.model_time) || ( (x.model_time == y.model_time) && (x.priority > y.priority))
     end
 
     function isEqual(x :: ModelAlarm, y :: ModelAlarm)
-        return (x.time == y.time) && (x.priority == y.priority)
+        return (x.model_time == y.model_time) && (x.priority == y.priority)
     end
 
     function isLater(x :: ModelAlarm, y :: ModelAlarm)
@@ -30,20 +30,20 @@ module ModelClockSystem
     mutable struct ModelClock
         
         name         :: String
-        time         :: AbstractCFDateTime
+        model_time         :: ModelTime
         alarms       :: Array{ModelAlarm, 1}
         alarms_dict  :: Dict
         alarm_ptr    :: Integer 
         
         function ModelClock(
             name :: String,
-            time :: AbstractCFDateTime,
+            model_time :: ModelTime,
         )
             alarms = Array{ModelAlarm}(undef, 0)
             alarms_dict = Dict()
             return new(
                 name,
-                time + Dates.Second(0),
+                model_time,
                 alarms,
                 alarms_dict,
                 0,
@@ -52,39 +52,29 @@ module ModelClockSystem
 
     end
 
-    function checkType(time1 :: AbstractCFDateTime, time2 :: AbstractCFDateTime)
-        if typeof(time1) != typeof(time2)
-            throw(ErrorException("Time type does not match!"))
-        end
-    end
-
     function setClock!(
-        mc :: ModelClock,
-        time :: AbstractCFDateTime,
+        mc   :: ModelClock,
+        iter :: Int64,
     )
-
-        checkType(mc.time, time)
-        mc.time = time + Second(0)
+        mc.model_time = iter
 
     end
 
     function advanceClock!(
         mc :: ModelClock,
-        t :: Union{Second, AbstractCFDateTime},
+        diter :: Int64,
     )
-        if typeof(t) <: Second  # inteprete as time interval
-            mc.time += t
-        elseif typeof(Δt) <: AbstractCFDateTime
-            setClock!(mc, t)
-        end
-
+        
+        mc.model_time.iter += diter
+        
         # Only check alarms when there is any
         if length(mc.alarms) > 0
-            if mc.alarm_ptr == 0 && mc.time >= mc.alarms[1].time
+            
+            if mc.alarm_ptr == 0 && mc.model_time >= mc.alarms[1].model_time
                 mc.alarm_ptr = 1
             end
-
-            while (0 < mc.alarm_ptr <= length(mc.alarms)) && (mc.time >= mc.alarms[mc.alarm_ptr].time)
+            
+            while (0 < mc.alarm_ptr <= length(mc.alarms)) && (mc.model_time >= mc.alarms[mc.alarm_ptr].model_time)
             #    println("Before ring alarm: mc.alarm_ptr  = $(mc.alarm_ptr)")
                 # In case we are at the end of alarm array
                
@@ -106,7 +96,7 @@ module ModelClockSystem
     function ringAlarm!(mc :: ModelClock, alarm :: ModelAlarm)
         #println("alarm.time = $(alarm.time). done = $(alarm.done)")
         if ! alarm.done
-            println(@sprintf("Alarm '%s' rings at %s", alarm.name, dt2str(alarm.time)))
+            println(@sprintf("Alarm '%s' rings at %s", alarm.name, dt2str(alarm.model_time)))
 
             for callback in alarm.callbacks
                 callback(mc, alarm)
@@ -120,9 +110,9 @@ module ModelClockSystem
             if alarm.recurring != nothing
                 
                 if isa(alarm.recurring, Function)
-                    next_time = alarm.recurring(alarm.time)
+                    next_time = alarm.recurring(alarm.model_time)
                 else
-                    next_time = alarm.time + alarm.recurring
+                    next_time = alarm.model_time + alarm.recurring
                 end
                 #println("Current time: $(string(alarm.time))")
                 #println("Next alarm: " * string(next_time))
@@ -139,11 +129,11 @@ module ModelClockSystem
     end
 
     function clock2str(mc :: ModelClock)
-        return dt2str(mc.time)
+        return dt2str(mc.model_time)
     end
 
-    function dt2str(dt)
-        return @sprintf("%04d-%02d-%02d %02d:%02d:%02d", dt2tuple(dt)...)
+    function dt2str(model_time :: ModelTime)
+        return string(model_time) #@sprintf("%04d-%02d-%02d %02d:%02d:%02d", dt2tuple(dt)...)
     end
 
     function dt2tuple(dt)
@@ -153,14 +143,22 @@ module ModelClockSystem
     function addAlarm!(
         mc   :: ModelClock,
         name :: String,
-        time :: AbstractCFDateTime,
+        model_time :: Union{Int64, ModelTime},
         priority :: Integer;
         callback :: Union{Array{Function, 1}, Function, Nothing} = nothing,
-        recurring :: Union{ Nothing, Period, CompoundPeriod, Function } = nothing,
+        recurring :: Union{ Nothing, Function } = nothing,
     )
 
-        checkType(time, mc.time)
-        
+
+        # If it is an integer, treat as iter
+        if typeof(model_time) <: Int64
+            model_time = ModelTime(mc.model_time.cfg, model_time) 
+        end
+
+        if ! isConsistent(mc.model_time, model_time)
+            throw(ErrorException("Inconsistent model_time while adding alarm."))
+        end
+
         if callback == nothing
             callbacks = Array{Function, 1}(undef, 0)
         elseif typeof(callback) <: Function
@@ -171,7 +169,7 @@ module ModelClockSystem
 
         alarm = ModelAlarm(
             name,
-            time,
+            model_time,
             priority,
             callbacks,
             recurring,
@@ -182,8 +180,8 @@ module ModelClockSystem
             mc.alarm_ptr = 1
         end
 
-        if alarm.time < mc.time 
-            println("alarm.time = ", dt2str(alarm.time))
+        if alarm.model_time < mc.model_time 
+            println("alarm.model_time = ", dt2str(alarm.model_time))
             throw(ErrorException("Alarm needs to be set in the future."))
         end
 
@@ -202,8 +200,11 @@ module ModelClockSystem
         # lt = less than = earlier and higher priority
         sort!(mc.alarms, lt = isEarlier)
 
-        if alarm.time == mc.time
-            advanceClock!(mc, Second(0))
+        # What is this doing?
+        # Ans: Fire off the alarm callback if the
+        #      added alarm matches the current time
+        if alarm.model_time == mc.model_time
+            advanceClock!(mc, 0)
         end
 
 
