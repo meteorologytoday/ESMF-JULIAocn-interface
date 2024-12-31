@@ -3,11 +3,14 @@ module ModelClockSystem
     export ModelAlarm, ModelClock, advanceClock!, setClock!, addAlarm!, clock2str, dt2str, dt2tuple, dropRungAlarm!
 
     using Printf
-    using ..ModelTimeModule 
+    using CFTime
+
+    using Dates
+    using Dates: CompoundPeriod
 
     mutable struct ModelAlarm
         name      :: String
-        time      :: Float64  #
+        time      :: AbstractCFDateTime
         priority  :: Integer   # There might be multiple alarms ring at the same time. And if order is important, then the higher the number the higher the priority.
         callbacks :: Array{Function, 1}
         recurring :: Union{Nothing, Period, CompoundPeriod, Function}

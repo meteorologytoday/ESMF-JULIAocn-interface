@@ -1,3 +1,11 @@
 [MODEL_MISC]
-
 timetype = "CFTime"
+
+
+[DRIVER]
+    casename = "SingleColumn"
+    caseroot = "lab"
+    caserun  = "run"
+    archive_root = "archive"
+
+

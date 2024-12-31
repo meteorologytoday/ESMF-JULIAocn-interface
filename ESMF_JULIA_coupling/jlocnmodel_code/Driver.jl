@@ -34,7 +34,9 @@ module Driver
     using ..LogSystem
     using ..Config
     using ..ControlInterface
-    
+   
+    include("configs/driver_configs.jl")
+ 
     function runModel(
         OMMODULE      :: Any,
         comm          :: MPI.Comm,
@@ -46,8 +48,8 @@ module Driver
         ntask = MPI.Comm_size(comm)
 
         writeLog("===== [ Master Created ] =====")
-        writeLog("Number of total tasks       : {:d}", ntask)
-        writeLog("Number of total worker tasks: {:d}", ntask-1)
+        writeLog("Number of total tasks       : %d", ntask)
+        writeLog("Number of total worker tasks: %d", ntask-1)
 
 
         MPI.Barrier(comm)
@@ -60,7 +62,13 @@ module Driver
             end
 
             writeLog("Validate driver config.")
-            config["DRIVER"] = validateConfigEntries(config["DRIVER"], getDriverConfigDescriptors()["DRIVER"])
+            config["DRIVER"] = validateConfigEntries(
+                config["DRIVER"],
+                getDriverConfigDescriptors()["DRIVER"]
+            )
+            
+            writeLog("Create coupler functions.")
+            coupler_funcs = OMMODULE.createCouplerFunctions()
         end
 
         writeLog("Broadcast config to slaves.")
@@ -68,7 +76,7 @@ module Driver
 
 
         p = config["DRIVER"]["caserun"]
-        writeLog("Setting working directory to {:s}", p)
+        writeLog("Setting working directory to %s", p)
         if is_master
             if ! isdir(p)
                 writeLog("Working directory does not exist. Create it.")

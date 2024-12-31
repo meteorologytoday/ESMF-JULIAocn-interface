@@ -115,7 +115,7 @@ module Config
             else
 
                 msg = @sprintf(
-                    "Missing config: `{:s}`. Valid values/types: `%s`.",
+                    "Missing config: `%s`. Valid values/types: `%s`.",
                     string(name),
                     join(string.(valid_vts), "` ,`")
                 )

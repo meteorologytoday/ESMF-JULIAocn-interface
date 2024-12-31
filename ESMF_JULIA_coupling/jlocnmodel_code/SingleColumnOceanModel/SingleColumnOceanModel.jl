@@ -139,6 +139,8 @@ module SingleColumnOceanModel
             cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
             Δt = Dates.Second(parse(Float64, msg["DT"]))
             =#
+            read_restart = false
+            cesm_coupler_time = 
 
             return read_restart, cesm_coupler_time, Δt
             

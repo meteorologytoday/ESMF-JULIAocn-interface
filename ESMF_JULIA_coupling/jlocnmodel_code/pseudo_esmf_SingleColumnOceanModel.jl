@@ -1,4 +1,5 @@
 using Printf
+using TOML
 @printf("Running %s\n", @__FILE__)
 
 
@@ -41,12 +42,12 @@ interface = ControlInterface.Interface(
 OMMODULE = SingleColumnOceanModel
 
 
-@printf("Run model...\n")
-
+@printf("Obtain config from: %s\n", config_file)
+config = TOML.parsefile(config_file)
 Driver.runModel(
     OMMODULE,
     COMM,
-    config_file,
+    config,
 )
 
 @printf("End of file %s\n", @__FILE__)
