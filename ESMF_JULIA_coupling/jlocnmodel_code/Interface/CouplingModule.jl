@@ -11,19 +11,19 @@ module CouplingModule
         master_finalize!         :: Union{Function, Nothing}
 
         function CouplerFunctions()
-            cpl_funs = new([nothing for i=1:5]...)
-            return cpl_funs
+            cpl_funcs = new([nothing for i=1:5]...)
+            return cpl_funcs
         end
     end
 
     struct CouplingInterface
         
         config      :: Dict
-        cpl_funs    :: Union{CouplerFunctions, Nothing}
+        cpl_funcs    :: Union{CouplerFunctions, Nothing}
         
         function CouplingInterface(
             config :: Union{String, Dict},
-            cpl_funs :: Union{Nothing, CouplerFunctions} = nothing,
+            cpl_funcs :: Union{Nothing, CouplerFunctions} = nothing,
         )
 
             if typeof(config) <: String
@@ -32,7 +32,7 @@ module CouplingModule
             
             return new(
                 config,
-                cpl_funs,
+                cpl_funcs,
             )
         end
         
@@ -43,6 +43,11 @@ module CouplingModule
         cpl_funcs = CouplerFunctions()
 
         cpl_funcs.master_before_model_init = function()
+
+            read_restart = false
+            cesm_coupler_time = 0.0
+            Δt = 0
+
             return read_restart, cesm_coupler_time, Δt
         end
 

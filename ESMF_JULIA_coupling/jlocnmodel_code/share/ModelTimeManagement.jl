@@ -152,7 +152,7 @@ module ModelTimeManagement
             mc   :: ModelClock,
             iter :: Int64,
         )
-            mc.model_time = iter
+            mc.model_time.iter = iter
 
         end
 
@@ -229,7 +229,7 @@ module ModelTimeManagement
         end
 
         function dt2str(model_time :: ModelTime)
-            return string(model_time) #@sprintf("%04d-%02d-%02d %02d:%02d:%02d", dt2tuple(dt)...)
+            return ModelTimeModule.string(model_time) #@sprintf("%04d-%02d-%02d %02d:%02d:%02d", dt2tuple(dt)...)
         end
 
         function dt2tuple(dt)

@@ -27,27 +27,7 @@ is_master = rank == 0
 
 coupler_funcs = (
 
-    master_before_model_init = function()
-
-        global msg
-        
-        writeLog("[Coupler] Before model init. My rank = {:d}", rank)
-        
-        recvMsg()
-       
-        if msg["MSG"] != "INIT"
-            throw(ErrorException("Unexpected `MSG` : " * string(msg["MSG"])))
-        end
- 
-        read_restart = (msg["READ_RESTART"] == "TRUE") ? true : false
-        cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
-        Δt = Dates.Second(parse(Float64, msg["DT"]))
-
-        return read_restart, cesm_coupler_time, Δt
-        
-    end,
-
-    master_after_model_init! = function(OMMODULE, OMDATA)
+    master_after_model_init! = function(dr :: Driver)
 
         global msg
 

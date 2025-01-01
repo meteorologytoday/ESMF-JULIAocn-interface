@@ -1,3 +1,11 @@
+[BASIC]
+restart       = false
+iter_start    = 0
+modeltime_ref = 0.0 
+dt_num        = 1
+dt_den        = 1
+
+
 [TIME]
 calendar = "Gregorian"
 

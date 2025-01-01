@@ -20,6 +20,11 @@ if !(:CouplingModule in names(Main))
     include(normpath(joinpath(@__DIR__, "Interface", "CouplingModule.jl")))
 end
 
+if !(:Config in names(Main))
+    include(normpath(joinpath(@__DIR__, "share", "Config.jl")))
+end
+
+
 include(normpath(joinpath(dirname(@__FILE__), "configs", "driver_configs.jl")))
 
 module DriverModule
@@ -29,6 +34,7 @@ module DriverModule
     using ..LogSystem
     using ..CouplingModule
     using ..ModelTimeManagement
+    using ..Config
    
     include("configs/driver_configs.jl")
  
@@ -36,12 +42,13 @@ module DriverModule
     mutable struct Driver
         config   :: Union{Dict, Nothing}
         OMMODULE :: Module
+        OMDATA   :: Any
         comm     :: MPI.Comm
         ci :: CouplingModule.CouplingInterface
     end
 
 
-    function runModel(
+    function initModel!(
         dr :: Driver,
     )
 
@@ -53,7 +60,6 @@ module DriverModule
         writeLog("===== [ Master Created ] =====")
         writeLog("Number of total tasks       : %d", ntask)
         writeLog("Number of total worker tasks: %d", ntask-1)
-        
         
         MPI.Barrier(comm)
 
@@ -70,8 +76,7 @@ module DriverModule
                 getDriverConfigDescriptors()["DRIVER"]
             )
             
-            writeLog("Create coupler functions.")
-            coupler_funcs = OMMODULE.createCouplerFunctions()
+            coupler_funcs = dr.ci.cpl_funcs
         end
 
         writeLog("Broadcast config to slaves.")
@@ -89,15 +94,25 @@ module DriverModule
         MPI.Barrier(comm)
         cd(p)
 
-        local t_start = nothing 
+        local mt_start = nothing
         local read_restart = nothing
-        local Δt = nothing
+        local dt = nothing
      
         if is_master
 
             writeLog("Getting model start time.")
-            read_restart, t_start, Δt = coupler_funcs.master_before_model_init()
             
+            read_restart  = config["BASIC"]["restart"]
+            iter_start      = config["BASIC"]["iter_start"]
+            modeltime_ref = config["BASIC"]["modeltime_ref"]
+            dt           = Int64(config["BASIC"]["dt_num"]) // Int64(config["BASIC"]["dt_den"])
+
+            
+            mt_start = ModelTime(
+                ModelTimeConfig(modeltime_ref, dt),
+                iter_start 
+            )
+             
             if read_restart
 
                 writeLog("read_restart is true.")
@@ -119,25 +134,25 @@ module DriverModule
 
             end
 
-            writeLog("### Simulation time start: %s", string(t_start))
+            writeLog("### Simulation time start: %s", string(mt_start))
              
         end
 
-        writeLog("Broadcast t_start and read_restart to slaves.")
-        t_start = MPI.bcast(t_start, 0, comm) 
+        writeLog("Broadcast mt_start and read_restart to slaves.")
+        mt_start = MPI.bcast(mt_start, 0, comm) 
         read_restart = MPI.bcast(read_restart, 0, comm) 
 
 
         # copy the start time by adding 0 seconds
-        beg_datetime = copy_partial(t_start)
+        beg_datetime = copy_partial(mt_start)
 
         # Construct model clock
         clock = ModelClock("Model", beg_datetime)
 
         # initializing
-        writeLog("===== INITIALIZING MODEL: %s =====", OMMODULE.name)
+        writeLog("===== INITIALIZING MODEL: %s =====", dr.OMMODULE.name)
         
-        OMDATA = OMMODULE.init(
+        dr.OMDATA = dr.OMMODULE.init(
             casename     = config["DRIVER"]["casename"],
             clock        = clock,
             config       = config,
@@ -145,7 +160,10 @@ module DriverModule
         )
 
         if is_master
-            coupler_funcs.master_after_model_init!(OMMODULE, OMDATA)
+
+            # This is where we establish the array passing between
+            # the ocean model and the coupler
+            # coupler_funcs.master_after_model_init!(dr)
 
             # By design, CESM ends the simulation of month m after the run of 
             # the first day of (m+1) month. For example, suppose the model 
@@ -163,120 +181,126 @@ module DriverModule
 
         # =======================================
         # IMPORTANT: need to sync time
-        _time = MPI.bcast(clock.time, 0, comm) 
+        _model_time = MPI.bcast(clock.model_time, 0, comm) 
         if !is_master
-            setClock!(clock, _time)
+            setClock!(clock, _model_time.iter)
         end
         # =======================================
         
+    end
+
+    function runModel!(
+        dr :: Driver;
+        write_restart :: Bool,
+    )
+
         writeLog("Ready to run the model.")
-        while true
+            
+        if is_master 
+            writeLog("Current time: %s", clock2str(clock))
+        end
 
-            if is_master 
-                writeLog("Current time: %s", clock2str(clock))
-            end
+        stage = nothing
+        Δt    = nothing
+        write_restart = nothing
 
-            stage = nothing
-            Δt    = nothing
-            write_restart = nothing
+        if is_master
+            stage, Δt, write_restart = coupler_funcs.master_before_model_run!(dr)
+        end
+        stage         = MPI.bcast(stage, 0, comm) 
+        Δt            = MPI.bcast(Δt, 0, comm) 
+        write_restart = MPI.bcast(write_restart, 0, comm) 
 
-            if is_master
-                stage, Δt, write_restart = coupler_funcs.master_before_model_run!(OMMODULE, OMDATA)
-            end
-            stage         = MPI.bcast(stage, 0, comm) 
-            Δt            = MPI.bcast(Δt, 0, comm) 
-            write_restart = MPI.bcast(write_restart, 0, comm) 
+        if stage == :RUN 
 
-            if stage == :RUN 
+            cost = @elapsed let
 
-                cost = @elapsed let
-
-                    # This advanced option is needed when deriving
-                    # qflux in direct method: Coupler needs to load
-                    # the initial data of each day and force master
-                    # to sync thermo variables with slaves. 
-                    if config["DRIVER"]["compute_QFLX_direct_method"]
-                        OMMODULE.syncM2S!(OMDATA)
-                    end
-
-                    # Do the run and THEN advance the clock
-
-                    OMMODULE.run!(
-                        OMDATA;
-                        Δt = Δt,
-                        write_restart = write_restart,
-                    )
-                    MPI.Barrier(comm)
-                    
-                end
-
-                writeLog("Computation cost: {:.2f} secs.", cost)
-
-                if write_restart && is_master
-
-                    driver_restart_file = "model_restart.jld2"
-                    writeLog("Writing restart time of driver: $(driver_restart_file)")
-                    JLD2.save(driver_restart_file, "timestamp", clock.time)
-
-                    archive_list_file = joinpath(
-                        config["DRIVER"]["caserun"],
-                        config["DRIVER"]["archive_list"],
-                    )
-
-                    timestamp_str = @sprintf(
-                        "%s-%05d",
-                        Dates.format(clock.time, "yyyy-mm-dd"),
-                        floor(Int64, Dates.hour(clock.time)*3600+Dates.minute(clock.time)*60+Dates.second(clock.time)),
-                    )
-
-                    appendLine(archive_list_file,
-                        @sprintf("cp,%s,%s,%s",
-                            driver_restart_file,
-                            config["DRIVER"]["caserun"],
-                            joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
-                        )
-                    ) 
-
-                end
-
-                if is_master
-                    coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
-                end
-                
+                # This advanced option is needed when deriving
+                # qflux in direct method: Coupler needs to load
+                # the initial data of each day and force master
+                # to sync thermo variables with slaves. 
                 if config["DRIVER"]["compute_QFLX_direct_method"]
-                    writeLog("compute_QFLX_direct_method is true")
                     OMMODULE.syncM2S!(OMDATA)
                 end
 
+                # Do the run and THEN advance the clock
 
-                # ==========================================
-                if is_master
-                    # Advance the clock AFTER the run
-                    advanceClock!(clock, Δt)
-                    dropRungAlarm!(clock)
-                end
-               
-                # Broadcast time to workers. Workers need time
-                # because datastream needs time interpolation. 
-                _time = MPI.bcast(clock.time, 0, comm) 
-                if !is_master
-                    setClock!(clock, _time)
-                end
+                OMMODULE.run!(
+                    OMDATA;
+                    Δt = Δt,
+                    write_restart = write_restart,
+                )
+                MPI.Barrier(comm)
                 
-                # ==========================================
+            end
 
-            elseif stage == :END
+            writeLog("Computation cost: {:.2f} secs.", cost)
 
-                writeLog("Receive :END. Entering finalizing phase now.")
-                break
+            if write_restart && is_master
 
-            else
-                
-                throw(ErrorException("Unknown stage : " * string(stage)))
+                driver_restart_file = "model_restart.jld2"
+                writeLog("Writing restart time of driver: $(driver_restart_file)")
+                JLD2.save(driver_restart_file, "timestamp", clock.time)
+
+                archive_list_file = joinpath(
+                    config["DRIVER"]["caserun"],
+                    config["DRIVER"]["archive_list"],
+                )
+
+                timestamp_str = @sprintf(
+                    "%s-%05d",
+                    Dates.format(clock.time, "yyyy-mm-dd"),
+                    floor(Int64, Dates.hour(clock.time)*3600+Dates.minute(clock.time)*60+Dates.second(clock.time)),
+                )
+
+                appendLine(archive_list_file,
+                    @sprintf("cp,%s,%s,%s",
+                        driver_restart_file,
+                        config["DRIVER"]["caserun"],
+                        joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
+                    )
+                ) 
 
             end
 
+            if is_master
+                coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
+            end
+            
+            if config["DRIVER"]["compute_QFLX_direct_method"]
+                writeLog("compute_QFLX_direct_method is true")
+                OMMODULE.syncM2S!(OMDATA)
+            end
+
+
+            # ==========================================
+            if is_master
+                # Advance the clock AFTER the run
+                advanceClock!(clock, Δt)
+                dropRungAlarm!(clock)
+            end
+           
+            # Broadcast time to workers. Workers need time
+            # because datastream needs time interpolation. 
+            _model_time = MPI.bcast(clock.model_time, 0, comm) 
+            if !is_master
+                setClock!(clock, _model_time)
+            end
+            
+            # ==========================================
+
+        else
+            
+            throw(ErrorException("Unknown stage : " * string(stage)))
+
         end
+
+
+    end
+
+    function finalizeModel(
+        dr :: Driver,
+    )
         
         if is_master
            

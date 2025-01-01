@@ -20,7 +20,7 @@ module SimpleOceanModel
 
     mutable struct METADATA
         casename    :: AbstractString
-        Tile        :: SimpleOceanModel_CORE.Tile
+        Tile        :: Union{SimpleOceanModel_CORE.Tile, Nothing}
         clock       :: ModelClock
 
         x2o         :: Union{Dict, Nothing}
@@ -28,7 +28,7 @@ module SimpleOceanModel
 
         config     :: Dict
         recorders   :: Union{Dict, Nothing}
-        #jdi        :: JobDistributionInfo
+        jdi        :: Any#JobDistributionInfo
         sync_data   :: Dict
     end
 
@@ -50,14 +50,20 @@ module SimpleOceanModel
 
         is_master = ( rank == 0 )
 
+        my_tile   = nothing
+        jdi       = nothing
+        recorders = nothing
+        sync_data = Dict()
+        x2o = Dict()
+        o2x = Dict()
         MD = METADATA(
             casename,
-            my_mb,
+            my_tile,
             clock,
             x2o,
             o2x,
             config,
-            nothing,
+            recorders,
             jdi,
             sync_data,
         )
