@@ -3,7 +3,7 @@ module CyclicData
     using Dates
     using NCDatasets
     using CFTime
-    using Formatting
+    using Printf
 
     export CyclicDataManager, interpData!, makeDataContainer
 

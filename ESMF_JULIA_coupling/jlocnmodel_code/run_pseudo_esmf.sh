@@ -2,6 +2,6 @@
 
 nproc=1
 
-mpiexec -np $nproc julia pseudo_esmf_SingleColumnOceanModel.jl
+mpiexec -np $nproc julia pseudo_esmf_SimpleOceanModel.jl
 
 

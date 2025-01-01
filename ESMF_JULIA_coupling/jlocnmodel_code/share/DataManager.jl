@@ -1,7 +1,6 @@
 module DataManager
 
     using NCDatasets
-    using Formatting
     using Dates
 
     export DataUnit, DataTable, regVariable!

@@ -8,16 +8,15 @@ using TOML
 
 
 include("MPITools/MPI_essentials.jl")
-include("Interface/ControlInterface.jl")
-include("SingleColumnOceanModel/SingleColumnOceanModel.jl")
-include("Driver.jl")
+include("Interface/CouplingModule.jl")
+include("SimpleOceanModel/SimpleOceanModel.jl")
+include("Driver_generic.jl")
 
-using .ControlInterface
-using .SingleColumnOceanModel
-using .Driver
+using .CouplingModule
+using .SimpleOceanModel
+using .DriverModule
 
-
-config_file = "config_SingleColumnOceanModel.toml"
+config_file = "config_SimpleOceanModel.toml"
 
 @printf("Initialize MPI.\n")
 MPI.Init()
@@ -32,23 +31,22 @@ passMPICommunicator(MPI.COMM_WORLD)
 # of separating the initilization of an interface.
 # I.e. why can't I do createInterface ?
 @printf("Create an empty interface\n")
-cpl_funcs = SingleColumnOceanModel.createCouplerFunctions()
-
-@printf("Setup an interface\n")
-interface = ControlInterface.Interface(
+cpl_if = CouplingModule.CouplingInterface(
     config_file,
+    CouplingModule.createEmptyCouplerFunctions(),#SimpleOceanModel.createCouplerFunctions()
 )
-
-OMMODULE = SingleColumnOceanModel
-
 
 @printf("Obtain config from: %s\n", config_file)
 config = TOML.parsefile(config_file)
-Driver.runModel(
-    OMMODULE,
-    COMM,
+
+dr = DriverModule.Driver(
     config,
+    SimpleOceanModel,
+    COMM,
+    cpl_if, 
 )
+
+DriverModule.runModel(dr)
 
 @printf("End of file %s\n", @__FILE__)
 

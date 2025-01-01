@@ -2,7 +2,6 @@ module Parallization
 
     using ..DataManager
     using MPI
-    using Formatting
   
     export JobDistributionInfo, getYsplitInfoByRank, syncField!
     export printJobDistributionInfo

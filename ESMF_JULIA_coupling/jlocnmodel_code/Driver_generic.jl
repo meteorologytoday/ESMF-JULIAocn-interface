@@ -1,3 +1,5 @@
+using CFTime
+using Dates
 using JLD2
 using MPI
 using Printf
@@ -14,39 +16,45 @@ if !(:appendLine in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "share", "AppendLine.jl")))
 end
  
-if !(:ControlInterface in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "ControlInterface.jl")))
+if !(:CouplingModule in names(Main))
+    include(normpath(joinpath(@__DIR__, "Interface", "CouplingModule.jl")))
 end
 
-    
 include(normpath(joinpath(dirname(@__FILE__), "configs", "driver_configs.jl")))
 
-module Driver
+module DriverModule
 
     using MPI
     using Printf
     using ..LogSystem
-    using ..Config
-    using ..ControlInterface
+    using ..CouplingModule
     using ..ModelTimeManagement
    
     include("configs/driver_configs.jl")
  
+
+    mutable struct Driver
+        config   :: Union{Dict, Nothing}
+        OMMODULE :: Module
+        comm     :: MPI.Comm
+        ci :: CouplingModule.CouplingInterface
+    end
+
+
     function runModel(
-        OMMODULE      :: Any,
-        comm          :: MPI.Comm,
-        config        :: Union{Dict, Nothing} = nothing, 
+        dr :: Driver,
     )
 
-        comm = MPI.COMM_WORLD
+        comm = dr.comm
         rank = MPI.Comm_rank(comm)
         ntask = MPI.Comm_size(comm)
-
+        config = dr.config
+        
         writeLog("===== [ Master Created ] =====")
         writeLog("Number of total tasks       : %d", ntask)
         writeLog("Number of total worker tasks: %d", ntask-1)
-
-
+        
+        
         MPI.Barrier(comm)
 
         is_master = rank == 0

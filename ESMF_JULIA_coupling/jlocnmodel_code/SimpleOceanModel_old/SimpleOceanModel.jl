@@ -1,140 +1,146 @@
-using Printf
 
-#include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
-#include(joinpath(@__DIR__, "..", "dyn_core", "ENGINE_EMOM.jl"))
-#include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
-#include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "BinaryIO.jl"))
-#include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "ProgramTunnel_fs_new.jl"))
 
-include(joinpath("..", "MPITools", "MPI_essentials.jl"))
+if !(:ControlInterface in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "Interface", "ControlInterface.jl")))
+end
 
-module ControlInterface
+if !(:ModelTimeManagement in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ModelTimeManagement.jl")))
+end
 
-    using CFTime, Dates
-    using JSON
+
+
+
+
+module SingleColumnOceanModel
+
+    using MPI
     using TOML
-    #using .LogSystem
+    using Printf
+    using JSON
+    using ..ControlInterface
+    using ..ModelTimeManagement
 
-    mutable struct CouplerFunctions
-        master_before_model_init :: Union{Function, Nothing}
-        master_after_model_init! :: Union{Function, Nothing}
-        master_before_model_run! :: Union{Function, Nothing}
-        master_after_model_run!  :: Union{Function, Nothing}
-        master_finalize!         :: Union{Function, Nothing}
+    name = "SINGLE_COLUMN_OCEAN_MODEL"
 
-        function CouplerFunctions()
-            cpl_funs = new([nothing for i=1:5]...)
-            return cpl_funs
-        end
-    end
+    include("Grid.jl")
+    include("Env.jl")
+    include("State.jl")
+    include("Core.jl")
+    include("Model.jl")
 
-    struct Interface
-        
-        config_file :: String
-        config
-        timetype
-        cpl_funs    :: Union{CouplerFunctions, Nothing}
-        
-        function Interface(
-            config_file :: String
-        )
-            
-            config = TOML.parsefile(config_file)
-            timetype = getproperty(CFTime, Symbol(config["MODEL_MISC"]["timetype"])) 
-            
-            return new(
-                config_file,
-                config,
-                timetype,
-                nothing,
-            )
-        end
-        
-    end
-
-
-
-
-    function parseCESMTIME(
-            t_str    :: AbstractString,
-            timetype :: DataType,
+    function createOceanModel(
+        config_file :: String;
+        comm :: Union{MPI.Comm, Nothing} = nothing,
     )
 
-        yyyy = parse(Int64, t_str[1:4])
-        mm   = parse(Int64, t_str[5:6])
-        dd   = parse(Int64, t_str[7:8])
-        HH   = parse(Int64, t_str[10:11])
-        MM   = parse(Int64, t_str[13:14])
-        SS   = parse(Int64, t_str[16:17])
+        model = nothing
 
-        return timetype(yyyy,mm,dd,HH,MM,SS)
-
-    end
-
-    function parseMsg(msg::AbstractString)
-        pairs = split(msg, ";")
-        d = Dict{AbstractString, Any}()
-        for i = 1:length(pairs)
-
-            if strip(pairs[i]) == ""
-                continue
-            end
-
-            key, val = split(pairs[i], ":")
-            key = String(key)
-            val = String(val)
-            d[key] = val
-        end
-        return d
-    end
-
-    global msg
-
-    function createEmptyCouplerFunctions()
-    
-
-        #=
-        
-        
-        msg = nothing
-        config = nothing
-
-        # Setup communication tunnel
-        
-        config = TOML.parsefile(config_file)
-        timetype = getproperty(CFTime, Symbol(config["MODEL_MISC"]["timetype"])) 
-        
-            #=
-            PTI = ProgramTunnelInfo(
-                path = joinpath(config["DRIVER"]["caserun"], "x_tmp"),
-                reverse_role  = true,
-                recv_channels = 2,
-                chk_freq = 0.2,
+        try
+            println("Initiating Env...")
+            
+            env = OceanModel.Env(; 
+                model_config_file = config_file,
+                comm = comm,
             )
-            =#
 
-            nullbin  = [zeros(Float64, 1)]
+            model = OceanModel.Model(env)
+            println("Report ocean model...")
+            OceanModel.report(model)
 
-            #=
-            function recvMsg(;verbose::Bool = true)
-                global msg = parseMsg( recvData!(PTI, nullbin, which=1) )
-                if verbose
-                    writeLog("Receive message: ")
-                    JSON.print(msg, 4)
-                end
-            end
-            =#
+        catch e
 
-
+            println("Exception occurs: ", e) 
+            throw(e)
+            
         end
-        =#
 
-        cpl_funcs = CouplerFunctions()
+        if model == nothing
+            println("Model is `nothing`. There must be some error during model creation. Please check.")
+        end
+        
+        return model
+    end
+
+    function report(m :: Model)
+
+        comm = m.env.comm
+        println("MPI information:")
+        println(" - MPI : ", comm)
+        println(" - MPI Size: ", MPI.Comm_size(comm))
+        println(" - MPI Rank: ", MPI.Comm_rank(comm))
+        
+        println("End of Report")
+    end
+
+
+    function getDomainInfo!(
+        m :: Model,
+        params :: Vector{Int64},
+    )
+
+        gd = m.env.gd
+
+        try
+            # For now we only support nSx = nSy = 1 
+            myXGlobalLo = gd.myXGlobalLo[1]
+            myYGlobalLo = gd.myYGlobalLo[1]
+            println("Ready to send domain info...")
+            
+            
+            for (i, value) in enumerate((
+                gd.sNx,
+                gd.sNy,
+                gd.OLx,
+                gd.OLy,
+                gd.nSx,
+                gd.nSy,
+                gd.nPx,
+                gd.nPy,
+                gd.Nx,
+                gd.Ny,
+                gd.Nr,
+                myXGlobalLo,
+                myYGlobalLo,
+            ))
+                params[i] = value
+            end
+ 
+        catch e
+
+            println("Exception occurs: ", e) 
+            throw(e)
+          
+        end
+
+    end
+
+    function receiveMessage!(
+        model :: Model,
+        msg   :: String,
+    )
+        
+        @printf("I receive this message: %s\n", msg)
+
+        try
+            @printf("Parsed as JSON: \n")
+            parsed = JSON.parse(msg)
+            JSON.print(parsed, 4)
+        catch e
+            println("Exception occurs: ", e) 
+            throw(e)
+        end
+
+
+    end
+
+    
+    function createCouplerFunctions()
+
+        cpl_funcs = ControlInterface.CouplerFunctions()
 
         cpl_funcs.master_before_model_init = function()
 
-#            global msg
-          
             #=  
             writeLog("[Coupler] Before model init. My rank = {:d}", rank)
             
@@ -149,7 +155,14 @@ module ControlInterface
             Δt = Dates.Second(parse(Float64, msg["DT"]))
             =#
 
-            return read_restart, cesm_coupler_time, Δt
+            time_cfg = ModelTimeConfig(0.0, Rational(1))
+            t_start = ModelTime(time_cfg, 0)
+
+            Δiter = 1
+            read_restart = false
+            cesm_coupler_time = t_start 
+
+            return read_restart, cesm_coupler_time, Δiter
             
         end
 
@@ -264,16 +277,10 @@ module ControlInterface
         return cpl_funcs
     end
 
-#=
-        runModel(
-            ENGINE_EMOM, 
-            coupler_funcs,
-            config, 
-        )
 
-    end
-
-=#
+           
 end
+
+
 
 
