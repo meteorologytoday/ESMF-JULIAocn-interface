@@ -46,6 +46,14 @@ module mod_esmf_ocn
       END FUNCTION
     END INTERFACE
 
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_PRINTCALENDAR(cal_ptr, timestr_ptr) BIND(C, name="MARCOISCOOL_PRINTCALENDAR")
+        IMPORT :: C_PTR
+        TYPE(C_PTR), VALUE :: cal_ptr
+        TYPE(C_PTR), VALUE :: timestr_ptr
+      END SUBROUTINE MARCOISCOOL_PRINTCALENDAR
+    END INTERFACE
+
 
     INTERFACE
       SUBROUTINE MARCOISCOOL_JLMODEL_INIT(thread_id, comm) BIND(C, name="MARCOISCOOL_JLMODEL_INIT")
@@ -245,14 +253,15 @@ module mod_esmf_ocn
   integer :: localPet, petCount
   character(ESMF_MAXSTR) :: gname
   
-  TYPE(C_PTR) :: comm_ptr
+
 !
   type(ESMF_VM) :: vm
   
   
-  TYPE(ESMF_Time) :: currTime
-  TYPE(ESMF_TimeInterval) :: timeStep     ! how long to run in this call
-
+  TYPE(ESMF_Time), TARGET     :: currTime
+  TYPE(ESMF_TimeInterval)     :: timeStep     ! how long to run in this call
+  TYPE(ESMF_Calendar), TARGET :: esmCal
+  CHARACTER(LEN=1024), TARGET :: timestr
   rc = ESMF_SUCCESS
 
   call ESMF_GridCompGet(gcomp, name=gname, vm=vm, rc=rc)
@@ -276,12 +285,14 @@ module mod_esmf_ocn
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
           line=__LINE__, file=FILENAME)) return
 
-    print *, "currTime get!"
-      call ESMF_TimePrint(currTime,                                     &
-             preString="##### Init2 Time: ", rc=rc)
+      call ESMF_TimeGet(currTime, calendar=esmCal, &
+         timeStringISOFrac=timestr, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
           line=__LINE__, file=__FILE__)) return  ! bail out
 
+      timestr = trim(timestr) // C_NULL_CHAR
+
+    call MARCOISCOOL_PRINTCALENDAR(C_LOC(currTime), C_LOC(timestr))
 
     print *, "Calling function: MARCOISCOOL_JLMODEL_INIT"
      

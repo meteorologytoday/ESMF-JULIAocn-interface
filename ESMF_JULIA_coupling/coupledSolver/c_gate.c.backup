@@ -26,6 +26,7 @@ void testJuliaException(int ln, const char * msg){
 
 void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
 
+    
     int buffer_size = 4096;
     char cmd[buffer_size] = "";
 
@@ -37,49 +38,40 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     MPI_Comm_size(comm, &size);
     printf("Hello from rank %d out of %d processes\n", rank, size);
 
+
     jl_init();
     
     printf("[C Code] Loading Julia stuff...\n");
-    (void) jl_eval_string("include(\"main_scripts/main00_loadModule.jl\")");
+    (void) jl_eval_string("include(\"MPI_essentials.jl\")");
 
 
     printf("[C Code] Boxing the communicator...\n");
     // Convert the MPI communicator to a Julia value
     jl_value_t *comm_value = jl_box_int64((int64_t)comm);
-    printf("[C Code] comm = %d\n", (int64_t)comm);
- 
+    
     // Call a Julia function
     printf("[C Code] Calling passMPICommunicator\n");
-
     jl_function_t *func = jl_get_function(jl_main_module, "passMPICommunicator");
     (void) jl_call1(func, comm_value);
     testJuliaException(__LINE__, "After pass MPI Communicator"); 
     
     printf("[C Code] Loading JlOceanModel.jl\n");
-    (void) jl_eval_string("include(\"main_scripts/main01_loadModule.jl\")");
+    (void) jl_eval_string("include(\"OceanModel/JlOceanModel.jl\")");
     printf("[C Code] Done loading JlOceanModel.jl\n");
     testJuliaException(__LINE__, "After loading JlOceanModel.jl");
 
     printf("[C Code] Initiating ocean model\n");
-    (void) jl_eval_string("include(\"main_scripts/main02_init.jl\")");
-    //snprintf(cmd, buffer_size, "model = Main.OceanModel.createOceanModel(\"model_config.toml\"; comm=COMM_ROOT)");
-    //printf("Going to eval: %s\n", cmd);
-    //(void) jl_eval_string(cmd);
-    //ocean_model = (jl_value_t *) jl_eval_string("model");
-    //testJuliaException(__LINE__, "Cannot obtain ocean model");
+    snprintf(cmd, buffer_size, "model = Main.OceanModel.createOceanModel(\"model_config.toml\"; comm=COMM_ROOT)");
+    printf("Going to eval: %s\n", cmd);
+    (void) jl_eval_string(cmd);
+    ocean_model = (jl_value_t *) jl_eval_string("model");
+    testJuliaException(__LINE__, "Cannot obtain ocean model");
 
     // Setup some quick functions
-    //ocnRecvMsgFunc = jl_eval_string("OceanModel.receiveMessage!");
-    //testJuliaException(__LINE__, "Obtain OceanModel.receiveMessage!");
+    ocnRecvMsgFunc = jl_eval_string("OceanModel.receiveMessage!");
+    testJuliaException(__LINE__, "Obtain OceanModel.receiveMessage!");
  
     printf("[C Code] End of initiation.\n");
-}
-
-void MARCOISCOOL_JLMODEL_RUN( int thread_id, int fcomm) {
-
-    printf("[C Code] Run Model...\n");
-    (void) jl_eval_string("include(\"main_scripts/main03_run.jl\")");
-
 }
 
 void MARCOISCOOL_JLMODEL_sendInfo2Model( const char * msg ) {

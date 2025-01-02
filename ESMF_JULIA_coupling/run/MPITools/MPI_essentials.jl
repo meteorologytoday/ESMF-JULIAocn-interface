@@ -4,24 +4,25 @@ MPIPreferences.use_system_binary(; library_names=["/home/t2hsu/miniconda3/envs/m
 using MPI
 
 function passMPICommunicator(
-    comm_array :: Union{MPI.Comm, Vector},
+    #recv_comm :: Union{MPI.Comm, Vector},
+    recv_comm :: Any,
 )
-    println("Here in passMPICommunicator")
-    println("Comm_array = ", comm_array)
-    println(typeof(comm_array))
-    if typeof(comm_array) == MPI.Comm
-        comm = comm_array
+    #println("Here in passMPICommunicator")
+
+    #println("comm_array = ", recv_comm, "; type = ", typeof(recv_comm))
+    if typeof(recv_comm) == MPI.Comm
+        comm = recv_comm
     else
-        comm = MPI.Comm(comm_array[1])
+        comm = MPI.Comm(recv_comm)
     end
-    println(comm)
-    println("Rank: $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
+    
+    println("Rank: $(MPI.Comm_rank(comm))/$(MPI.Comm_size(comm)) ; COMM_WORLD Rank: $(MPI.Comm_rank(MPI.COMM_WORLD))/$(MPI.Comm_size(MPI.COMM_WORLD))")
 
     @printf("Creating global variabls: COMM, RANK, IS_MASTER\n")
     global COMM = comm
     global RANK = MPI.Comm_rank(COMM)
     global IS_MASTER = RANK == 0
-
-    println("Exiting passMPICommunicator")
+    
+    #println("Exiting passMPICommunicator")
 end
 
