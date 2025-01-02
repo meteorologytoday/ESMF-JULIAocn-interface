@@ -84,7 +84,9 @@ module DriverModule
         
         MPI.Barrier(comm)
 
-        is_master = rank == 0
+        dr.misc[:is_master] = rank == 0
+
+        is_master = dr.misc[:is_master]
 
         if is_master
             if config == nothing
@@ -225,108 +227,90 @@ module DriverModule
         write_restart :: Bool,
     )
 
-        writeLog("Ready to run the model.")
-            
+        writeLog("Enter runMmodel.")
+        
+        is_master = dr.misc[:is_master]
+        clock = dr.OMDATA.clock
+        config = dr.config
+ 
         if is_master 
             writeLog("Current time: %s", clock2str(clock))
         end
 
-        stage = nothing
-        Δt    = nothing
-        write_restart = nothing
+        cost = @elapsed let
 
-        if is_master
-            stage, Δt, write_restart = coupler_funcs.master_before_model_run!(dr)
-        end
-        stage         = MPI.bcast(stage, 0, comm) 
-        Δt            = MPI.bcast(Δt, 0, comm) 
-        write_restart = MPI.bcast(write_restart, 0, comm) 
-
-        if stage == :RUN 
-
-            cost = @elapsed let
-
-                # This advanced option is needed when deriving
-                # qflux in direct method: Coupler needs to load
-                # the initial data of each day and force master
-                # to sync thermo variables with slaves. 
-                if config["DRIVER"]["compute_QFLX_direct_method"]
-                    OMMODULE.syncM2S!(OMDATA)
-                end
-
-                # Do the run and THEN advance the clock
-
-                OMMODULE.run!(
-                    OMDATA;
-                    Δt = Δt,
-                    write_restart = write_restart,
-                )
-                MPI.Barrier(comm)
-                
-            end
-
-            writeLog("Computation cost: {:.2f} secs.", cost)
-
-            if write_restart && is_master
-
-                driver_restart_file = "model_restart.jld2"
-                writeLog("Writing restart time of driver: $(driver_restart_file)")
-                JLD2.save(driver_restart_file, "timestamp", clock.time)
-
-                archive_list_file = joinpath(
-                    config["DRIVER"]["caserun"],
-                    config["DRIVER"]["archive_list"],
-                )
-
-                timestamp_str = @sprintf(
-                    "%s-%05d",
-                    Dates.format(clock.time, "yyyy-mm-dd"),
-                    floor(Int64, Dates.hour(clock.time)*3600+Dates.minute(clock.time)*60+Dates.second(clock.time)),
-                )
-
-                appendLine(archive_list_file,
-                    @sprintf("cp,%s,%s,%s",
-                        driver_restart_file,
-                        config["DRIVER"]["caserun"],
-                        joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
-                    )
-                ) 
-
-            end
-
-            if is_master
-                coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
-            end
-            
+            # This advanced option is needed when deriving
+            # qflux in direct method: Coupler needs to load
+            # the initial data of each day and force master
+            # to sync thermo variables with slaves. 
             if config["DRIVER"]["compute_QFLX_direct_method"]
-                writeLog("compute_QFLX_direct_method is true")
                 OMMODULE.syncM2S!(OMDATA)
             end
 
+            # Do the run and THEN advance the clock
 
-            # ==========================================
-            if is_master
-                # Advance the clock AFTER the run
-                advanceClock!(clock, Δt)
-                dropRungAlarm!(clock)
-            end
-           
-            # Broadcast time to workers. Workers need time
-            # because datastream needs time interpolation. 
-            _model_time = MPI.bcast(clock.model_time, 0, comm) 
-            if !is_master
-                setClock!(clock, _model_time)
-            end
+            OMMODULE.run!(
+                OMDATA;
+                Δt = Δt,
+                write_restart = write_restart,
+            )
+            MPI.Barrier(comm)
             
-            # ==========================================
+        end
 
-        else
-            
-            throw(ErrorException("Unknown stage : " * string(stage)))
+        writeLog("Computation cost: {:.2f} secs.", cost)
+
+        if write_restart && is_master
+
+            driver_restart_file = "model_restart.jld2"
+            writeLog("Writing restart time of driver: $(driver_restart_file)")
+            JLD2.save(driver_restart_file, "timestamp", clock.time)
+
+            archive_list_file = joinpath(
+                config["DRIVER"]["caserun"],
+                config["DRIVER"]["archive_list"],
+            )
+
+            timestamp_str = @sprintf(
+                "%s-%05d",
+                Dates.format(clock.time, "yyyy-mm-dd"),
+                floor(Int64, Dates.hour(clock.time)*3600+Dates.minute(clock.time)*60+Dates.second(clock.time)),
+            )
+
+            appendLine(archive_list_file,
+                @sprintf("cp,%s,%s,%s",
+                    driver_restart_file,
+                    config["DRIVER"]["caserun"],
+                    joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
+                )
+            ) 
 
         end
 
+        if is_master
+            coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
+        end
+        
+        if config["DRIVER"]["compute_QFLX_direct_method"]
+            writeLog("compute_QFLX_direct_method is true")
+            OMMODULE.syncM2S!(OMDATA)
+        end
 
+
+        # ==========================================
+        if is_master
+            # Advance the clock AFTER the run
+            advanceClock!(clock, Δt)
+            dropRungAlarm!(clock)
+        end
+       
+        # Broadcast time to workers. Workers need time
+        # because datastream needs time interpolation. 
+        _model_time = MPI.bcast(clock.model_time, 0, comm) 
+        if !is_master
+            setClock!(clock, _model_time)
+        end
+        
     end
 
     function finalizeModel(

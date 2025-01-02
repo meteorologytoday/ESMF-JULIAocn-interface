@@ -53,13 +53,13 @@ end
 
 
 
-@printf("Create an empty interface\n")
+@printf("[DRIVER] Create an empty interface\n")
 cpl_if = CouplingModule.CouplingInterface(
     config_file,
     CouplingModule.createEmptyCouplerFunctions(),#SimpleOceanModel.createCouplerFunctions()
 )
 
-@printf("Obtain config from: %s\n", config_file)
+@printf("[DRIVER] Obtain config from: %s\n", config_file)
 config = TOML.parsefile(config_file)
 
 dr = DriverModule.Driver(
@@ -69,7 +69,12 @@ dr = DriverModule.Driver(
     cpl_if, 
 )
 
+@printf("[DRIVER] Init Model\n")
 DriverModule.initModel!(dr)
+
+@printf("[DRIVER] Run Model\n")
+DriverModule.runModel!(dr; write_restart=false)
+
 
 @printf("End of file %s\n", @__FILE__)
 
