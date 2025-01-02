@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nproc=2
+nproc=3
 
 mpiexec -np $nproc julia pseudo_esmf_SimpleOceanModel.jl
 

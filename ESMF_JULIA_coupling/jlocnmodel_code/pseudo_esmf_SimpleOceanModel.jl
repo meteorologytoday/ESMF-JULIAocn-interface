@@ -10,6 +10,12 @@ passMPICommunicator(MPI.COMM_WORLD)
 
 include("main_scripts/main01_loadModule.jl")
 include("main_scripts/main02_init.jl")
+
+domain_params = zeros(Int64, 13)
+DriverModule.getDomainInfo(dr, domain_params)
+println("domain_params = ", domain_params)
+
+
 include("main_scripts/main03_run.jl")
 include("main_scripts/main04_finalize.jl")
 

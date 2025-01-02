@@ -22,6 +22,10 @@ if !(:Config in names(Main))
     include(normpath(joinpath(@__DIR__, "share", "Config.jl")))
 end
 
+if !(:Domains in names(Main))
+    include(normpath(joinpath(@__DIR__, "share", "Domains.jl")))
+end
+
 
 include(normpath(joinpath(dirname(@__FILE__), "configs", "driver_configs.jl")))
 
@@ -33,6 +37,7 @@ module DriverModule
     using ..CouplingModule
     using ..ModelTimeManagement
     using ..Config
+    using ..Domains
    
     include("configs/driver_configs.jl")
  
@@ -45,13 +50,15 @@ module DriverModule
         comm     :: MPI.Comm
         ci       :: CouplingModule.CouplingInterface
         misc     :: Union{Dict, Nothing}
-
+        log_handle :: LogHandle
+        domain     :: Union{ Domains.Domain, Nothing}
 
         function Driver(
             config   :: Dict,
             OMMODULE :: Module,
             comm     :: MPI.Comm,
             ci       :: CouplingModule.CouplingInterface,
+            log_handle :: LogHandle,
         )
 
             return new(
@@ -61,6 +68,8 @@ module DriverModule
                 comm,
                 ci,
                 Dict(),
+                log_handle,
+                nothing,
             )
 
         end
@@ -75,10 +84,12 @@ module DriverModule
         rank = MPI.Comm_rank(comm)
         ntask = MPI.Comm_size(comm)
         config = dr.config
-        
-        writeLog("===== [ Master Created ] =====")
-        writeLog("Number of total tasks       : %d", ntask)
-        writeLog("Number of total worker tasks: %d", ntask-1)
+        log_handle = dr.log_handle 
+
+
+        writeLog(log_handle, "===== [ Master Created ] =====")
+        writeLog(log_handle, "Number of total tasks       : %d", ntask)
+        writeLog(log_handle, "Number of total worker tasks: %d", ntask-1)
         
         MPI.Barrier(comm)
 
@@ -91,7 +102,7 @@ module DriverModule
                 throw(ErrorException("Master thread needs to provide config parameter."))
             end
 
-            writeLog("Validate driver config.")
+            writeLog(log_handle, "Validate driver config.")
             config["DRIVER"] = validateConfigEntries(
                 config["DRIVER"],
                 getDriverConfigDescriptors()["DRIVER"]
@@ -100,20 +111,21 @@ module DriverModule
             coupler_funcs = dr.ci.cpl_funcs
         end
 
-        writeLog("Broadcast config to slaves.")
+        writeLog(log_handle, "Broadcast config to slaves.")
         config = MPI.bcast(config, 0, comm) 
 
 
         p = config["DRIVER"]["caserun"]
-        writeLog("Setting working directory to %s", p)
+        writeLog(log_handle, "Setting working directory to %s", p)
         if is_master
             if ! isdir(p)
-                writeLog("Working directory does not exist. Create it.")
+                writeLog(log_handle, "Working directory does not exist. Create it.")
                 mkpath(p)
             end
         end
         MPI.Barrier(comm)
         cd(p)
+
 
         local mt_start = nothing
         local mt_end   = nothing
@@ -123,7 +135,7 @@ module DriverModule
      
         if is_master
 
-            writeLog("Getting model start time.")
+            writeLog(log_handle, "Getting model start time.")
             
             read_restart  = config["BASIC"]["restart"]
             iter_start    = config["BASIC"]["iter_start"]
@@ -134,13 +146,13 @@ module DriverModule
              
             if read_restart
 
-                writeLog("read_restart is true.")
+                writeLog(log_handle, "read_restart is true.")
 
                 restart_info = JLD2.load("model_restart.jld2")
                 restart_t_start = restart_info["timestamp"]
 
                 if t_start == nothing
-                    writeLog("t_start == nothing. Skip checking restart time.")
+                    writeLog(log_handle, "t_start == nothing. Skip checking restart time.")
                 elseif t_start != restart_t_start
                     throw(ErrorException(
                         @sprintf("Model restart time inconsistent! The start time received from the coupler is %s while the restart file is %s.",
@@ -148,7 +160,7 @@ module DriverModule
                         Dates.format(restart_t_start, "yyyy-mm-dd HH:MM:SS"),
                     )))
                 else
-                    writeLog("Model restart time is consistent.")
+                    writeLog(log_handle, "Model restart time is consistent.")
                 end
 
             end
@@ -161,12 +173,12 @@ module DriverModule
             mt_end = copy_partial(mt_start)
             mt_end.iter = mt_start.iter + iter_advance
 
-            writeLog("### Simulation time start : %s", string(mt_start))
-            writeLog("### Simulation time end   : %s", string(mt_end))
+            writeLog(log_handle, "### Simulation time start : %s", string(mt_start))
+            writeLog(log_handle, "### Simulation time end   : %s", string(mt_end))
              
         end
 
-        writeLog("Broadcast mt_start and read_restart to slaves.")
+        writeLog(log_handle, "Broadcast mt_start and read_restart to slaves.")
         mt_start = MPI.bcast(mt_start, 0, comm) 
         mt_end   = MPI.bcast(mt_end, 0, comm) 
         read_restart = MPI.bcast(read_restart, 0, comm) 
@@ -177,8 +189,37 @@ module DriverModule
         # Construct model clock
         clock = ModelClock("Model", beg_datetime)
 
+            
+        local domain   = nothing
+        if is_master
+            _cfg = config["DOMAIN"]
+            domain = Domains.Domain(
+                0, 0,
+                _cfg["sNx"],
+                _cfg["sNy"],
+                _cfg["OLx"],
+                _cfg["OLy"],
+                _cfg["nSx"],
+                _cfg["nSy"],
+                _cfg["nPx"],
+                _cfg["nPy"],
+                _cfg["Nx"],
+                _cfg["Ny"],
+                _cfg["Nz"],
+                nothing,
+                nothing,
+            )
+
+
+        end
+        domain   = MPI.bcast(domain, 0, comm) 
+        Domains.setDomain!(domain; rank=rank, number_of_pet=ntask)
+        println("Domain: ", domain)
+        dr.domain = domain
+
         # initializing
-        writeLog("===== INITIALIZING MODEL: %s =====", dr.OMMODULE.name)
+        writeLog(log_handle, "==================================")
+        writeLog(log_handle, "===== INITIALIZING MODEL: %s =====", dr.OMMODULE.name)
         
         dr.OMDATA = dr.OMMODULE.init(
             casename     = config["DRIVER"]["casename"],
@@ -186,7 +227,9 @@ module DriverModule
             config       = config,
             read_restart = read_restart,
             comm         = comm,
+            log_handle   = log_handle,
         )
+
 
         if is_master
 
@@ -200,8 +243,8 @@ module DriverModule
             # March 1. This means, the read_restart phase is an already done step.
             # Therefore, after the read_restart phase, we need to advance the time.
             if read_restart
-                writeLog("read_restart is true.")
-                writeLog("Current time: %s", clock2str(clock))
+                writeLog(log_handle, "read_restart is true.")
+                writeLog(log_handle, "Current time: %s", clock2str(clock))
                 advanceClock!(clock, Δt)
                 dropRungAlarm!(clock)
             end
@@ -225,8 +268,8 @@ module DriverModule
         dr :: Driver;
         write_restart :: Bool,
     )
-
-        writeLog("Enter runMmodel.")
+        log_handle = dr.log_handle
+        writeLog(log_handle, "Enter runMmodel.")
         
         is_master = dr.misc[:is_master]
         clock = dr.OMDATA.clock
@@ -234,7 +277,7 @@ module DriverModule
         comm = dr.comm
  
         if is_master 
-            writeLog("Current time: %s", clock2str(clock))
+            writeLog(log_handle, "Current time: %s", clock2str(clock))
         end
 
         cost = @elapsed let
@@ -258,12 +301,12 @@ module DriverModule
             
         end
 
-        writeLog("Computation cost: %.2f secs.", cost)
+        writeLog(log_handle, "Computation cost: %.2f secs.", cost)
 
         if write_restart && is_master
 
             driver_restart_file = "model_restart.jld2"
-            writeLog("Writing restart time of driver: %s", driver_restart_file)
+            writeLog(log_handle, "Writing restart time of driver: %s", driver_restart_file)
             JLD2.save(driver_restart_file, "timestamp", clock.time)
 
             archive_list_file = joinpath(
@@ -288,7 +331,7 @@ module DriverModule
         end
 
         #if config["DRIVER"]["compute_QFLX_direct_method"]
-        #    writeLog("compute_QFLX_direct_method is true")
+        #    writeLog(log_handle, "compute_QFLX_direct_method is true")
         #    OMMODULE.syncM2S!(OMDATA)
         #end
 
@@ -312,7 +355,8 @@ module DriverModule
     function finalizeModel(
         dr :: Driver,
     )
-        writeLog("Enter runMmodel.")
+        log_handle = dr.log_handle
+        writeLog(log_handle, "Enter runMmodel.")
         
         is_master = dr.misc[:is_master]
         config = dr.config 
@@ -323,23 +367,24 @@ module DriverModule
             archive(joinpath(
                 config["DRIVER"]["caserun"],
                 config["DRIVER"]["archive_list"],
-            ))
+            ), log_handle = log_handle)
 
         end
      
-        writeLog("Program Ends.")
+        writeLog(log_handle, "Program Ends.")
 
     end
 
     function archive(
-        archive_list_file :: String,
+        archive_list_file :: String;
+        log_handle :: LogHandle, 
     )
 
-        writeLog("===== Archiving files BEGIN =====")
+        writeLog(log_handle, "===== Archiving files BEGIN =====")
        
         if isfile(archive_list_file)
 
-            writeLog("Archive file list exists: %s\n", archive_list_file)
+            writeLog(log_handle, "Archive file list exists: %s\n", archive_list_file)
  
             for line in eachline(archive_list_file)
 
@@ -367,10 +412,10 @@ module DriverModule
 
                         if action == "mv"
                             mv(src_file, dst_file, force=true)
-                            writeLog("Moving file: %s ( %s => %s )", fname, src_dir, dst_dir)
+                            writeLog(log_handle, "Moving file: %s ( %s => %s )", fname, src_dir, dst_dir)
                         elseif action == "cp"
                             cp(src_file, dst_file, force=true)
-                            writeLog("Copying file: %s ( %s => %s )", fname, src_dir, dst_dir)
+                            writeLog(log_handle, "Copying file: %s ( %s => %s )", fname, src_dir, dst_dir)
                         end
 
                     else
@@ -380,17 +425,50 @@ module DriverModule
                 elseif action == "rm"
                     fname, fdir = args
                     rm(joinpath(fdir, fname), force=true)
-                    writeLog("Removing file: %s in %s", fname, fdir)
+                    writeLog(log_handle, "Removing file: %s in %s", fname, fdir)
                 else
                     throw(ErrorException(@sprintf("Unknown action in archive list: %s", action)))
                 end
 
             end
         else
-            writeLog("Archive file list does not exist: %s\n", archive_list_file)
+            writeLog(log_handle, "Archive file list does not exist: %s\n", archive_list_file)
         end
-        writeLog("===== Archiving files END =====")
+        writeLog(log_handle, "===== Archiving files END =====")
 
     end
 
+    function getDomainInfo(dr :: Driver, arr :: Vector{Int64})
+    #function getDomainInfo()
+    
+        #println("[DRIVER] Enter getDomainInfo")
+
+        domain = dr.domain
+         
+        # For now we only support nSx = nSy = 1 
+        myXGlobalLo = domain.myXGlobalLo[1]
+        myYGlobalLo = domain.myYGlobalLo[1]
+    
+        assign_arr = [
+                domain.sNx,
+                domain.sNy,
+                domain.OLx,
+                domain.OLy,
+                domain.nSx,
+                domain.nSy,
+                domain.nPx,
+                domain.nPy,
+                domain.Nx,
+                domain.Ny,
+                domain.Nz,
+                myXGlobalLo,
+                myYGlobalLo,
+        ]
+
+        for (i, d) in enumerate(assign_arr)
+            arr[i] = d
+        end
+
+        #println("[DRIVER] Leaving getDomainInfo")
+    end 
 end

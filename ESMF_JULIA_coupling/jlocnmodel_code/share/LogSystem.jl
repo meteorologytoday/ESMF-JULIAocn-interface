@@ -1,17 +1,35 @@
 module LogSystem
 
     using Printf
-    using MPI
     
-    export writeLog
-    
-    function writeLog(fmt, args...; force :: Bool = false)
-        
-        comm = MPI.COMM_WORLD
-        rank = MPI.Comm_rank(comm)
+    export writeLog, LogHandle, createLogHandle
+   
 
-        if force || rank == 0
-            
+    mutable struct LogHandle
+        rank :: Integer
+        output_file :: String
+    end
+    
+    function createLogHandle(
+        rank :: Integer,
+        output_dir :: String = ".",
+    )
+
+        filename = @sprintf("log.%04d", rank)
+        return LogHandle(
+            rank,
+            joinpath(output_dir, filename)
+        )
+        
+    end
+
+    function writeLog(
+        lh :: LogHandle,
+        fmt,
+        args...;
+        force :: Bool = false,
+    )
+        if force || lh.rank == 0
             s = Printf.format(Printf.Format(fmt), args...)
             @printf("%s\n", s)
         end

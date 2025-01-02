@@ -31,6 +31,10 @@ cpl_if = CouplingModule.CouplingInterface(
     config_file,
     CouplingModule.createEmptyCouplerFunctions(),#SimpleOceanModel.createCouplerFunctions()
 )
+        
+
+@printf("[DRIVER] Creating a log handle... ")
+log_handle = createLogHandle(MPI.Comm_rank(COMM))
 
 @printf("[DRIVER] Obtain config from: %s\n", config_file)
 config = TOML.parsefile(config_file)
@@ -40,5 +44,6 @@ dr = DriverModule.Driver(
     SimpleOceanModel,
     COMM,
     cpl_if, 
+    log_handle,
 )
 

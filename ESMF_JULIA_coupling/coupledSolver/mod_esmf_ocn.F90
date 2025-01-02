@@ -28,16 +28,16 @@ module mod_esmf_ocn
   use mod_types
 
 
-! ---- ESMF_PY BEGIN ----
+! ---- ESMF_JL BEGIN ----
     USE, INTRINSIC :: ISO_C_BINDING
-! ---- ESMF_PY END ----
+! ---- ESMF_JL END ----
  
 
 
 !
   implicit none
 
-! ---- ESMF_PY BEGIN ----
+! ---- ESMF_JL BEGIN ----
 
     INTERFACE
       INTEGER FUNCTION MPI_Comm_c2f(c_handle) bind(C, name="f_MPI_Comm_c2f")
@@ -104,7 +104,7 @@ module mod_esmf_ocn
 
 
 
-! ---- ESMF_PY END ----
+! ---- ESMF_JL END ----
 
 !
 
@@ -159,7 +159,7 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  ! ---- ESMF_PY BEGIN ----
+  ! ---- ESMF_JL BEGIN ----
 
   call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_FINALIZE,         &
                                phaseLabelList=(/"FPDV00p1"/),       &
@@ -167,7 +167,7 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
   
-  ! ---- ESMF_PY END ----
+  ! ---- ESMF_JL END ----
 
   end subroutine OCN_SetServices
 !
@@ -275,10 +275,8 @@ module mod_esmf_ocn
 
   call MPI_Comm_size(comm, mpisize)
   print *, "!!!!!!!!!!!!!!! MPI Communicator = ", comm, "; mpisize = ", mpisize, "; localpet = ", localpet
-! ---- ESMF_PY BEGIN ----
+! ---- ESMF_JL BEGIN ----
 
-    print *, "Try to print time in Init2"
- 
       ! Get the clock detail information
       call ESMF_ClockGet(clock, currTime=currTime, timeStep=timeStep,   &
                          rc=rc)
@@ -300,8 +298,7 @@ module mod_esmf_ocn
     !f_comm = MPI_Comm_c2f(comm_ptr)
     !print *, "f_comm = ", f_comm
     CALL MARCOISCOOL_JLMODEL_INIT(myThid, comm)
-! ---- ESMF_PY END ----
-
+! ---- ESMF_JL END ----
 
   PRINT *, "setting grid arrays..."
   call OCN_SetGridArrays(gcomp, petCount, localPet, ocnGridIn,rc)
@@ -345,7 +342,7 @@ module mod_esmf_ocn
 
   end subroutine
 
-! ---- ESMF_PY BEGIN ----
+! ---- ESMF_JL BEGIN ----
   subroutine OCN_Final(gcomp, importState, exportState, clock, rc)
 
     type(ESMF_GridComp)  :: gcomp
@@ -376,7 +373,7 @@ module mod_esmf_ocn
     CALL MARCOISCOOL_JLMODEL_FINAL(myThid, comm)
   
   end subroutine
-! ---- ESMF_PY END ----
+! ---- ESMF_JL END ----
 
 !
 !
@@ -538,12 +535,12 @@ module mod_esmf_ocn
   type(ESMF_VM) :: vm
   character(ESMF_MAXSTR) :: cname
 
-! ---- ESMF_PY BEGIN ----
+! ---- ESMF_JL BEGIN ----
   INTEGER sNx, sNy, OLx, OLy, nSx, nSy, nPx, nPy
   INTEGER Nr
 !  INTEGER Nx, Ny, Nr, i, j, bi, bj
   INTEGER myXGlobalLo, myYGlobalLo, localN
-! ---- ESMF_PY END ----
+! ---- ESMF_JL END ----
 
   integer :: myThid = 1
   integer :: k, m, n, p, iG, jG, tile
@@ -567,13 +564,13 @@ module mod_esmf_ocn
 !
   rc = ESMF_SUCCESS
 
-! ---- ESMF_PY BEGIN ----
+! ---- ESMF_JL BEGIN ----
   CALL MARCOISCOOL_JLMODEL_getDomainInfo(                           &
                        sNx, sNy, OLx, OLy,                          &
                        nSx, nSy, nPx, nPy, Nx, Ny, Nr,              &
                        myXGlobalLo, myYGlobalLo                     &
   )
-
+  
   print *, "sNx = ", sNx 
   print *, "sNy = ", sNy
   print *, "OLx = ", OLx
@@ -587,7 +584,7 @@ module mod_esmf_ocn
   print *, "Nr = ", Nr
   print *, "myXGlobalLo = ", myXGlobalLo
   print *, "myYGlobalLo = ", myYGlobalLo
-! ---- ESMF_PY END ----
+! ---- ESMF_JL END ----
 
 !
 !-----------------------------------------------------------------------
@@ -604,17 +601,17 @@ module mod_esmf_ocn
 
 
 
-  deBlockList(:,1,1) = (/ 1, 1/)
-  deBlockList(:,2,1) = (/ 5, ny/)
-  deBlockList(:,1,2) = (/ 6, 1/)
-  deBlockList(:,2,2) = (/nx, ny/)
+!  deBlockList(:,1,1) = (/ 1, 1/)
+!  deBlockList(:,2,1) = (/ 5, ny/)
+!  deBlockList(:,1,2) = (/ 6, 1/)
+!  deBlockList(:,2,2) = (/nx, ny/)
 
 !
 !  do tile = 1, (nPx*nPy)
-!    deBlockList(1,1,tile) = mpi_myXGlobalLo(tile)
-!    deBlockList(1,2,tile) = mpi_myXGlobalLo(tile)+sNx-1
-!    deBlockList(2,1,tile) = mpi_myYGlobalLo(tile) 
-!    deBlockList(2,2,tile) = mpi_myYGlobalLo(tile)+sNy-1
+!    deBlockList(1,1,tile) = myXGlobalLo(tile)
+!    deBlockList(1,2,tile) = myXGlobalLo(tile)+sNx-1
+!    deBlockList(2,1,tile) = myYGlobalLo(tile) 
+!    deBlockList(2,2,tile) = myYGlobalLo(tile)+sNy-1
 !  end do
 
 

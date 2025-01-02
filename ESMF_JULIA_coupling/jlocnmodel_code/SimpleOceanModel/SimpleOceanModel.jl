@@ -31,6 +31,7 @@ module SimpleOceanModel
         jdi        :: Any#JobDistributionInfo
         sync_data   :: Dict
         comm        :: MPI.Comm
+        log_handle  :: LogHandle
     end
 
 
@@ -40,6 +41,7 @@ module SimpleOceanModel
         config      :: Dict,
         read_restart :: Bool,
         comm         :: MPI.Comm,
+        log_handle   :: LogHandle,
     )
 
         rank = MPI.Comm_rank(comm)
@@ -68,6 +70,7 @@ module SimpleOceanModel
             jdi,
             sync_data,
             comm,
+            log_handle,
         )
 
         return MD
@@ -79,7 +82,7 @@ module SimpleOceanModel
         niters        :: Int64,
         write_restart :: Bool,
     )
-
+        log_handle = MD.log_handle
         comm = MD.comm
         rank = MPI.Comm_rank(comm)
         is_master = rank == 0
@@ -87,12 +90,14 @@ module SimpleOceanModel
     end
 
     function final(MD::METADATA)
-        writeLog("Finalizing the model.") 
+        log_handle = MD.log_handle
+        writeLog(log_handle, "Finalizing the model.") 
     end
 
     function writeRestart(
         MD :: METADATA,
     )
+        log_handle = MD.log_handle
 
     end
 
@@ -100,6 +105,7 @@ module SimpleOceanModel
     function syncM2S!(
         MD,
     )
+        log_handle = MD.log_handle
         syncField!(
             MD.sync_data[:qflx_direct],
             MD.jdi,

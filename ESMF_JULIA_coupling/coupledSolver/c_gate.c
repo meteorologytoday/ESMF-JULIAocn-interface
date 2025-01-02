@@ -6,7 +6,7 @@
 
 extern "C" {
 
-jl_value_t *ocean_model;
+jl_value_t *ocean_model_driver;
 jl_function_t *ocnRecvMsgFunc;
 
 
@@ -65,7 +65,7 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     //snprintf(cmd, buffer_size, "model = Main.OceanModel.createOceanModel(\"model_config.toml\"; comm=COMM_ROOT)");
     //printf("Going to eval: %s\n", cmd);
     //(void) jl_eval_string(cmd);
-    //ocean_model = (jl_value_t *) jl_eval_string("model");
+    ocean_model_driver = (jl_value_t *) jl_eval_string("dr");
     //testJuliaException(__LINE__, "Cannot obtain ocean model");
 
     // Setup some quick functions
@@ -89,7 +89,7 @@ void MARCOISCOOL_JLMODEL_sendInfo2Model( const char * msg ) {
 
     jl_value_t *julia_str = jl_cstr_to_string(msg);
 
-    (void) jl_call2(ocnRecvMsgFunc, (jl_value_t *) ocean_model, (jl_value_t*) julia_str);
+    (void) jl_call2(ocnRecvMsgFunc, (jl_value_t *) ocean_model_driver, (jl_value_t*) julia_str);
 
 }
 
@@ -121,14 +121,20 @@ void MARCOISCOOL_JLMODEL_getDomainInfo( \
 
     size_t param_len = 13;
     jl_value_t* array_type = jl_apply_array_type((jl_value_t*) jl_int64_type, 1);
-    jl_array_t* param          = jl_alloc_array_1d(array_type, param_len);
+    jl_array_t* param      = jl_alloc_array_1d(array_type, param_len);
     int64_t *paramData = jl_array_data(param, int64_t);
     for (size_t i = 0; i < jl_array_nrows(param); i++) {
         paramData[i] = 0;
     }
 
-    jl_function_t *func = jl_eval_string("OceanModel.getDomainInfo!");
-    (void) jl_call2(func, (jl_value_t *) ocean_model, (jl_value_t*) param);
+    printf("[C Code] Getting DriverModule.getDomainInfo funtion...\n");
+    jl_function_t *func = jl_eval_string("DriverModule.getDomainInfo");
+    testJuliaException(__LINE__, "After getting DriverModule.getDomainInfo");
+
+    printf("[C Code] Calling funtion...\n");
+    (void) jl_call2(func, (jl_value_t *) ocean_model_driver, (jl_value_t*) param);
+    //(void) jl_call1(func, (jl_value_t *) ocean_model_driver);
+    testJuliaException(__LINE__, "After calling DriverModule.getDomainInfo");
 
     for(int i=0; i < jl_array_nrows(param); i+=1) {
 
