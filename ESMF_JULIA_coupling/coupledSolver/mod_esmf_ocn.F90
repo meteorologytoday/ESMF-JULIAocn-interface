@@ -40,6 +40,34 @@ module mod_esmf_ocn
 ! ---- ESMF_JL BEGIN ----
 
     INTERFACE
+      SUBROUTINE MARCOISCOOL_JLMODEL_RUN( &
+            importState_ptr,              &
+            exportState_ptr,              &
+            timeStep_ptr                 &
+        ) BIND(C, name="MARCOISCOOL_JLMODEL_RUN")
+        IMPORT :: C_PTR
+        TYPE(C_PTR), VALUE :: importState_ptr
+        TYPE(C_PTR), VALUE :: exportState_ptr
+        TYPE(C_PTR), VALUE :: timeStep_ptr
+      END SUBROUTINE MARCOISCOOL_JLMODEL_RUN
+    END INTERFACE
+
+    INTERFACE
+      SUBROUTINE MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8( &
+            varname,              &
+            ptr,                  &
+            length                &
+        ) BIND(C, name="MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8")
+        IMPORT :: C_PTR, C_INT, C_DOUBLE
+        TYPE(C_PTR), VALUE :: varname
+        REAL(C_DOUBLE), DIMENSION(*) :: ptr
+        INTEGER(C_INT), VALUE :: length
+      END SUBROUTINE MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8
+    END INTERFACE
+
+
+
+    INTERFACE
       INTEGER FUNCTION MPI_Comm_c2f(c_handle) bind(C, name="f_MPI_Comm_c2f")
         IMPORT :: C_PTR
         TYPE(C_PTR), VALUE :: c_handle
@@ -263,6 +291,10 @@ module mod_esmf_ocn
   TYPE(ESMF_TimeInterval)     :: timeStep     ! how long to run in this call
   TYPE(ESMF_Calendar), TARGET :: esmCal
   CHARACTER(LEN=1024), TARGET :: timestr
+  
+  real(ESMF_KIND_R8), pointer :: ptr(:,:)
+  CHARACTER(LEN=1024), TARGET :: dtype, varname
+
   rc = ESMF_SUCCESS
 
   call ESMF_GridCompGet(gcomp, name=gname, vm=vm, rc=rc)
@@ -318,6 +350,21 @@ module mod_esmf_ocn
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
        line=__LINE__, file=FILENAME)) return
 
+  print *, "Register sst"
+  call ESMF_FieldGet(field, farrayPtr=ptr, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+   varname = trim("sst") // C_NULL_CHAR
+   call MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(  &
+        C_LOC(varname),                         &
+        ptr,                                    &
+        100                                    &
+   ) 
+
+
+
+
+
    field = ESMF_FieldCreate(name="pmsl", grid=ocnGridIn,             &
      typekind=ESMF_TYPEKIND_R8, rc=rc)
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -333,6 +380,9 @@ module mod_esmf_ocn
    call NUOPC_Realize(importState, field=field, rc=rc)
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
        line=__LINE__, file=FILENAME)) return
+
+
+
 
    !call OCN_SetInitData(gcomp, ocnGridIn, ocnGridOut, rc)
    !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -449,7 +499,7 @@ module mod_esmf_ocn
 
   ! Local variables
   TYPE(ESMF_Time) :: currTime, nextTime
-  TYPE(ESMF_TimeInterval) :: timeStep     ! how long to run in this call
+  TYPE(ESMF_TimeInterval), TARGET :: timeStep     ! how long to run in this call
   CHARACTER(LEN=256) :: timeStr
   TYPE(ESMF_StateIntent_Flag) :: stateintent
   INTEGER :: itemCount
@@ -500,17 +550,24 @@ module mod_esmf_ocn
       line=__LINE__, file=__FILE__)) return  ! bail out
 
   
-  write (timestr_compact,                                               &
-         '(I4.4,"-",I2.2,"-",I2.2,"_",I2.2,":",I2.2,":",I2.2)') &
-         TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
+  !write (timestr_compact,                                               &
+  !       '(I4.4,"-",I2.2,"-",I2.2,"_",I2.2,":",I2.2,":",I2.2)') &
+  !       TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
  
-  write (msg_to_model, '(A,A,A)') '{"subject":"sendTime", "time": "', trim(timestr_compact), '"}'
-  msg_to_model = trim(msg_to_model) // C_NULL_CHAR
-  call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
+  !write (msg_to_model, '(A,A,A)') '{"subject":"sendTime", "time": "', trim(timestr_compact), '"}'
+  !msg_to_model = trim(msg_to_model) // C_NULL_CHAR
+  !call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
 
   print *, "OCN iLoop is: ", iLoopOCN
 
   !! call OCN_Get(gcomp, iLoopOCN, rc)
+
+    !call MARCOISCOOL_JLMODEL_RUN( &
+    !    C_LOC(importState),       &
+    !    C_LOC(exportState),       &
+    !    C_LOC(timeStep)           &
+    !)
+
 
   iLoopOCN = iLoopOCN + 1
 
@@ -995,5 +1052,58 @@ module mod_esmf_ocn
   end if
 
   end subroutine OCN_Get
+
+
+  subroutine CPL2COMP(gcomp, varname, rc)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+  implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+  type(ESMF_GridComp) :: gcomp
+  character(len=*) :: varname
+  integer, intent(out) :: rc
+
+  real(ESMF_KIND_R8), pointer :: ptr(:,:)
+  type(ESMF_Field) :: field
+
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+  type(ESMF_Field) :: field
+  type(ESMF_State) :: importState
+!
+  rc = ESMF_SUCCESS
+!
+!-----------------------------------------------------------------------
+!     Get gridded component 
+!-----------------------------------------------------------------------
+!
+  call ESMF_GridCompGet(gcomp, importState=importState, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+                         line=__LINE__, file=FILENAME)) return
+!
+!-----------------------------------------------------------------------
+!     Get field
+!-----------------------------------------------------------------------
+!
+  call ESMF_StateGet(importState, varname, field, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+                         line=__LINE__, file=FILENAME)) return
+!
+  if (debugLevel >= 1) then
+    write (ofile, "(A7,I2.2,A3)") "pmslOCN", iLoop, ".nc"
+    call ESMF_FieldWrite(field, trim(ofile), rc=rc)
+  end if
+
+  end subroutine CPL2COMP
 
 end module mod_esmf_ocn

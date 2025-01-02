@@ -24,6 +24,29 @@ void testJuliaException(int ln, const char * msg){
         
 }
 
+void testESMCException(int rc, int ln, const char * msg){
+
+    char new_msg[256] = "UNKNOWN";
+    if (msg != NULL) {
+        snprintf(new_msg, 256, "%s", msg);
+    } 
+
+
+    if (rc != ESMF_SUCCESS) {
+        printf("[%s] Exception occurred at line %d [%s]: rc = %d\n", __FILE__, ln, new_msg, rc);
+    }
+        
+}
+
+void MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(
+    const char * varname,
+    void * ptr,
+    int size
+) {
+    printf("Register variable `%s` (REAL8) with size %d\n", varname, size);
+}
+
+
 void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
 
     int buffer_size = 4096;
@@ -75,9 +98,33 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     printf("[C Code] End of initiation.\n");
 }
 
-void MARCOISCOOL_JLMODEL_RUN( int thread_id, int fcomm) {
+void MARCOISCOOL_JLMODEL_RUN(
+    ESMC_State *importState_ptr,
+    ESMC_State *exportState_ptr,
+    ESMC_TimeInterval *timeStep
+) {
 
     printf("[C Code] Run Model...\n");
+
+    ESMC_Field field;
+    int localDe = 0;
+    int rc = 0;
+
+    rc = ESMC_StatePrint(*importState_ptr);
+    testESMCException(rc, __LINE__, "Print importState");
+
+    rc = ESMC_StatePrint(*exportState_ptr);
+    testESMCException(rc, __LINE__, "Print exportState");
+ 
+    rc = ESMC_StateGetField(*exportState_ptr, "sst", &field);
+    testESMCException(rc, __LINE__, "After get field of sst");
+    ESMC_FieldGetPtr(field, localDe, &rc);
+    testESMCException(rc, __LINE__, "After get ptr sst");
+
+    rc = ESMC_StateGetField(*importState_ptr, "rsns", &field);
+    ESMC_FieldGetPtr(field, localDe, &rc);
+
+
     (void) jl_eval_string("include(\"main_scripts/main03_run.jl\")");
 
 }
