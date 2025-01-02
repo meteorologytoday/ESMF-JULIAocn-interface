@@ -92,6 +92,7 @@ module mod_esmf_ocn
         INTEGER(C_INT), intent(inout) :: myYGlobalLo
       END SUBROUTINE MARCOISCOOL_JLMODEL_getDomainInfo
     END INTERFACE
+  
 
     INTERFACE
       SUBROUTINE MARCOISCOOL_JLMODEL_sendInfo2Model(            &
@@ -540,6 +541,7 @@ module mod_esmf_ocn
   INTEGER Nr
 !  INTEGER Nx, Ny, Nr, i, j, bi, bj
   INTEGER myXGlobalLo, myYGlobalLo, localN
+  INTEGER, ALLOCATABLE :: arr_myXGlobalLo(:), arr_myYGlobalLo(:)
 ! ---- ESMF_JL END ----
 
   integer :: myThid = 1
@@ -564,6 +566,17 @@ module mod_esmf_ocn
 !
   rc = ESMF_SUCCESS
 
+!-----------------------------------------------------------------------
+!     Get gridded component 
+!-----------------------------------------------------------------------
+!
+! The `vm` here is important in later passing myXGlobalLo and myYGlobalLo
+!
+  call ESMF_GridCompGet(gcomp, vm=vm, name=cname, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+
 ! ---- ESMF_JL BEGIN ----
   CALL MARCOISCOOL_JLMODEL_getDomainInfo(                           &
                        sNx, sNy, OLx, OLy,                          &
@@ -584,16 +597,34 @@ module mod_esmf_ocn
   print *, "Nr = ", Nr
   print *, "myXGlobalLo = ", myXGlobalLo
   print *, "myYGlobalLo = ", myYGlobalLo
+
+  if (.not. allocated(arr_myXGlobalLo)) then
+    allocate(arr_myXGlobalLo(nPx*nPy))
+    allocate(arr_myYGlobalLo(nPx*nPy))
+  end if
+
+  ! It is a less clean way to get array of myXYGlobalLo
+  call ESMF_VMAllGatherV(vm, sendData=(/ myXGlobalLo /),            &
+                         sendCount=1, recvData=arr_myXGlobalLo,     &
+                         recvCounts=(/ (1, k = 0, petCount-1) /),   &
+                         recvOffsets=(/ (k, k = 0, petCount-1) /),  &
+                         rc=rc)
+!
+  call ESMF_VMAllGatherV(vm, sendData=(/ myYGlobalLo /),            &
+                         sendCount=1, recvData=arr_myYGlobalLo,     &
+                         recvCounts=(/ (1, k = 0, petCount-1) /),   &
+                         recvOffsets=(/ (k, k = 0, petCount-1) /),  &
+                         rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+
+
+  print *, "arr_myXGlobalLo = ", arr_myXGlobalLo
+  print *, "arr_myYGlobalLo = ", arr_myYGlobalLo
 ! ---- ESMF_JL END ----
 
 !
-!-----------------------------------------------------------------------
-!     Get gridded component 
-!-----------------------------------------------------------------------
-!
-  call ESMF_GridCompGet(gcomp, vm=vm, name=cname, rc=rc)
-  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-      line=__LINE__, file=FILENAME)) return
 !
   if (.not.allocated(deBlockList)) then
     allocate(deBlockList(2,2,1:nPx*nPy))
@@ -606,15 +637,20 @@ module mod_esmf_ocn
 !  deBlockList(:,1,2) = (/ 6, 1/)
 !  deBlockList(:,2,2) = (/nx, ny/)
 
+  print *, "Assining deBlockList"
 !
-!  do tile = 1, (nPx*nPy)
-!    deBlockList(1,1,tile) = myXGlobalLo(tile)
-!    deBlockList(1,2,tile) = myXGlobalLo(tile)+sNx-1
-!    deBlockList(2,1,tile) = myYGlobalLo(tile) 
-!    deBlockList(2,2,tile) = myYGlobalLo(tile)+sNy-1
-!  end do
+  do tile = 1, (nPx*nPy)
+
+    deBlockList(1,1,tile) = arr_myXGlobalLo(tile)
+    deBlockList(2,1,tile) = arr_myYGlobalLo(tile)
+ 
+    deBlockList(1,2,tile) = arr_myXGlobalLo(tile)+sNx-1
+    deBlockList(2,2,tile) = arr_myYGlobalLo(tile)+sNy-1
+
+  end do
 
 
+  print *, "Create distGrid"
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
 !-----------------------------------------------------------------------
@@ -625,6 +661,8 @@ module mod_esmf_ocn
                                  rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
+  
+  print *, "Set staggering type"
 !
 !-----------------------------------------------------------------------
 !     Set staggering type 
@@ -632,6 +670,8 @@ module mod_esmf_ocn
 !
 !
   staggerLoc = ESMF_STAGGERLOC_CENTER ! Icross
+  
+  print *, "Create ESMF Grid"
 !
 !-----------------------------------------------------------------------
 !     Create ESMF Grid
@@ -644,6 +684,8 @@ module mod_esmf_ocn
                            rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
+
+  print *, "Allocate coordinates"
 !
 !-----------------------------------------------------------------------
 !     Allocate coordinates 

@@ -65,8 +65,8 @@ module Domains
         pet_idx_x = rank % nPx
 
 
-        domain.myXGlobalLo = [ grids_per_pet_x * pet_idx_x + sNx * i for i=1:nSx ]
-        domain.myYGlobalLo = [ grids_per_pet_y * pet_idx_y + sNy * j for j=1:nSy ]
+        domain.myXGlobalLo = [ grids_per_pet_x * pet_idx_x + sNx * (i-1) + 1 for i=1:nSx ]
+        domain.myYGlobalLo = [ grids_per_pet_y * pet_idx_y + sNy * (j-1) + 1 for j=1:nSy ]
 
     end
 
