@@ -72,8 +72,12 @@ dr = DriverModule.Driver(
 @printf("[DRIVER] Init Model\n")
 DriverModule.initModel!(dr)
 
-@printf("[DRIVER] Run Model\n")
-DriverModule.runModel!(dr; write_restart=false)
+for i=1:10
+    @printf("[DRIVER] Run Model. i=%d\n", i)
+    DriverModule.runModel!(dr; write_restart=false)
+end
+    
+DriverModule.finalizeModel(dr;)
 
 
 @printf("End of file %s\n", @__FILE__)

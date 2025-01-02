@@ -1,9 +1,14 @@
-if ! ( :DataManager in names(Main) )
-    include(joinpath(@__DIR__, "..", "share", "DataManager.jl"))
+
+if !( :SingleColumnOceanModel in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "SingleColumnOceanModel.jl",)))
 end
 
 if ! ( :ModelTimeManagement in names(Main) )
     include(joinpath(@__DIR__, "..", "share", "ModelTimeManagement.jl"))
+end
+
+if ! ( :DataManager in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "DataManager.jl"))
 end
 
 if ! ( :LogSystem in names(Main) )
@@ -14,28 +19,27 @@ if ! ( :Parallelization in names(Main) )
     include(joinpath(@__DIR__, "..", "share", "Parallelization.jl"))
 end
 
-module EMOM
-
-    include(joinpath(@__DIR__, "EMOM_CORE.jl"))
-    include(joinpath(@__DIR__, "..", "share", "AppendLine.jl"))
+module ENGINE_SingleColumnOceanModel
 
     using MPI
     using Dates
+    using Formatting
     using NCDatasets
     using JSON
 
-    using .EMOM_CORE
+    using ..SingleColumnOceanModel
     using ..DataManager
     using ..Parallization
     using ..ModelTimeManagement
     using ..LogSystem
-    
-    name = "EMOM"
 
-    mutable struct METADATA
-        
+    include(joinpath(@__DIR__, "..", "share", "AppendLine.jl"))
+
+    name = "SingleColumnOceanModel"
+
+    mutable struct EMOM_DATA
         casename    :: AbstractString
-        mb          :: EMOM_CORE.ModelBlock
+        mb          :: EMOM.ModelBlock
         clock       :: ModelClock
 
         x2o         :: Union{Dict, Nothing}
@@ -48,19 +52,17 @@ module EMOM
         jdi        :: JobDistributionInfo
 
         sync_data   :: Dict
-        
-        comm        :: MPI.Comm
     end
 
 
     function init(;
         casename     :: AbstractString,
         clock        :: ModelClock,
-        config       :: Dict,
+        config      :: Dict,
         read_restart :: Bool,
-        comm         :: MPI.Comm,
     )
 
+        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
         comm_size = MPI.Comm_size(comm)
         
@@ -83,12 +85,12 @@ module EMOM
 
         if is_master
 
-            cfg_desc = EMOM_CORE.getEMOMConfigDescriptors()
-            cfg_domain_desc = EMOM_CORE.getDomainConfigDescriptors()
+            cfg_desc = EMOM.getEMOMConfigDescriptors()
+            cfg_domain_desc = EMOM.getDomainConfigDescriptors()
 
-            misc_config = EMOM_CORE.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"])
-            core_config = EMOM_CORE.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"])
-            domain_config = EMOM_CORE.validateConfigEntries(config["DOMAIN"], cfg_domain_desc["DOMAIN"])
+            misc_config = EMOM.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"])
+            core_config = EMOM.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"])
+            domain_config = EMOM.validateConfigEntries(config["DOMAIN"], cfg_domain_desc["DOMAIN"])
 
             # If `read_restart` is true then read restart file: config["rpointer_file"]
             # If not then initialize ocean with default profile if `initial_file`
@@ -115,7 +117,7 @@ module EMOM
                     throw(ErrorException(format("Initial file \"{:s}\" does not exist!", snapshot_filename)))
                 end
 
-                master_mb = EMOM_CORE.loadSnapshot(snapshot_filename; overwrite_config=core_config)
+                master_mb = EMOM.loadSnapshot(snapshot_filename; overwrite_config=core_config)
             else
 
                 init_file = misc_config["init_file"]
@@ -124,8 +126,8 @@ module EMOM
                 if init_file == "BLANK_PROFILE"
 
                     writeLog("`init_file` == '$(init_file)'. Initialize an empty ocean.")
-                    master_ev = EMOM_CORE.Env(cfgs, verbose=is_master)
-                    master_mb = EMOM_CORE.ModelBlock(master_ev; init_core=false)
+                    master_ev = EMOM.Env(cfgs, verbose=is_master)
+                    master_mb = EMOM.ModelBlock(master_ev; init_core=false)
 
                     master_mb.fi.sv[:TEMP] .= rand(size(master_mb.fi.sv[:TEMP])...)
                     master_mb.fi.sv[:SALT] .= rand(size(master_mb.fi.sv[:TEMP])...)
@@ -133,7 +135,7 @@ module EMOM
                 elseif init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
-                    master_mb = EMOM_CORE.loadSnapshot(init_file; overwrite_config=core_config)
+                    master_mb = EMOM.loadSnapshot(init_file; overwrite_config=core_config)
                 
                 else
 
@@ -167,8 +169,8 @@ module EMOM
             my_ev = master_ev
             my_mb = master_mb
         else
-            my_ev          = EMOM_CORE.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
-            my_mb          = EMOM_CORE.ModelBlock(my_ev; init_core = true)
+            my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
+            my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
         end
 
         MPI.Barrier(comm)
@@ -282,9 +284,9 @@ module EMOM
                 "SALT",
                 "HMXL",
             ),
-            
-            
-            
+
+
+
             # These states are syned from
             # slave to master and master to slabe
             # during the substeps.
@@ -304,7 +306,7 @@ module EMOM
         end
 
 
-        MD = METADATA(
+        MD = EMOM_DATA(
             casename,
             my_mb,
             clock,
@@ -314,7 +316,6 @@ module EMOM
             nothing,
             jdi,
             sync_data,
-            comm,
         )
 
 
@@ -322,9 +323,9 @@ module EMOM
 
             activated_record = []
             MD.recorders = Dict()
-            complete_variable_list = EMOM_CORE.getDynamicVariableList(my_mb; varsets=["ALL",])
+            complete_variable_list = EMOM.getDynamicVariableList(my_mb; varsets=["ALL",])
 
-#            additional_variable_list = EMOM_CORE.getVariableList(ocn, :COORDINATE)
+#            additional_variable_list = EMOM.getVariableList(ocn, :COORDINATE)
 
             for rec_key in ["daily_record", "monthly_record"]
        
@@ -345,21 +346,21 @@ module EMOM
                 end
                     
                 #println("varnames: ", varnames)
-                rec_varnames = EMOM_CORE.getDynamicVariableList(my_mb; varnames=varnames, varsets=varsets) |> keys |> collect
+                rec_varnames = EMOM.getDynamicVariableList(my_mb; varnames=varnames, varsets=varsets) |> keys |> collect
                 println("Record varnames: ", rec_varnames)
 
-                add_varnames = EMOM_CORE.getCompleteVariableList(my_mb, :static) |> keys |> collect 
+                add_varnames = EMOM.getCompleteVariableList(my_mb, :static) |> keys |> collect 
 
                 #println("Additional varanames: ", add_varnames)
 
                 #= 
                 if typeof(misc_config[rec_key]) <: Symbol 
-                    misc_config[rec_key] = EMOM_CORE.getVariableList(my_mb, misc_config[rec_key]) |> keys |> collect
+                    misc_config[rec_key] = EMOM.getVariableList(my_mb, misc_config[rec_key]) |> keys |> collect
                 end
 
                 # Qflux_finding mode requires certain output
                 if my_ev.config[:Qflx_finding] == :on
-                    append!(misc_config[rec_key], EMOM_CORE.getVariableList(my_mb, :QFLX_FINDING) |> keys )
+                    append!(misc_config[rec_key], EMOM.getVariableList(my_mb, :QFLX_FINDING) |> keys )
                 end
      
                 # Load variables information as a list
@@ -380,7 +381,7 @@ module EMOM
                     MD.recorders[rec_key] = Recorder(
                         my_mb.dt,
                         rec_varnames,
-                        EMOM_CORE.var_desc;
+                        EMOM.var_desc;
                         other_varnames=add_varnames,
                     )
                     
@@ -535,8 +536,8 @@ module EMOM
     end
 
     function run!(
-        MD            :: METADATA;
-        niters        :: Int64,
+        MD            :: EMOM_DATA;
+        Δt            :: Second,
         write_restart :: Bool,
     )
 
@@ -558,14 +559,14 @@ module EMOM
 
         if ! is_master
 
-            EMOM_CORE.reset!(MD.mb.co.wksp)
-            EMOM_CORE.updateSfcFlx!(MD.mb)
-            EMOM_CORE.updateDatastream!(MD.mb, MD.clock)
-            EMOM_CORE.updateUVSFC!(MD.mb)
-            EMOM_CORE.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
+            EMOM.reset!(MD.mb.co.wksp)
+            EMOM.updateSfcFlx!(MD.mb)
+            EMOM.updateDatastream!(MD.mb, MD.clock)
+            EMOM.updateUVSFC!(MD.mb)
+            EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
 
             Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))
-            EMOM_CORE.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
+            EMOM.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
 
         end
         
@@ -578,9 +579,9 @@ module EMOM
         for substep = 1:substeps
 
             if ! is_master
-                EMOM_CORE.reset!(MD.mb.co.wksp)
-                EMOM_CORE.stepAdvection!(MD.mb, Δt_substep)
-                EMOM_CORE.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
+                EMOM.reset!(MD.mb.co.wksp)
+                EMOM.stepAdvection!(MD.mb, Δt_substep)
+                EMOM.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
             end
 
             syncField!(
@@ -600,8 +601,8 @@ module EMOM
 
         if ! is_master
             
-            EMOM_CORE.stepColumn!(MD.mb, Δt_float)
-            EMOM_CORE.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
+            EMOM.stepColumn!(MD.mb, Δt_float)
+            EMOM.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
 
             # important: update X
             MD.mb.fi._X_ .= MD.mb.tmpfi._NEWX_
@@ -631,14 +632,14 @@ module EMOM
  
     end
 
-    function final(MD::METADATA)
+    function final(MD::EMOM_DATA)
 
         writeLog("Finalizing the model.") 
       
     end
 
     function createRecordFile!(
-        MD     :: METADATA, 
+        MD     :: EMOM_DATA, 
         group  :: String,
         recorder :: Recorder,
     )
@@ -664,7 +665,7 @@ module EMOM
 
 
     function writeRestart(
-        MD :: METADATA,
+        MD :: EMOM_DATA,
     )
 
         clock_time = MD.clock.time
@@ -682,7 +683,7 @@ module EMOM
         )
 
 
-        EMOM_CORE.takeSnapshot(
+        EMOM.takeSnapshot(
             MD.clock.time,
             MD.mb,
             joinpath(

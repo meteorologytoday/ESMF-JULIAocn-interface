@@ -23,7 +23,7 @@ module mod_esmf_ocn
       NUOPC_SetServices          => SetServices,                    &
       NUOPC_Label_SetClock       => label_SetClock,                 &
       NUOPC_Label_Advance        => label_Advance,                  &
-      NUOPC_Label_DataInitialize => label_DataInitialize
+      NUOPC_Label_Datanitialize => label_DataInitialize
 !
   use mod_types
 
@@ -249,6 +249,10 @@ module mod_esmf_ocn
 !
   type(ESMF_VM) :: vm
   
+  
+  TYPE(ESMF_Time) :: currTime
+  TYPE(ESMF_TimeInterval) :: timeStep     ! how long to run in this call
+
   rc = ESMF_SUCCESS
 
   call ESMF_GridCompGet(gcomp, name=gname, vm=vm, rc=rc)
@@ -263,8 +267,24 @@ module mod_esmf_ocn
   call MPI_Comm_size(comm, mpisize)
   print *, "!!!!!!!!!!!!!!! MPI Communicator = ", comm, "; mpisize = ", mpisize, "; localpet = ", localpet
 ! ---- ESMF_PY BEGIN ----
+
+    print *, "Try to print time in Init2"
+ 
+      ! Get the clock detail information
+      call ESMF_ClockGet(clock, currTime=currTime, timeStep=timeStep,   &
+                         rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+          line=__LINE__, file=FILENAME)) return
+
+    print *, "currTime get!"
+      call ESMF_TimePrint(currTime,                                     &
+             preString="##### Init2 Time: ", rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+          line=__LINE__, file=__FILE__)) return  ! bail out
+
+
     print *, "Calling function: MARCOISCOOL_JLMODEL_INIT"
-    
+     
     !comm_ptr = C_LOC(comm)
     !f_comm = MPI_Comm_c2f(comm_ptr)
     !print *, "f_comm = ", f_comm

@@ -1,5 +1,3 @@
-using CFTime
-using Dates
 using JLD2
 using MPI
 using Printf
@@ -187,6 +185,7 @@ module DriverModule
             clock        = clock,
             config       = config,
             read_restart = read_restart,
+            comm         = comm,
         )
 
         if is_master
@@ -232,6 +231,7 @@ module DriverModule
         is_master = dr.misc[:is_master]
         clock = dr.OMDATA.clock
         config = dr.config
+        comm = dr.comm
  
         if is_master 
             writeLog("Current time: %s", clock2str(clock))
@@ -243,27 +243,27 @@ module DriverModule
             # qflux in direct method: Coupler needs to load
             # the initial data of each day and force master
             # to sync thermo variables with slaves. 
-            if config["DRIVER"]["compute_QFLX_direct_method"]
-                OMMODULE.syncM2S!(OMDATA)
-            end
+            #if config["DRIVER"]["compute_QFLX_direct_method"]
+            #    OMMODULE.syncM2S!(OMDATA)
+            #end
 
             # Do the run and THEN advance the clock
 
-            OMMODULE.run!(
-                OMDATA;
-                Δt = Δt,
+            dr.OMMODULE.run!(
+                dr.OMDATA;
+                niters = 1,
                 write_restart = write_restart,
             )
             MPI.Barrier(comm)
             
         end
 
-        writeLog("Computation cost: {:.2f} secs.", cost)
+        writeLog("Computation cost: %.2f secs.", cost)
 
         if write_restart && is_master
 
             driver_restart_file = "model_restart.jld2"
-            writeLog("Writing restart time of driver: $(driver_restart_file)")
+            writeLog("Writing restart time of driver: %s", driver_restart_file)
             JLD2.save(driver_restart_file, "timestamp", clock.time)
 
             archive_list_file = joinpath(
@@ -287,20 +287,16 @@ module DriverModule
 
         end
 
-        if is_master
-            coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
-        end
-        
-        if config["DRIVER"]["compute_QFLX_direct_method"]
-            writeLog("compute_QFLX_direct_method is true")
-            OMMODULE.syncM2S!(OMDATA)
-        end
+        #if config["DRIVER"]["compute_QFLX_direct_method"]
+        #    writeLog("compute_QFLX_direct_method is true")
+        #    OMMODULE.syncM2S!(OMDATA)
+        #end
 
 
         # ==========================================
         if is_master
             # Advance the clock AFTER the run
-            advanceClock!(clock, Δt)
+            advanceClock!(clock, 1)
             dropRungAlarm!(clock)
         end
        
@@ -308,7 +304,7 @@ module DriverModule
         # because datastream needs time interpolation. 
         _model_time = MPI.bcast(clock.model_time, 0, comm) 
         if !is_master
-            setClock!(clock, _model_time)
+            setClock!(clock, _model_time.iter)
         end
         
     end
@@ -316,11 +312,13 @@ module DriverModule
     function finalizeModel(
         dr :: Driver,
     )
+        writeLog("Enter runMmodel.")
         
+        is_master = dr.misc[:is_master]
+        config = dr.config 
         if is_master
            
-            OMMODULE.final(OMDATA)
-            coupler_funcs.master_finalize!(OMMODULE, OMDATA)
+            dr.OMMODULE.final(dr.OMDATA)
             
             archive(joinpath(
                 config["DRIVER"]["caserun"],
@@ -338,53 +336,59 @@ module DriverModule
     )
 
         writeLog("===== Archiving files BEGIN =====")
-        
-        for line in eachline(archive_list_file)
+       
+        if isfile(archive_list_file)
 
-            args = split(line, ",")
+            writeLog("Archive file list exists: %s\n", archive_list_file)
+ 
+            for line in eachline(archive_list_file)
 
-            if length(args) == 0
-                continue
-            end
-          
-            action = args[1]
-            args = args[2:end]
+                args = split(line, ",")
 
-            if action in ["mv", "cp"]
-
-                fname, src_dir, dst_dir = args
-
-                if ! isdir(dst_dir)
-                    mkpath(dst_dir)
+                if length(args) == 0
+                    continue
                 end
-     
-                src_file = joinpath(src_dir, fname)
-                dst_file = joinpath(dst_dir, fname)
+              
+                action = args[1]
+                args = args[2:end]
 
-                if isfile(src_file)
+                if action in ["mv", "cp"]
 
-                    if action == "mv"
-                        mv(src_file, dst_file, force=true)
-                        writeLog("Moving file: %s ( %s => %s )", fname, src_dir, dst_dir)
-                    elseif action == "cp"
-                        cp(src_file, dst_file, force=true)
-                        writeLog("Copying file: %s ( %s => %s )", fname, src_dir, dst_dir)
+                    fname, src_dir, dst_dir = args
+
+                    if ! isdir(dst_dir)
+                        mkpath(dst_dir)
+                    end
+         
+                    src_file = joinpath(src_dir, fname)
+                    dst_file = joinpath(dst_dir, fname)
+
+                    if isfile(src_file)
+
+                        if action == "mv"
+                            mv(src_file, dst_file, force=true)
+                            writeLog("Moving file: %s ( %s => %s )", fname, src_dir, dst_dir)
+                        elseif action == "cp"
+                            cp(src_file, dst_file, force=true)
+                            writeLog("Copying file: %s ( %s => %s )", fname, src_dir, dst_dir)
+                        end
+
+                    else
+                        println("File does not exist: ", src_file)
                     end
 
+                elseif action == "rm"
+                    fname, fdir = args
+                    rm(joinpath(fdir, fname), force=true)
+                    writeLog("Removing file: %s in %s", fname, fdir)
                 else
-                    println("File does not exist: ", src_file)
+                    throw(ErrorException(@sprintf("Unknown action in archive list: %s", action)))
                 end
 
-            elseif action == "rm"
-                fname, fdir = args
-                rm(joinpath(fdir, fname), force=true)
-                writeLog("Removing file: %s in %s", fname, fdir)
-            else
-                throw(ErrorException(@sprintf("Unknown action in archive list: %s", action)))
             end
-
+        else
+            writeLog("Archive file list does not exist: %s\n", archive_list_file)
         end
-
         writeLog("===== Archiving files END =====")
 
     end
