@@ -65,7 +65,6 @@ config = TOML.parsefile(config_file)
 dr = DriverModule.Driver(
     config,
     SimpleOceanModel,
-    nothing,
     COMM,
     cpl_if, 
 )

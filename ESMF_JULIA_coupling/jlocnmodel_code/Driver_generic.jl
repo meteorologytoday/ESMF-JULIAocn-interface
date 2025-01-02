@@ -40,11 +40,32 @@ module DriverModule
  
 
     mutable struct Driver
+        
         config   :: Union{Dict, Nothing}
         OMMODULE :: Module
         OMDATA   :: Any
         comm     :: MPI.Comm
-        ci :: CouplingModule.CouplingInterface
+        ci       :: CouplingModule.CouplingInterface
+        misc     :: Union{Dict, Nothing}
+
+
+        function Driver(
+            config   :: Dict,
+            OMMODULE :: Module,
+            comm     :: MPI.Comm,
+            ci       :: CouplingModule.CouplingInterface,
+        )
+
+            return new(
+                config,
+                OMMODULE,
+                nothing,
+                comm,
+                ci,
+                Dict(),
+            )
+
+        end
     end
 
 
@@ -95,23 +116,21 @@ module DriverModule
         cd(p)
 
         local mt_start = nothing
+        local mt_end   = nothing
         local read_restart = nothing
         local dt = nothing
+
      
         if is_master
 
             writeLog("Getting model start time.")
             
             read_restart  = config["BASIC"]["restart"]
-            iter_start      = config["BASIC"]["iter_start"]
+            iter_start    = config["BASIC"]["iter_start"]
+            iter_advance  = config["BASIC"]["iter_advance"]
             modeltime_ref = config["BASIC"]["modeltime_ref"]
-            dt           = Int64(config["BASIC"]["dt_num"]) // Int64(config["BASIC"]["dt_den"])
-
+            dt            = Int64(config["BASIC"]["dt_num"]) // Int64(config["BASIC"]["dt_den"])
             
-            mt_start = ModelTime(
-                ModelTimeConfig(modeltime_ref, dt),
-                iter_start 
-            )
              
             if read_restart
 
@@ -134,14 +153,23 @@ module DriverModule
 
             end
 
-            writeLog("### Simulation time start: %s", string(mt_start))
+            mt_start = ModelTime(
+                ModelTimeConfig(modeltime_ref, dt),
+                iter_start 
+            )
+
+            mt_end = copy_partial(mt_start)
+            mt_end.iter = mt_start.iter + iter_advance
+
+            writeLog("### Simulation time start : %s", string(mt_start))
+            writeLog("### Simulation time end   : %s", string(mt_end))
              
         end
 
         writeLog("Broadcast mt_start and read_restart to slaves.")
         mt_start = MPI.bcast(mt_start, 0, comm) 
+        mt_end   = MPI.bcast(mt_end, 0, comm) 
         read_restart = MPI.bcast(read_restart, 0, comm) 
-
 
         # copy the start time by adding 0 seconds
         beg_datetime = copy_partial(mt_start)
@@ -186,6 +214,9 @@ module DriverModule
             setClock!(clock, _model_time.iter)
         end
         # =======================================
+
+        dr.misc[:mt_start] = mt_start
+        dr.misc[:mt_end]   = mt_end
         
     end
 

@@ -1,6 +1,7 @@
 [BASIC]
 restart       = false
 iter_start    = 0
+iter_advance  = 10
 modeltime_ref = 0.0 
 dt_num        = 1
 dt_den        = 1
