@@ -18,14 +18,8 @@ if !(:LogSystem in names(Main))
     include(normpath(joinpath(@__DIR__, "..", "share", "LogSystem.jl")))
 end
 
-if !(:SimpleOceanModel in names(Main))
-    include(normpath(joinpath(@__DIR__, "..", "SimpleOceanModel", "SimpleOceanModel.jl")))
-end
-
-
 using .LogSystem
 using .CouplingModule
-using .SimpleOceanModel
 using .DriverModule
 
 global XYZ

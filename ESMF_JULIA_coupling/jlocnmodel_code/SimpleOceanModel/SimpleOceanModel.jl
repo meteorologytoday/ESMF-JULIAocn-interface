@@ -5,14 +5,22 @@ end
 if ! ( :LogSystem in names(Main) )
     include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
 end
+ 
+if ! ( :Config in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "Config.jl"))
+end
     
 module SimpleOceanModel
     
     using MPI
     using ..ModelTimeManagement
     using ..LogSystem
+    using ..Config
     
     include(joinpath(@__DIR__, "SimpleOceanModel_CORE.jl"))
+    
+    include(joinpath(@__DIR__, "domain_configs.jl"))
+    include(joinpath(@__DIR__, "model_configs.jl"))
 
     using .SimpleOceanModel_CORE
     
@@ -26,9 +34,9 @@ module SimpleOceanModel
         x2o         :: Union{Dict, Nothing}
         o2x         :: Union{Dict, Nothing}
 
-        config     :: Dict
+        config      :: Dict
         recorders   :: Union{Dict, Nothing}
-        jdi        :: Any#JobDistributionInfo
+        jdi         :: Any#JobDistributionInfo
         sync_data   :: Dict
         comm        :: MPI.Comm
         log_handle  :: LogHandle
@@ -43,7 +51,7 @@ module SimpleOceanModel
         comm         :: MPI.Comm,
         log_handle   :: LogHandle,
     )
-
+        
         rank = MPI.Comm_rank(comm)
         comm_size = MPI.Comm_size(comm)
         
@@ -59,6 +67,7 @@ module SimpleOceanModel
         sync_data = Dict()
         x2o = Dict()
         o2x = Dict()
+
         MD = METADATA(
             casename,
             my_tile,

@@ -3,8 +3,7 @@ function getEMOMConfigDescriptors()
 
     return Dict(
         "MODEL_MISC" => [
-
-
+            
             ConfigEntry(
                 "init_file",
                 :optional,

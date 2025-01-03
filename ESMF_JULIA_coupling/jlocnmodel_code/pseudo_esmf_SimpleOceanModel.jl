@@ -1,4 +1,5 @@
-include("main_scripts/main00_loadModule.jl")
+include("main_scripts/main01_loadModule_SimpleOceanModel.jl")
+include("main_scripts/main02_loadMiscModule.jl")
 
 # Here is the part 
 @printf("Initialize MPI.\n")
@@ -8,16 +9,19 @@ MPI.Init()
 passMPICommunicator(MPI.COMM_WORLD)
 
 
-include("main_scripts/main01_loadModule.jl")
-include("main_scripts/main02_init.jl")
+
+include("main_scripts/main03_createDriver.jl")
+include("main_scripts/main04_init.jl")
 
 domain_params = zeros(Int64, 13)
 DriverModule.getDomainInfo(dr, domain_params)
 println("domain_params = ", domain_params)
 
 
-include("main_scripts/main03_run.jl")
-include("main_scripts/main04_finalize.jl")
+
+
+include("main_scripts/main05_run.jl")
+include("main_scripts/main06_finalize.jl")
 
 @printf("End of file %s\n", @__FILE__)
 

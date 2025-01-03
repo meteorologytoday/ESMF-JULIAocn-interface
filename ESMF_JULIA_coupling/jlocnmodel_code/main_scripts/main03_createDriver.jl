@@ -24,7 +24,6 @@ cpl_funcs.master_before_model_init = function(
 end
 
 
-config_file = "config_SimpleOceanModel.toml"
 
 @printf("[DRIVER] Create an empty interface\n")
 cpl_if = CouplingModule.CouplingInterface(
@@ -41,7 +40,7 @@ config = TOML.parsefile(config_file)
 
 dr = DriverModule.Driver(
     config,
-    SimpleOceanModel,
+    OMMODULE, # Defined in main01_loadModule_[MODEL_NAME].jl
     COMM,
     cpl_if, 
     log_handle,

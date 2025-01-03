@@ -209,9 +209,8 @@ module DriverModule
                 nothing,
                 nothing,
             )
-
-
         end
+
         domain   = MPI.bcast(domain, 0, comm) 
         Domains.setDomain!(domain; rank=rank, number_of_pet=ntask)
         println("Domain: ", domain)
