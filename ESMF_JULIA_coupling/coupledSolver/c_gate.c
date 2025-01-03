@@ -38,6 +38,7 @@ void testESMCException(int rc, int ln, const char * msg){
         
 }
 
+/*
 void MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8(
     const char * varname,
     double * arr,
@@ -65,14 +66,16 @@ void MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8(
         printf("ERROR: Unknown direction = %d\n", direction);
     }
 }
-
+*/
 
 double* MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(
     const char * varname,
-    int arr_size
+    int arr_size,
+    int direction
 ) {
 
-    
+    // The code here should be something like getting
+    // driver.x2c[varname] or driver.c2x[varname]
     printf("[C Code] Creating array in Julia... arr_size = %d\n", arr_size);
     jl_value_t *varname_julia_str = jl_cstr_to_string(varname);
     jl_function_t *func = jl_eval_string("createArray");
@@ -82,14 +85,6 @@ double* MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(
     
     return new_arr_ptr;
 
-    /*
-    double * ptr = (double *) calloc(sizeof(double), arr_size);
-         for (int i = 0 ; i < arr_size ; ++i) {
-            ptr[i] = i;
-        }
-   
-    return ptr;
-    */
 }
 
 
@@ -160,7 +155,9 @@ void MARCOISCOOL_JLMODEL_RUN(
 ) {
 
     printf("[C Code] Run Model...\n");
+    (void) jl_eval_string("printXYZ()");
 
+    /*
     ESMC_Field field;
     int localDe = 0;
     int rc = 0;
@@ -178,7 +175,7 @@ void MARCOISCOOL_JLMODEL_RUN(
 
     rc = ESMC_StateGetField(*importState_ptr, "rsns", &field);
     ESMC_FieldGetPtr(field, localDe, &rc);
-
+    */
 
     (void) jl_eval_string("include(\"main_scripts/main03_run.jl\")");
 

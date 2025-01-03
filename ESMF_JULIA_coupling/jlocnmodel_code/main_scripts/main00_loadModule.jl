@@ -28,7 +28,13 @@ using .CouplingModule
 using .SimpleOceanModel
 using .DriverModule
 
+global XYZ
 function createArray(varname, arr_size)
     println("[createArray] varname: ", varname, "; arr_size = ", arr_size)
-    return collect(Float64, range(1, arr_size))
+    global XYZ = collect(Float64, range(1, arr_size))
+    return XYZ
+end
+
+function printXYZ()
+    println("!!!!!!! XYZ = ", XYZ)
 end

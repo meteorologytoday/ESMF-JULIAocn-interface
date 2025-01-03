@@ -58,11 +58,13 @@ module mod_esmf_ocn
     INTERFACE
         TYPE(C_PTR) FUNCTION MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8( &
             varname,              &
-            arr_size             &
+            arr_size,             &
+            direction             &
         ) BIND(C, name="MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8")
         IMPORT :: C_PTR, C_INT, C_DOUBLE
         TYPE(C_PTR), VALUE :: varname
         INTEGER(C_INT), VALUE :: arr_size
+        INTEGER(C_INT), VALUE :: direction
       END FUNCTION MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8
     END INTERFACE
 
@@ -384,6 +386,7 @@ module mod_esmf_ocn
     print *, "Test if I can do this"
 
   call CPL_talk_COMP(gcomp, "sst", DIRECTION_COMP2CPL, localPet, rc)
+  call CPL_talk_COMP(gcomp, "rsns", DIRECTION_CPL2COMP, localPet, rc)
 
 
 
@@ -599,11 +602,11 @@ module mod_esmf_ocn
 
   !! call OCN_Get(gcomp, iLoopOCN, rc)
 
-    !call MARCOISCOOL_JLMODEL_RUN( &
-    !    C_LOC(importState),       &
-    !    C_LOC(exportState),       &
-    !    C_LOC(timeStep)           &
-    !)
+    call MARCOISCOOL_JLMODEL_RUN( &
+        C_LOC(importState),       &
+        C_LOC(exportState),       &
+        C_LOC(timeStep)           &
+    )
 
 
   iLoopOCN = iLoopOCN + 1
@@ -1165,11 +1168,8 @@ module mod_esmf_ocn
   lowbnd_y = LBOUND(ptr, 2)
 
   !ALLOCATE( cont_arr(arr_size_x * arr_size_y) )
-  !cont_ptr => cont_arr
-  c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y)
+  c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y, direction)
   CALL c_f_pointer(c_ptr_comp, ptr_comp1d, [arr_size_x*arr_size_y])
-  !print *, "return size(ptr_comp, 1) = ", size(ptr_comp, 1)
-  !print *, "return size(ptr_comp, 2) = ", size(ptr_comp, 2)
 
   print *, "[CPL_talk_COMP] Ready to run loop. localpet=", localpet
   !c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y)
@@ -1183,7 +1183,8 @@ module mod_esmf_ocn
   if (direction .eq. DIRECTION_CPL2COMP) then
      do i = 1, arr_size_x
      do j = 1, arr_size_y
-       !ptr_comp(i, j) = ptr(i, j)
+       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = i + (j-1)*arr_size_x
+       ptr_comp1d(i + (j-1)*arr_size_x) = ptr(i + (lowbnd_x-1), j + (lowbnd_y-1))
      end do 
      end do
   elseif (direction .eq. DIRECTION_COMP2CPL) then
