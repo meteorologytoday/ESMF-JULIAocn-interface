@@ -39,6 +39,9 @@ module mod_esmf_ocn
 
 ! ---- ESMF_JL BEGIN ----
 
+    INTEGER, PARAMETER :: DIRECTION_CPL2COMP = 0
+    INTEGER, PARAMETER :: DIRECTION_COMP2CPL = 1
+
     INTERFACE
       SUBROUTINE MARCOISCOOL_JLMODEL_RUN( &
             importState_ptr,              &
@@ -51,6 +54,34 @@ module mod_esmf_ocn
         TYPE(C_PTR), VALUE :: timeStep_ptr
       END SUBROUTINE MARCOISCOOL_JLMODEL_RUN
     END INTERFACE
+
+    INTERFACE
+        TYPE(C_PTR) FUNCTION MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8( &
+            varname,              &
+            arr_size             &
+        ) BIND(C, name="MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8")
+        IMPORT :: C_PTR, C_INT, C_DOUBLE
+        TYPE(C_PTR), VALUE :: varname
+        INTEGER(C_INT), VALUE :: arr_size
+      END FUNCTION MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8
+    END INTERFACE
+
+
+    INTERFACE
+        SUBROUTINE MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8( &
+            varname,              &
+            ptr,                  &
+            arr_size,             &
+            direction             &
+        ) BIND(C, name="MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8")
+        IMPORT :: C_PTR, C_INT, C_DOUBLE
+        TYPE(C_PTR), VALUE :: varname
+        REAL(C_DOUBLE), DIMENSION(*) :: ptr
+        INTEGER(C_INT), VALUE :: arr_size
+        INTEGER(C_INT), VALUE :: direction
+      END SUBROUTINE MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8
+    END INTERFACE
+
 
     INTERFACE
       SUBROUTINE MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8( &
@@ -350,16 +381,22 @@ module mod_esmf_ocn
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
        line=__LINE__, file=FILENAME)) return
 
-  print *, "Register sst"
-  call ESMF_FieldGet(field, farrayPtr=ptr, rc=rc)
-  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-      line=__LINE__, file=FILENAME)) return
-   varname = trim("sst") // C_NULL_CHAR
-   call MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(  &
-        C_LOC(varname),                         &
-        ptr,                                    &
-        100                                    &
-   ) 
+    print *, "Test if I can do this"
+
+  call CPL_talk_COMP(gcomp, "sst", DIRECTION_COMP2CPL, localPet, rc)
+
+
+
+  !print *, "Register sst"
+  !call ESMF_FieldGet(field, farrayPtr=ptr, rc=rc)
+  !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+  !    line=__LINE__, file=FILENAME)) return
+  ! varname = trim("sst") // C_NULL_CHAR
+  ! call MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(  &
+  !      C_LOC(varname),                         &
+  !      ptr,                                    &
+  !      100                                    &
+  ! ) 
 
 
 
@@ -1054,7 +1091,7 @@ module mod_esmf_ocn
   end subroutine OCN_Get
 
 
-  subroutine CPL2COMP(gcomp, varname, rc)
+  subroutine CPL_talk_COMP(gcomp, varname, direction, localpet, rc)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -1067,19 +1104,23 @@ module mod_esmf_ocn
 !-----------------------------------------------------------------------
 !
   type(ESMF_GridComp) :: gcomp
-  character(len=*) :: varname
+  character(len=*) , TARGET:: varname
   integer, intent(out) :: rc
+  integer, intent(in) :: direction, localpet
 
-  real(ESMF_KIND_R8), pointer :: ptr(:,:)
-  type(ESMF_Field) :: field
-
+  
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
+  type(c_ptr) :: c_ptr_comp
+  real(ESMF_KIND_R8), pointer :: ptr(:, :), ptr_comp1d(:), cont_ptr(:, :)
+!  real(ESMF_KIND_R8), allocatable :: cont_arr(:)
+  integer :: arr_size_x, arr_size_y
+  integer :: i, j, lowbnd_x, lowbnd_y
   type(ESMF_Field) :: field
-  type(ESMF_State) :: importState
+  type(ESMF_State) :: state
 !
   rc = ESMF_SUCCESS
 !
@@ -1087,7 +1128,15 @@ module mod_esmf_ocn
 !     Get gridded component 
 !-----------------------------------------------------------------------
 !
-  call ESMF_GridCompGet(gcomp, importState=importState, rc=rc)
+  print *, "[CPL_talk_COMP] Here. Localpet=", localpet
+  if (direction .eq. DIRECTION_CPL2COMP) then
+    call ESMF_GridCompGet(gcomp, importState=state, rc=rc)
+  elseif (direction .eq. DIRECTION_COMP2CPL) then
+    call ESMF_GridCompGet(gcomp, exportState=state, rc=rc)
+  else
+    print *, "ERROR: Unknown direction : ", direction
+  end if
+  print *, "[CPL_talk_COMP] Check"
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
 !
@@ -1095,15 +1144,72 @@ module mod_esmf_ocn
 !     Get field
 !-----------------------------------------------------------------------
 !
-  call ESMF_StateGet(importState, varname, field, rc=rc)
+  print *, "[CPL_talk_COMP] Get field"
+  call ESMF_StateGet(state, varname, field, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
                          line=__LINE__, file=FILENAME)) return
-!
-  if (debugLevel >= 1) then
-    write (ofile, "(A7,I2.2,A3)") "pmslOCN", iLoop, ".nc"
-    call ESMF_FieldWrite(field, trim(ofile), rc=rc)
+
+  print *, "[CPL_talk_COMP] Get ptr"
+  call ESMF_FieldGet(field, farrayPtr=ptr, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+  varname = trim(varname)
+  arr_size_x = SIZE(ptr, 1)
+  arr_size_y = SIZE(ptr, 2)
+  print *, "varname = ", trim(varname)
+  print *, "arr_size_x = ", arr_size_x
+  print *, "arr_size_y = ", arr_size_y
+
+  lowbnd_x = LBOUND(ptr, 1)
+  lowbnd_y = LBOUND(ptr, 2)
+
+  !ALLOCATE( cont_arr(arr_size_x * arr_size_y) )
+  !cont_ptr => cont_arr
+  c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y)
+  CALL c_f_pointer(c_ptr_comp, ptr_comp1d, [arr_size_x*arr_size_y])
+  !print *, "return size(ptr_comp, 1) = ", size(ptr_comp, 1)
+  !print *, "return size(ptr_comp, 2) = ", size(ptr_comp, 2)
+
+  print *, "[CPL_talk_COMP] Ready to run loop. localpet=", localpet
+  !c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y)
+  !CALL MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8( &
+  !  C_LOC(varname),                               &
+  !  cont_arr,                                     &
+  !  arr_size_x * arr_size_y,                      &
+  !  direction &
+  !)
+
+  if (direction .eq. DIRECTION_CPL2COMP) then
+     do i = 1, arr_size_x
+     do j = 1, arr_size_y
+       !ptr_comp(i, j) = ptr(i, j)
+     end do 
+     end do
+  elseif (direction .eq. DIRECTION_COMP2CPL) then
+     do i = 1, arr_size_x
+     do j = 1, arr_size_y
+       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = ptr_comp1d(i + (j-1)*arr_size_x)
+     end do 
+     end do
+
+     do i = 1, arr_size_x
+     do j = 1, arr_size_y
+       print *, "[", localpet,"] (", i, ", ", j, ") = ", ptr(i + (lowbnd_x-1), j + (lowbnd_y-1))
+     end do 
+     end do
+
   end if
 
-  end subroutine CPL2COMP
+  !NULLIFY(ptr)
+  !NULLIFY(ptr_comp)
+  print *, "[CPL_talk_COMP] Done"
+!
+  !if (debugLevel >= 1) then
+  !  write (ofile, "(A7,I2.2,A3)") "pmslOCN", iLoop, ".nc"
+  !  call ESMF_FieldWrite(field, trim(ofile), rc=rc)
+  !end if
+
+  end subroutine CPL_talk_COMP
 
 end module mod_esmf_ocn

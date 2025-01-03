@@ -38,6 +38,61 @@ void testESMCException(int rc, int ln, const char * msg){
         
 }
 
+void MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8(
+    const char * varname,
+    double * arr,
+    int arr_size,
+    int direction
+) {
+
+    
+    printf("[C Code] Creating array in Julia... arr_size = %d\n", arr_size);
+    jl_value_t *varname_julia_str = jl_cstr_to_string(varname);
+    jl_function_t *func = jl_eval_string("createArray");
+    jl_value_t *arr_size_jl = jl_box_int64(arr_size);
+    jl_value_t *new_arr = jl_call2(func, varname_julia_str, arr_size_jl);
+    double *new_arr_ptr = jl_array_data(new_arr, double);
+    
+    if (direction==0) { // CPL => COMP
+        for (int i = 0 ; i < arr_size ; ++i) {
+            new_arr_ptr[i] = arr[i];
+        }
+    } else if (direction==1) { // COMP => CPL
+        for (int i = 0 ; i < arr_size ; ++i) {
+            arr[i] = new_arr_ptr[i];
+        }
+    } else {
+        printf("ERROR: Unknown direction = %d\n", direction);
+    }
+}
+
+
+double* MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(
+    const char * varname,
+    int arr_size
+) {
+
+    
+    printf("[C Code] Creating array in Julia... arr_size = %d\n", arr_size);
+    jl_value_t *varname_julia_str = jl_cstr_to_string(varname);
+    jl_function_t *func = jl_eval_string("createArray");
+    jl_value_t *arr_size_jl = jl_box_int64(arr_size);
+    jl_value_t *new_arr = jl_call2(func, varname_julia_str, arr_size_jl);
+    double *new_arr_ptr = jl_array_data(new_arr, double);
+    
+    return new_arr_ptr;
+
+    /*
+    double * ptr = (double *) calloc(sizeof(double), arr_size);
+         for (int i = 0 ; i < arr_size ; ++i) {
+            ptr[i] = i;
+        }
+   
+    return ptr;
+    */
+}
+
+
 void MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(
     const char * varname,
     void * ptr,
