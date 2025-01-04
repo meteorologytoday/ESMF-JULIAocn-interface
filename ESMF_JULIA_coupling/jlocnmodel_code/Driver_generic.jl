@@ -105,7 +105,8 @@ module DriverModule
             writeLog(log_handle, "Validate driver config.")
             config["DRIVER"] = validateConfigEntries(
                 config["DRIVER"],
-                getDriverConfigDescriptors()["DRIVER"]
+                getDriverConfigDescriptors()["DRIVER"],
+                log_handle=log_handle,
             )
             
             coupler_funcs = dr.ci.cpl_funcs
@@ -167,7 +168,7 @@ module DriverModule
 
             mt_start = ModelTime(
                 ModelTimeConfig(modeltime_ref, dt),
-                iter_start 
+                iter_start,
             )
 
             mt_end = copy_partial(mt_start)
@@ -189,8 +190,21 @@ module DriverModule
         # Construct model clock
         clock = ModelClock("Model", beg_datetime)
 
-            
-        local domain   = nothing
+        # initializing
+        writeLog(log_handle, "==================================")
+        writeLog(log_handle, "===== INITIALIZING MODEL: %s =====", dr.OMMODULE.name)
+        
+        dr.OMDATA = dr.OMMODULE.init(
+            casename     = config["DRIVER"]["casename"],
+            clock        = clock,
+            config       = config,
+            read_restart = read_restart,
+            comm         = comm,
+            log_handle   = log_handle,
+        )
+
+
+        #=
         if is_master
             _cfg = config["DOMAIN"]
             domain = Domains.Domain(
@@ -210,25 +224,14 @@ module DriverModule
                 nothing,
             )
         end
+        =#
 
-        domain   = MPI.bcast(domain, 0, comm) 
-        Domains.setDomain!(domain; rank=rank, number_of_pet=ntask)
-        println("Domain: ", domain)
-        dr.domain = domain
-
-        # initializing
-        writeLog(log_handle, "==================================")
-        writeLog(log_handle, "===== INITIALIZING MODEL: %s =====", dr.OMMODULE.name)
-        
-        dr.OMDATA = dr.OMMODULE.init(
-            casename     = config["DRIVER"]["casename"],
-            clock        = clock,
-            config       = config,
-            read_restart = read_restart,
-            comm         = comm,
-            log_handle   = log_handle,
-        )
-
+        # Domain should be setup by each processor
+        #domain = dr.OMDATA.domain
+        #domain   = MPI.bcast(domain, 0, comm) 
+        #Domains.setDomain!(domain; rank=rank, number_of_pet=ntask)
+        #println("Domain: ", domain)
+        dr.domain = dr.OMDATA.domain
 
         if is_master
 
@@ -438,9 +441,8 @@ module DriverModule
     end
 
     function getDomainInfo(dr :: Driver, arr :: Vector{Int64})
-    #function getDomainInfo()
     
-        #println("[DRIVER] Enter getDomainInfo")
+        println("[DRIVER] Enter getDomainInfo")
 
         domain = dr.domain
          
@@ -468,6 +470,6 @@ module DriverModule
             arr[i] = d
         end
 
-        #println("[DRIVER] Leaving getDomainInfo")
+        println("[DRIVER] Leaving getDomainInfo")
     end 
 end

@@ -8,9 +8,8 @@ module DataManager
 
     const missing_value = 1e20
 
-    
-    
     include("DataUnit.jl")
     include("DataTable.jl")
     include("Recorder.jl")
+
 end

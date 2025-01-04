@@ -202,7 +202,7 @@ module mod_esmf_esm
 !-----------------------------------------------------------------------
 !
   print *, "setting clock services"
-  call ESMF_TimeIntervalSet(esmTimeStep, m=20, rc=rc)
+  call ESMF_TimeIntervalSet(esmTimeStep, m=30, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 !

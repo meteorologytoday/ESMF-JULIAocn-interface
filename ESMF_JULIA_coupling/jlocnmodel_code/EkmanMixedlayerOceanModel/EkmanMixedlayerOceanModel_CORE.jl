@@ -1,23 +1,34 @@
-if !(:ModelClockSystem in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), ".", "lib", "ModelClockSystem.jl")))
+#=
+if ! ( :ModelTimeManagement in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "ModelTimeManagement.jl"))
 end
 
-if !(:Config in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), ".", "lib", "Config.jl")))
+if ! ( :LogSystem in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
+end
+ 
+if ! ( :Domains in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "Domains.jl"))
+end
+ 
+if ! ( :Config in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "Config.jl"))
+end
+ 
+if ! ( :DataManager in names(Main) )
+    include(joinpath(@__DIR__, "lib", "DataManager.jl"))
+end
+
+
+if ! ( :Parallelization in names(Main) )
+    include(joinpath(@__DIR__, "lib", "Parallelization.jl"))
 end
 
 if !(:CyclicData in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), ".", "lib", "CyclicData.jl")))
 end
 
-if !(:LogSystem in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), ".", "lib", "LogSystem.jl")))
-end
-
-if ! ( :DataManager in names(Main) )
-    include(joinpath(@__DIR__, ".", "lib", "DataManager.jl"))
-end
-
+=#
 
 macro hinclude(path)
     return :(include(normpath(joinpath(@__DIR__, $path))))
@@ -37,14 +48,16 @@ module EkmanMixedlayerOceanModel_CORE
     using SparseArrays
     using NCDatasets
     using JLD2
+    using JSON
     using DataStructures
 
-    using ..ModelClockSystem
-    using ..Config
-    using ..CyclicData
-    using ..LogSystem
-    using ..DataManager
-    using JSON
+    using ...ModelTimeManagement
+    using ...Config
+    using ...CyclicData
+    using ...LogSystem
+    using ...DataManager
+
+
 
     macro hinclude(path)
         return :(include(normpath(joinpath(@__DIR__, $path))))

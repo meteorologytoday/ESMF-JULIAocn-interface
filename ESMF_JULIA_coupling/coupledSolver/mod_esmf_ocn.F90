@@ -108,11 +108,13 @@ module mod_esmf_ocn
     END INTERFACE
 
     INTERFACE
-      SUBROUTINE MARCOISCOOL_PRINTCALENDAR(cal_ptr, timestr_ptr) BIND(C, name="MARCOISCOOL_PRINTCALENDAR")
-        IMPORT :: C_PTR
+      SUBROUTINE MARCOISCOOL_JLMODEL_REGISTER_TIME(cal_ptr, starttime_ptr, stoptime_ptr, timeinterval_s) BIND(C, name="MARCOISCOOL_JLMODEL_REGISTER_TIME")
+        IMPORT :: C_PTR, C_INT
         TYPE(C_PTR), VALUE :: cal_ptr
-        TYPE(C_PTR), VALUE :: timestr_ptr
-      END SUBROUTINE MARCOISCOOL_PRINTCALENDAR
+        TYPE(C_PTR), VALUE :: starttime_ptr
+        TYPE(C_PTR), VALUE :: stoptime_ptr
+        INTEGER(C_INT), VALUE :: timeinterval_s
+      END SUBROUTINE MARCOISCOOL_JLMODEL_REGISTER_TIME
     END INTERFACE
 
 
@@ -343,26 +345,7 @@ module mod_esmf_ocn
   print *, "!!!!!!!!!!!!!!! MPI Communicator = ", comm, "; mpisize = ", mpisize, "; localpet = ", localpet
 ! ---- ESMF_JL BEGIN ----
 
-      ! Get the clock detail information
-      call ESMF_ClockGet(clock, currTime=currTime, timeStep=timeStep,   &
-                         rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-          line=__LINE__, file=FILENAME)) return
-
-      call ESMF_TimeGet(currTime, calendar=esmCal, &
-         timeStringISOFrac=timestr, rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-          line=__LINE__, file=__FILE__)) return  ! bail out
-
-      timestr = trim(timestr) // C_NULL_CHAR
-
-    call MARCOISCOOL_PRINTCALENDAR(C_LOC(currTime), C_LOC(timestr))
-
     print *, "Calling function: MARCOISCOOL_JLMODEL_INIT"
-     
-    !comm_ptr = C_LOC(comm)
-    !f_comm = MPI_Comm_c2f(comm_ptr)
-    !print *, "f_comm = ", f_comm
     CALL MARCOISCOOL_JLMODEL_INIT(myThid, comm)
 ! ---- ESMF_JL END ----
 
@@ -497,18 +480,21 @@ module mod_esmf_ocn
 
   type(ESMF_Clock)     :: clock
   type(ESMF_Clock)     :: modelClock, driverClock
-  type(ESMF_TimeInterval) :: ocnTimeStep
-  type(ESMF_Time) :: ocnStartTime
-  type(ESMF_Time) :: ocnEndTime
   type(ESMF_TimeInterval) :: stabilityTimeStep
-  
+  type(ESMF_TimeInterval), TARGET :: timeStep
+  type(ESMF_Time), TARGET :: startTime, stopTime
+  INTEGER(ESMF_KIND_I4) :: timeinterval_s
+
+  CHARACTER(LEN=100), TARGET :: startTimeStr, stopTimeStr
+  INTEGER :: TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
+ 
   rc = ESMF_SUCCESS
 
   call NUOPC_ModelGet(gcomp, modelClock=clock, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  call ESMF_TimeIntervalSet(stabilityTimeStep, m=20, rc=rc)
+  call ESMF_TimeIntervalSet(stabilityTimeStep, m=10, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
@@ -516,6 +502,45 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
+! Pass Calendar, begin Time, and timestep
+
+  print *, "So we have to redo ModelGet, otherwise I will get"
+  print *, "the old timestep."
+  print *, "It seems compsetclock messed up the clock."
+  call NUOPC_ModelGet(gcomp, modelClock=clock, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+  call ESMF_ClockGet(clock, startTime=startTime, stopTime=stopTime, &
+                            timeStep=timeStep,   &
+                     rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  call ESMF_TimeIntervalGet(timeStep, s=timeinterval_s, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+
+! Make StartTimeStr
+   call ESMF_TimeGet(startTime, timeStringISOFrac=startTimeStr)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  startTimeStr = trim(startTimeStr) // C_NULL_CHAR
+
+! Make StopTimeStr
+  call ESMF_TimeGet(stopTime, timeStringISOFrac=stopTimeStr)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=__FILE__)) return  ! bail out
+
+  stopTimeStr = trim(stopTimeStr) // C_NULL_CHAR
+
+  CALL MARCOISCOOL_JLMODEL_REGISTER_TIME( &
+         C_LOC(startTime), C_LOC(startTimeStr), &
+         C_LOC(stopTimeStr), timeinterval_s &
+  ) 
+  print *, "Leaving OCN_SetClock"
   end subroutine
 !
 !-----------------------------------------------------------------------
@@ -591,7 +616,7 @@ module mod_esmf_ocn
 
   
   !write (timestr_compact,                                               &
-  !       '(I4.4,"-",I2.2,"-",I2.2,"_",I2.2,":",I2.2,":",I2.2)') &
+  !       '(I4.4,"-",I2.2,"-",I2.2," ",I2.2,":",I2.2,":",I2.2)') &
   !       TIME_YY, TIME_MM, TIME_DD, TIME_H, TIME_M, TIME_S
  
   !write (msg_to_model, '(A,A,A)') '{"subject":"sendTime", "time": "', trim(timestr_compact), '"}'

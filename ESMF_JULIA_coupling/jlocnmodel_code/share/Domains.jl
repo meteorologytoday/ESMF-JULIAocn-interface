@@ -28,6 +28,9 @@ module Domains
 
         domain.rank = rank
         domain.number_of_pet = number_of_pet
+       
+        #println("[setDomain] rank = ", rank) 
+        #println("[setDomain] number_of_pet = ", number_of_pet) 
         
         sNx = domain.sNx
         sNy = domain.sNy
@@ -64,10 +67,13 @@ module Domains
         pet_idx_y = floor(Int64, rank / nPx)
         pet_idx_x = rank % nPx
 
+        #sleep(rand()*10)
+        #println("(PET_IDX_X, rank, grids_per_pet_x)  = (", pet_idx_x, ",", rank,  ", ", grids_per_pet_x ,")")
 
         domain.myXGlobalLo = [ grids_per_pet_x * pet_idx_x + sNx * (i-1) + 1 for i=1:nSx ]
         domain.myYGlobalLo = [ grids_per_pet_y * pet_idx_y + sNy * (j-1) + 1 for j=1:nSy ]
 
+        #println("Domain.myXGlobalLo = ", domain.myXGlobalLo)
     end
 
 end

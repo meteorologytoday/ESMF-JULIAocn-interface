@@ -6,6 +6,10 @@ if ! ( :LogSystem in names(Main) )
     include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
 end
  
+if ! ( :Domains in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "Domains.jl"))
+end
+ 
 if ! ( :Config in names(Main) )
     include(joinpath(@__DIR__, "..", "share", "Config.jl"))
 end
@@ -19,10 +23,13 @@ if ! ( :Parallelization in names(Main) )
     include(joinpath(@__DIR__, "lib", "Parallelization.jl"))
 end
 
+if !(:CyclicData in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), ".", "lib", "CyclicData.jl")))
+end
 
-   
 module EkmanMixedlayerOceanModel
 
+    using Printf
     using NCDatasets
     using JSON
     using Dates
@@ -32,6 +39,9 @@ module EkmanMixedlayerOceanModel
     using ..LogSystem
     using ..Config
     using ..DataManager    
+    using ..Domains
+    using ..Parallelization
+
     include(joinpath(@__DIR__, "lib", "AppendLine.jl"))
     include(joinpath(@__DIR__, "EkmanMixedlayerOceanModel_CORE.jl"))
     include(joinpath(@__DIR__, "configs", "domain_configs.jl"))
@@ -56,6 +66,7 @@ module EkmanMixedlayerOceanModel
         sync_data   :: Dict
         comm        :: MPI.Comm
         log_handle  :: LogHandle
+        domain      :: Domains.Domain
     end
 
 
@@ -70,6 +81,7 @@ module EkmanMixedlayerOceanModel
         
         rank = MPI.Comm_rank(comm)
         comm_size = MPI.Comm_size(comm)
+        cfgs = config
         
         if comm_size == 1
             throw(ErrorException("Need at least 2 processes to work"))
@@ -83,7 +95,7 @@ module EkmanMixedlayerOceanModel
         if is_master
             archive_list_file = joinpath(config["DRIVER"]["caserun"], config["DRIVER"]["archive_list"])
             if isfile(archive_list_file)
-                writeLog("File {:s} already exists. Remove it.", archive_list_file)
+                writeLog(log_handle, "File %s already exists. Remove it.", archive_list_file)
                 rm(archive_list_file)
             end
         end
@@ -93,9 +105,9 @@ module EkmanMixedlayerOceanModel
             cfg_desc = EMOM.getEMOMConfigDescriptors()
             cfg_domain_desc = EMOM.getDomainConfigDescriptors()
 
-            misc_config = EMOM.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"])
-            core_config = EMOM.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"])
-            domain_config = EMOM.validateConfigEntries(config["DOMAIN"], cfg_domain_desc["DOMAIN"])
+            misc_config = EMOM.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"], log_handle=log_handle)
+            core_config = EMOM.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"], log_handle=log_handle)
+            domain_config = EMOM.validateConfigEntries(config["DOMAIN"], cfg_domain_desc["DOMAIN"], log_handle=log_handle)
 
             # If `read_restart` is true then read restart file: config["rpointer_file"]
             # If not then initialize ocean with default profile if `initial_file`
@@ -108,10 +120,10 @@ module EkmanMixedlayerOceanModel
                 rpointer_file = joinpath(config["DRIVER"]["caserun"], config["MODEL_MISC"]["rpointer_file"])
 
                 if !isfile(rpointer_file)
-                    throw(ErrorException(format("File {:s} does not exist!", rpointer_file)))
+                    throw(ErrorException(format("File %s does not exist!", rpointer_file)))
                 end
                 
-                writeLog("Reading rpointer file {:s}", rpointer_file)
+                writeLog(log_handle, "Reading rpointer file %s", rpointer_file)
 
                 snapshot_filename = ""
                 open(rpointer_file, "r") do file
@@ -119,10 +131,10 @@ module EkmanMixedlayerOceanModel
                 end
 
                 if !isfile(snapshot_filename)
-                    throw(ErrorException(format("Initial file \"{:s}\" does not exist!", snapshot_filename)))
+                    throw(ErrorException(format("Initial file \"%s\" does not exist!", snapshot_filename)))
                 end
 
-                master_mb = EMOM.loadSnapshot(snapshot_filename; overwrite_config=core_config)
+                master_mb = EMOM.loadSnapshot(snapshot_filename; overwrite_config=core_config, log_handle=log_handle)
             else
 
                 init_file = misc_config["init_file"]
@@ -130,8 +142,8 @@ module EkmanMixedlayerOceanModel
 
                 if init_file == "BLANK_PROFILE"
 
-                    writeLog("`init_file` == '$(init_file)'. Initialize an empty ocean.")
-                    master_ev = EMOM.Env(cfgs, verbose=is_master)
+                    writeLog(log_handle, "`init_file` == '$(init_file)'. Initialize an empty ocean.")
+                    master_ev = EMOM.Env(cfgs, verbose=is_master, log_handle=log_handle)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
 
                     master_mb.fi.sv[:TEMP] .= rand(size(master_mb.fi.sv[:TEMP])...)
@@ -140,7 +152,7 @@ module EkmanMixedlayerOceanModel
                 elseif init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
-                    master_mb = EMOM.loadSnapshot(init_file; overwrite_config=core_config)
+                    master_mb = EMOM.loadSnapshot(init_file; overwrite_config=core_config, log_handle=log_handle)
                 
                 else
 
@@ -154,27 +166,40 @@ module EkmanMixedlayerOceanModel
 
         if is_master
             if length(master_ev.cdata_varnames) != 0
-                writeLog("The following datastream variables are used: {:s}.", join(master_ev.cdata_varnames, ", "))
+                writeLog(log_handle, "The following datastream variables are used: %s.", join(master_ev.cdata_varnames, ", "))
             else
-                writeLog("No datastream is used.")
+                writeLog(log_handle, "No datastream is used.")
             end
         end
 
-        jdi = nothing
+                
+        # It is necessary to use master_ev to create JobDistributionInfo
         master_ev_cfgs = nothing
+        
+        Nx = nothing
+        Ny = nothing
+
         if is_master
-            jdi = JobDistributionInfo(nworkers = comm_size - 1, Ny = master_ev.Ny; overlap=3)
             master_ev_cfgs = master_ev.cfgs
+            Nx = master_ev.Nx
+            Ny = master_ev.Ny
         end
-        jdi = MPI.bcast(jdi, 0, comm)
         master_ev_cfgs = MPI.bcast(master_ev_cfgs, 0, comm)
-     
+        Nx = MPI.bcast(Nx, 0, comm)
+        Ny = MPI.bcast(Ny, 0, comm)
+            
+        writeLog(log_handle, "Creating JobDistributionInfo...")
+        jdi = JobDistributionInfo(Nx = Nx, Ny = Ny, overlap=3, comm=comm)
+        
+        # Need to create Domain object accordingly
+        domain = Parallelization.createDomain(jdi)
+ 
         # Second, create ModelBlocks based on ysplit_info
         if is_master
             my_ev = master_ev
             my_mb = master_mb
         else
-            my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
+            my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng, log_handle=log_handle)
             my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
         end
 
@@ -311,7 +336,7 @@ module EkmanMixedlayerOceanModel
         end
 
 
-        MD = EMOM_DATA(
+        MD = METADATA(
             casename,
             my_mb,
             clock,
@@ -323,6 +348,7 @@ module EkmanMixedlayerOceanModel
             sync_data,
             comm,
             log_handle,
+            domain,
         )
 
 
@@ -374,9 +400,9 @@ module EkmanMixedlayerOceanModel
                 # Load variables information as a list
                 for varname in misc_config[rec_key]
 
-                    println(format("Request output variable: {:s}", varname))
+                    println(format("Request output variable: %s", varname))
                     if haskey(complete_variable_list, varname)
-                        println(format("Using varaible: {:s}", varname))
+                        println(format("Using varaible: %s", varname))
                         push!(var_list, varname)#, complete_variable_list[varname]... ) )
                     else
                         throw(ErrorException("Unknown varname in " * string(rec_key) * ": " * varname))
@@ -437,33 +463,36 @@ module EkmanMixedlayerOceanModel
                 end
 
                 if "daily_record" in activated_record
+                    
                     recorder_day = MD.recorders["daily_record"]
+                    mt = clock.model_time
+                    niters_per_day = Int(86400.0 / mt.cfg.dt)
 
                     addAlarm!(
                         clock,
                         "[Daily] Daily output",
-                        clock.time + Day(1),
+                        addIters(mt, niters_per_day),
                         2;  
                         callback = function (clk, alm)
                             record!(recorder_day)
                             avgAndOutput!(recorder_day) # This is important
                         end,
-                        recurring = Day(1),
+                        recurring = niters_per_day,
                     )
 
                     addAlarm!(
                         clock,
                         "[Daily] Create daily output file.",
-                        clock.time,
+                        addIters(mt, niters_per_day*30),
                         1;
                         callback = function (clk, alm)
                             createRecordFile!(MD, "h1.day", recorder_day)
                         end,
-                        recurring = begOfNextMonth,
+                        recurring = niters_per_day*30,
                     )
 
                 end
-
+                #=
                 if "monthly_record" in activated_record
 
                     # Design alarm such that
@@ -514,7 +543,7 @@ module EkmanMixedlayerOceanModel
 
      
                 end
-
+                =#
             end
             
         end
@@ -552,7 +581,94 @@ module EkmanMixedlayerOceanModel
         comm = MD.comm
         rank = MPI.Comm_rank(comm)
         is_master = rank == 0
+
+        Δt_float = Float64(MD.clock.model_time.cfg.dt * niters)
         
+        substeps = MD.mb.ev.cfgs["MODEL_CORE"]["substeps"]
+        Δt_substep = Δt_float / substeps
+
+        syncField!(
+            MD.sync_data[:forcing],
+            MD.jdi,
+            :M2S,
+            :BLOCK,
+        )
+
+        if ! is_master
+
+            EMOM.reset!(MD.mb.co.wksp)
+            EMOM.updateSfcFlx!(MD.mb)
+            EMOM.updateDatastream!(MD.mb, MD.clock)
+            EMOM.updateUVSFC!(MD.mb)
+            EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
+
+            Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))
+            EMOM.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
+
+        end
+        
+
+        if ! is_master
+            # Because substep in stepAdvection updates _INTMX_
+            # based on _INTMX_ itself, we need to copy it first.
+            MD.mb.tmpfi._INTMX_ .= MD.mb.fi._X_
+        end 
+        for substep = 1:substeps
+
+            if ! is_master
+                EMOM.reset!(MD.mb.co.wksp)
+                EMOM.stepAdvection!(MD.mb, Δt_substep)
+                EMOM.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
+            end
+
+            syncField!(
+                MD.sync_data[:intm_state],
+                MD.jdi,
+                :S2M,
+                :BND,
+            )
+
+            syncField!(
+                MD.sync_data[:intm_state],
+                MD.jdi,
+                :M2S,
+                :BND,
+            )
+        end
+
+        if ! is_master
+            
+            EMOM.stepColumn!(MD.mb, Δt_float)
+            EMOM.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
+
+            # important: update X
+            MD.mb.fi._X_ .= MD.mb.tmpfi._NEWX_
+        end
+        
+        syncField!(
+            MD.sync_data[:output_state],
+            MD.jdi,
+            :S2M,
+            :BLOCK,
+        )
+
+        syncField!(
+            MD.sync_data[:thermo_state],
+            MD.jdi,
+            :M2S,
+            :BND,
+        ) 
+
+
+        if write_restart
+            writeLog("`wrtie_restart` is true.")
+            if is_master 
+                writeRestart(MD)
+            end
+        end
+
+
+ 
     end
 
     function final(MD::METADATA)
@@ -566,6 +682,85 @@ module EkmanMixedlayerOceanModel
         log_handle = MD.log_handle
 
     end
+
+    function createRecordFile!(
+        MD     :: METADATA,
+        group  :: String,
+        recorder :: Recorder,
+    )
+
+        iter = MD.model_time.iter
+
+        filename = @sprintf("%s.EMOM.%s.%06d.nc", MD.casename, group, iter)
+
+        setNewNCFile!(
+            recorder,
+            joinpath(MD.config["DRIVER"]["caserun"], filename)
+        )
+            
+        appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
+            format("mv,{:s},{:s},{:s}",
+                filename,
+                MD.config["DRIVER"]["caserun"],
+                joinpath(MD.config["DRIVER"]["archive_root"], "ocn", "hist"),
+            )
+        )
+
+    end
+
+
+    function writeRestart(
+        MD :: METADATA,
+    )
+
+        mt = MD.clock.model_time
+
+        timestamp_str = @sprintf(
+            "%10d",
+            mt.iter,
+            #Dates.format(clock_time, "yyyy-mm-dd"),
+            #floor(Int64, Dates.hour(clock_time)*3600+Dates.minute(clock_time)*60+Dates.second(clock_time)),
+        )
+
+        snapshot_filename = @sprintf(
+            "%s.snapshot.%s.jld2",
+            MD.config["DRIVER"]["casename"],
+            timestamp_str,
+        )
+
+
+        EMOM.takeSnapshot(
+            MD.clock.time,
+            MD.mb,
+            joinpath(
+                MD.config["DRIVER"]["caserun"],
+                snapshot_filename,
+            ),
+        )
+
+        println("(Over)write restart pointer file: ", MD.config["MODEL_MISC"]["rpointer_file"])
+        open(joinpath(MD.config["DRIVER"]["caserun"], MD.config["MODEL_MISC"]["rpointer_file"]), "w") do io
+            write(io, snapshot_filename, "\n")
+        end
+
+        appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
+            @sprintf("cp,%s,%s,%s",
+                snapshot_filename,
+                MD.config["DRIVER"]["caserun"],
+                joinpath(MD.config["DRIVER"]["archive_root"], "rest", timestamp_str),
+            )
+        )
+        
+        appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
+            @sprintf("cp,%s,%s,%s",
+                MD.config["MODEL_MISC"]["rpointer_file"],
+                MD.config["DRIVER"]["caserun"],
+                joinpath(MD.config["DRIVER"]["archive_root"], "rest", timestamp_str),
+            )
+        )
+        
+    end
+
 
 
     function syncM2S!(

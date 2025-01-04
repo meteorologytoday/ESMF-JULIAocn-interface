@@ -87,6 +87,75 @@ double* MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(
 
 }
 
+void MARCOISCOOL_JLMODEL_REGISTER_TIME(
+    ESMC_Time *caltime,
+    const char *starttimestr,
+    const char *stoptimestr,
+    int32_t timeinterval_s
+) {
+    
+    printf("[C Code] Enter MARCOISCOOL_JLMODEL_REGISTER_TIME\n");
+
+    char caltype[1024];
+    //ESMC_I4 yy, h;
+    ESMC_Calendar cal;
+    ESMC_CalKind_Flag calkindflag;
+    int timezone;
+
+    ESMC_I8 timeinterval_s8;
+
+    //ESMC_TimePrint(t);
+    ESMC_TimeGet(*caltime, NULL, NULL, &cal, &calkindflag, &timezone);
+    printf("[C Code] starttimestr=%s\n", starttimestr);
+    printf("[C Code] stoptimestr=%s\n", stoptimestr);
+    
+    //ESMC_TimeIntervalGet(*timeinterval, &timeinterval_s8, NULL);
+    //printf("[C Code] timeinterval seconds = %d\n", (int) timeinterval_s8);
+
+    if (calkindflag == ESMC_CALKIND_GREGORIAN) {
+        snprintf(caltype,  sizeof(caltype), "GREGORIAN");
+    } else if (calkindflag == ESMC_CALKIND_JULIAN) {
+        snprintf(caltype,  sizeof(caltype), "JULIAN");
+    } else if (calkindflag == ESMC_CALKIND_JULIANDAY) {
+        snprintf(caltype,  sizeof(caltype), "JULIANDAY");
+    } else if (calkindflag == ESMC_CALKIND_MODJULIANDAY) {
+        snprintf(caltype,  sizeof(caltype), "MODJULIANDAY");
+    } else if (calkindflag == ESMC_CALKIND_NOLEAP) {
+        snprintf(caltype,  sizeof(caltype), "NOLEAP");
+    } else if (calkindflag == ESMC_CALKIND_360DAY) {
+        snprintf(caltype,  sizeof(caltype), "360DAY");
+    } else if (calkindflag == ESMC_CALKIND_CUSTOM) {
+        snprintf(caltype,  sizeof(caltype), "CUSTOM");
+    } else if (calkindflag == ESMC_CALKIND_NOCALENDAR) {
+        snprintf(caltype,  sizeof(caltype), "NOCALENDAR");
+    } else {
+        snprintf(caltype,  sizeof(caltype), "UNKNOWN");
+    }
+
+    printf("[C Code] caltype = %s\n", caltype);
+    
+    jl_function_t *func = jl_eval_string("setModelTimeInformation!");
+    testJuliaException(__LINE__, "After getting function setModelTimeInformation!");
+
+    jl_value_t *caltype_julia_str = jl_cstr_to_string(caltype);
+    jl_value_t *starttimestr_julia_str = jl_cstr_to_string(starttimestr);
+    jl_value_t *stoptimestr_julia_str = jl_cstr_to_string(stoptimestr);
+    jl_value_t *timeinterval_s_julia_int = jl_box_int32(timeinterval_s);
+
+    jl_value_t* args[5];
+    args[0] = ocean_model_driver;
+    args[1] = caltype_julia_str;
+    args[2] = starttimestr_julia_str;
+    args[3] = stoptimestr_julia_str;
+    args[4] = timeinterval_s_julia_int;
+
+    (void) jl_call(func, args, 5);
+    testJuliaException(__LINE__, "After Calling setModelTimeInformation!");
+ 
+    printf("[C Code] Leave MARCOISCOOL_JLMODEL_REGISTER_TIME\n");
+}
+
+
 
 void MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(
     const char * varname,
@@ -112,9 +181,11 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
 
     jl_init();
     
-    printf("[C Code] Loading Julia stuff...\n");
-    (void) jl_eval_string("include(\"main_scripts/main00_loadModule.jl\")");
+    printf("[C Code] Loading Julia Ocean Model... \n");
+    (void) jl_eval_string("include(\"main_scripts/main01_loadModule.jl\")");
 
+    printf("[C Code] Loading Julia misc modules...\n");
+    (void) jl_eval_string("include(\"main_scripts/main02_loadMiscModule.jl\")");
 
     printf("[C Code] Boxing the communicator...\n");
     // Convert the MPI communicator to a Julia value
@@ -128,23 +199,20 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     (void) jl_call1(func, comm_value);
     testJuliaException(__LINE__, "After pass MPI Communicator"); 
     
-    printf("[C Code] Loading JlOceanModel.jl\n");
-    (void) jl_eval_string("include(\"main_scripts/main01_loadModule.jl\")");
     printf("[C Code] Done loading JlOceanModel.jl\n");
     testJuliaException(__LINE__, "After loading JlOceanModel.jl");
 
-    printf("[C Code] Initiating ocean model\n");
-    (void) jl_eval_string("include(\"main_scripts/main02_init.jl\")");
-    //snprintf(cmd, buffer_size, "model = Main.OceanModel.createOceanModel(\"model_config.toml\"; comm=COMM_ROOT)");
-    //printf("Going to eval: %s\n", cmd);
-    //(void) jl_eval_string(cmd);
-    ocean_model_driver = (jl_value_t *) jl_eval_string("dr");
-    //testJuliaException(__LINE__, "Cannot obtain ocean model");
-
-    // Setup some quick functions
-    //ocnRecvMsgFunc = jl_eval_string("OceanModel.receiveMessage!");
-    //testJuliaException(__LINE__, "Obtain OceanModel.receiveMessage!");
+    printf("[C Code] Create Driver\n");
+    (void) jl_eval_string("include(\"main_scripts/main03_createDriver.jl\")");
+    testJuliaException(__LINE__, "Cannot create Driver");
  
+    ocean_model_driver = (jl_value_t *) jl_eval_string("dr");
+    testJuliaException(__LINE__, "Cannot obtain model driver");
+   
+    printf("[C Code] Initiating ocean model\n");
+    (void) jl_eval_string("include(\"main_scripts/main04_init.jl\")");
+    testJuliaException(__LINE__, "Cannot initiate ocean model");
+    
     printf("[C Code] End of initiation.\n");
 }
 
@@ -230,9 +298,8 @@ void MARCOISCOOL_JLMODEL_getDomainInfo( \
     jl_function_t *func = jl_eval_string("DriverModule.getDomainInfo");
     testJuliaException(__LINE__, "After getting DriverModule.getDomainInfo");
 
-    printf("[C Code] Calling funtion...\n");
+    printf("[C Code] Calling DriverModule.getDomainInfo funtion...\n");
     (void) jl_call2(func, (jl_value_t *) ocean_model_driver, (jl_value_t*) param);
-    //(void) jl_call1(func, (jl_value_t *) ocean_model_driver);
     testJuliaException(__LINE__, "After calling DriverModule.getDomainInfo");
 
     for(int i=0; i < jl_array_nrows(param); i+=1) {
@@ -279,7 +346,7 @@ void MARCOISCOOL_PRINTCALENDAR(
     const char *timestr
 ) {
 
-    char calname[1024];
+    char caltype[1024];
     ESMC_Time t = *ptr;
     //ESMC_I4 yy, h;
     ESMC_Calendar cal;
@@ -293,26 +360,26 @@ void MARCOISCOOL_PRINTCALENDAR(
     printf("[C Code] timestr=%s\n", timestr);
 
     if (calkindflag == ESMC_CALKIND_GREGORIAN) {
-        snprintf(calname,  sizeof(calname), "GREGORIAN");
+        snprintf(caltype,  sizeof(caltype), "GREGORIAN");
     } else if (calkindflag == ESMC_CALKIND_JULIAN) {
-        snprintf(calname,  sizeof(calname), "JULIAN");
+        snprintf(caltype,  sizeof(caltype), "JULIAN");
     } else if (calkindflag == ESMC_CALKIND_JULIANDAY) {
-        snprintf(calname,  sizeof(calname), "JULIANDAY");
+        snprintf(caltype,  sizeof(caltype), "JULIANDAY");
     } else if (calkindflag == ESMC_CALKIND_MODJULIANDAY) {
-        snprintf(calname,  sizeof(calname), "MODJULIANDAY");
+        snprintf(caltype,  sizeof(caltype), "MODJULIANDAY");
     } else if (calkindflag == ESMC_CALKIND_NOLEAP) {
-        snprintf(calname,  sizeof(calname), "NOLEAP");
+        snprintf(caltype,  sizeof(caltype), "NOLEAP");
     } else if (calkindflag == ESMC_CALKIND_360DAY) {
-        snprintf(calname,  sizeof(calname), "360DAY");
+        snprintf(caltype,  sizeof(caltype), "360DAY");
     } else if (calkindflag == ESMC_CALKIND_CUSTOM) {
-        snprintf(calname,  sizeof(calname), "CUSTOM");
+        snprintf(caltype,  sizeof(caltype), "CUSTOM");
     } else if (calkindflag == ESMC_CALKIND_NOCALENDAR) {
-        snprintf(calname,  sizeof(calname), "NOCALENDAR");
+        snprintf(caltype,  sizeof(caltype), "NOCALENDAR");
     } else {
-        snprintf(calname,  sizeof(calname), "UNKNOWN");
+        snprintf(caltype,  sizeof(caltype), "UNKNOWN");
     }
 
-    printf("[C Code] calname = %s\n", calname);
+    printf("[C Code] caltype = %s\n", caltype);
 
     printf("[C Code] Leave MARCOISCOOL_PRINTCALENDAR\n");
 }

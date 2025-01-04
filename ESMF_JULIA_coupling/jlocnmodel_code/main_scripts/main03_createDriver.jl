@@ -24,20 +24,16 @@ cpl_funcs.master_before_model_init = function(
 end
 
 
-
 @printf("[DRIVER] Create an empty interface\n")
 cpl_if = CouplingModule.CouplingInterface(
     config_file,
     CouplingModule.createEmptyCouplerFunctions(),#SimpleOceanModel.createCouplerFunctions()
 )
-        
 
-@printf("[DRIVER] Creating a log handle... ")
+@printf("[DRIVER] Creating a log handle... \n")
 log_handle = createLogHandle(MPI.Comm_rank(COMM))
 
-@printf("[DRIVER] Obtain config from: %s\n", config_file)
-config = TOML.parsefile(config_file)
-
+@printf("[DRIVER] Create a DRIVER... \n")
 dr = DriverModule.Driver(
     config,
     OMMODULE, # Defined in main01_loadModule_[MODEL_NAME].jl
@@ -45,4 +41,6 @@ dr = DriverModule.Driver(
     cpl_if, 
     log_handle,
 )
+
+@printf("[DRIVER] Finished Running File %s\n", @__FILE__)
 

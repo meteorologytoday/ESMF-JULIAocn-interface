@@ -7,15 +7,19 @@ module ModelTimeManagement
 
     export ModelClockModule
     export ModelAlarm, ModelClock, advanceClock!, setClock!, addAlarm!, clock2str, dt2str, dt2tuple, dropRungAlarm!
+    export setCalendar!, ModelCalendar
+    export addIters
 
     module ModelTimeModule
         
         export ModelTime, ModelTimeConfig
         export setIteration!, string, collapseTime
         export copy_partial, copy_full
+        export addIters
 
         using Printf
-     
+
+    
         mutable struct ModelTimeConfig
             # time = ref + dt * iter
             ref  :: Float64 # The reference where time
@@ -25,16 +29,10 @@ module ModelTimeManagement
        
         # abstime = ref + dt * iter
         mutable struct ModelTime
-            cfg :: ModelTimeConfig
-            iter :: Int64   # Iteration   
+            cfg  :: ModelTimeConfig
+            iter :: Int64   # Iteration  
         end
-        
-        
-        function copy_full(mt :: ModelTime)
-            cfg = ModelTimeConfig(mt.cfg.ref, copy(mt.cfg.dt))
-            new_mt = ModelTime(cfg, mt.iter)
-            return new_mt
-        end 
+ 
 
         function copy_partial(mt :: ModelTime)
             new_mt = ModelTime(mt.cfg, mt.iter)
@@ -87,7 +85,13 @@ module ModelTimeManagement
                 return ModelTimeModule.collapseTime(a) == ModelTimeModule.collapseTime(b)
             end
         end
-        
+ 
+        function addIters(a :: ModelTimeModule.ModelTime, niter :: Integer)
+            new_a = copy_partial(a)
+            a.iter += niter
+            return a
+        end
+ 
         Base.string(mt :: ModelTimeModule.ModelTime) = ModelTimeModule.string(mt)
         #Base.copy(mt :: ModelTimeModule.ModelTime) = ModelTimeModule.copy(mt)
 
@@ -98,13 +102,14 @@ module ModelTimeManagement
     module ModelClockModule
 
         export ModelAlarm, ModelClock, advanceClock!, setClock!, addAlarm!, clock2str, dt2str, dt2tuple, dropRungAlarm!
+        export ModelCalendar, setCalendar!
         using Printf
         using ..ModelTimeModule 
 
         mutable struct ModelAlarm
-            name      :: String
-            model_time      :: Float64  #
-            priority  :: Integer   # There might be multiple alarms ring at the same time. And if order is important, then the higher the number the higher the priority.
+            name       :: String
+            model_time :: ModelTime  #
+            priority   :: Integer   # There might be multiple alarms ring at the same time. And if order is important, then the higher the number the higher the priority.
             callbacks :: Array{Function, 1}
             recurring :: Union{Nothing, Function}
             done      :: Bool
@@ -122,6 +127,13 @@ module ModelTimeManagement
             return ! ( isEarlier(x, y) ||  isEqual(x, y) )
         end
 
+         mutable struct ModelCalendar
+            caltype  :: String
+            # calendar_ref defines what 
+            # date does the ModelTime = 0
+            # correspond to
+            beg_date :: Any
+        end
 
         mutable struct ModelClock
             
@@ -129,7 +141,8 @@ module ModelTimeManagement
             model_time         :: ModelTime
             alarms       :: Array{ModelAlarm, 1}
             alarms_dict  :: Dict
-            alarm_ptr    :: Integer 
+            alarm_ptr    :: Integer
+            model_calendar :: Union{ModelCalendar, Nothing} 
             
             function ModelClock(
                 name :: String,
@@ -143,10 +156,20 @@ module ModelTimeManagement
                     alarms,
                     alarms_dict,
                     0,
+                    nothing,
                 )
             end
 
         end
+
+        function setCalendar!(
+            mc   :: ModelClock,
+            cal  :: ModelCalendar,
+        )
+            mc.model_calendar = cal
+
+        end
+
 
         function setClock!(
             mc   :: ModelClock,

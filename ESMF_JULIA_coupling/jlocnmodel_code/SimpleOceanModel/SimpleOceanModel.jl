@@ -9,6 +9,10 @@ end
 if ! ( :Config in names(Main) )
     include(joinpath(@__DIR__, "..", "share", "Config.jl"))
 end
+ 
+if ! ( :Domains in names(Main) )
+    include(joinpath(@__DIR__, "..", "share", "Domains.jl"))
+end
     
 module SimpleOceanModel
     
@@ -16,7 +20,8 @@ module SimpleOceanModel
     using ..ModelTimeManagement
     using ..LogSystem
     using ..Config
-    
+    using ..Domains 
+
     include(joinpath(@__DIR__, "SimpleOceanModel_CORE.jl"))
     
     include(joinpath(@__DIR__, "domain_configs.jl"))
@@ -40,6 +45,7 @@ module SimpleOceanModel
         sync_data   :: Dict
         comm        :: MPI.Comm
         log_handle  :: LogHandle
+        domain      :: Domains.Domain
     end
 
 
@@ -68,6 +74,26 @@ module SimpleOceanModel
         x2o = Dict()
         o2x = Dict()
 
+        _cfg = config["DOMAIN"]
+        domain = Domains.Domain(
+            0, 0,
+            _cfg["sNx"],
+            _cfg["sNy"],
+            _cfg["OLx"],
+            _cfg["OLy"],
+            _cfg["nSx"],
+            _cfg["nSy"],
+            _cfg["nPx"],
+            _cfg["nPy"],
+            _cfg["Nx"],
+            _cfg["Ny"],
+            _cfg["Nz"],
+            nothing,
+            nothing,
+        )
+        Domains.setDomain!(domain; rank=rank, number_of_pet=comm_size)
+
+
         MD = METADATA(
             casename,
             my_tile,
@@ -80,6 +106,7 @@ module SimpleOceanModel
             sync_data,
             comm,
             log_handle,
+            domain,
         )
 
         return MD

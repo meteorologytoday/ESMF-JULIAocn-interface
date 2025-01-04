@@ -2,9 +2,10 @@
 module Config
 
     using Printf
+    using ..LogSystem
 
     export ConfigEntry, validateConfigEntries, validateByConfigGroup
-
+    
     mutable struct ConfigEntry
         name      :: String
         required  :: Symbol
@@ -63,6 +64,7 @@ module Config
         cfg         :: Dict,
         cfg_entries :: AbstractArray{ConfigEntry, 1};
         verbose     :: Bool = false,
+        log_handle  :: LogHandle,
     )
 
         new_cfg = Dict{String, Any}()
@@ -101,7 +103,7 @@ module Config
                 if pass
                     
                     new_cfg[name] = cfg[name]
-                    verbose && @printf("[Validation] Config `{:s}` : {:s}\n", string(name), string(new_cfg[name]))
+                    verbose && @printf("[Validation] Config `%s` : %s\n", string(name), string(new_cfg[name]))
                 else
                     throw(ErrorException(@sprintf(
                         "[Error] Invalid value of key `%s`: %s. Valid values/types: `%s`.",
