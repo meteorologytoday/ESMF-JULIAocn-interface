@@ -6,7 +6,8 @@ echo "cleaning the current folder"
 echo "copying the NUOPC--WRF code..."
 cp ../build/esmf_application .
 cp ../build/namelist.rc .
-cp -r ../jlocnmodel_code/* .
+ln -s ../jlocnmodel_code .
+cp -r ../test/02ESMF_EMOM/* .
 
 echo "running the NUOPC--WRF code..."
 export ESMF_LOGLEVEL=TRACE

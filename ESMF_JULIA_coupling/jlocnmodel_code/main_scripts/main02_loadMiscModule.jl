@@ -10,7 +10,11 @@ using CFTime
 
 
 include("../MPITools/MPI_essentials.jl")
-include("../Driver_generic.jl")
+
+if !(:DriverModule in names(Main))
+    include(normpath(joinpath(@__DIR__, "..", "DriverModule.jl")))
+end
+
 
 if !(:CouplingModule in names(Main))
     include(normpath(joinpath(@__DIR__, "..", "Interface", "CouplingModule.jl")))
