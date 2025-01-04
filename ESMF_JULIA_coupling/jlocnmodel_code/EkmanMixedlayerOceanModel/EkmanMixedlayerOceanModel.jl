@@ -146,8 +146,8 @@ module EkmanMixedlayerOceanModel
                     master_ev = EMOM.Env(cfgs, verbose=is_master, log_handle=log_handle)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
 
-                    master_mb.fi.sv[:TEMP] .= rand(size(master_mb.fi.sv[:TEMP])...)
-                    master_mb.fi.sv[:SALT] .= rand(size(master_mb.fi.sv[:TEMP])...)
+                    master_mb.fi.sv[:TEMP] .= 20.0#rand(size(master_mb.fi.sv[:TEMP])...)
+                    master_mb.fi.sv[:SALT] .= 35.0#rand(size(master_mb.fi.sv[:TEMP])...)
 
                 elseif init_file != ""
 
@@ -465,8 +465,8 @@ module EkmanMixedlayerOceanModel
                 if "daily_record" in activated_record
                     
                     recorder_day = MD.recorders["daily_record"]
-                    mt = clock.model_time
-                    niters_per_day = Int(86400.0 / mt.cfg.dt)
+                    mt = clock.cur_time
+                    niters_per_day = Int(3600.0 / mt.cfg.dt)
 
                     addAlarm!(
                         clock,
@@ -483,12 +483,12 @@ module EkmanMixedlayerOceanModel
                     addAlarm!(
                         clock,
                         "[Daily] Create daily output file.",
-                        addIters(mt, niters_per_day*30),
+                        addIters(mt, 0), # Fire now so that first file can be created
                         1;
                         callback = function (clk, alm)
                             createRecordFile!(MD, "h1.day", recorder_day)
                         end,
-                        recurring = niters_per_day*30,
+                        recurring = niters_per_day*24,
                     )
 
                 end
@@ -582,7 +582,7 @@ module EkmanMixedlayerOceanModel
         rank = MPI.Comm_rank(comm)
         is_master = rank == 0
 
-        Δt_float = Float64(MD.clock.model_time.cfg.dt * niters)
+        Δt_float = Float64(MD.clock.time_cfg.dt * niters)
         
         substeps = MD.mb.ev.cfgs["MODEL_CORE"]["substeps"]
         Δt_substep = Δt_float / substeps
@@ -689,7 +689,7 @@ module EkmanMixedlayerOceanModel
         recorder :: Recorder,
     )
 
-        iter = MD.model_time.iter
+        iter = MD.clock.cur_time.iter
 
         filename = @sprintf("%s.EMOM.%s.%06d.nc", MD.casename, group, iter)
 
@@ -699,7 +699,7 @@ module EkmanMixedlayerOceanModel
         )
             
         appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
-            format("mv,{:s},{:s},{:s}",
+            @sprintf("mv,%s,%s,%s",
                 filename,
                 MD.config["DRIVER"]["caserun"],
                 joinpath(MD.config["DRIVER"]["archive_root"], "ocn", "hist"),
@@ -713,7 +713,7 @@ module EkmanMixedlayerOceanModel
         MD :: METADATA,
     )
 
-        mt = MD.clock.model_time
+        mt = MD.clock.cur_time
 
         timestamp_str = @sprintf(
             "%10d",

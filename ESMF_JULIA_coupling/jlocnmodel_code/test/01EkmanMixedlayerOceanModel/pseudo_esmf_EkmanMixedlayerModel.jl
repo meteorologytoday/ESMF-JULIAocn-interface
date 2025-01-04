@@ -20,17 +20,11 @@ domain_params = zeros(Int64, 13)
 DriverModule.getDomainInfo(dr, domain_params)
 println("domain_params = ", domain_params)
 
-setModelTimeInformation!(
-    dr,
-    "GREGORIAN",
-    "1990-02-16T00:00:00",
-    "1990-02-17T00:00:00",
-    1200,
-)
-
-for i=1:48
-    println("[t=$i] Run model") 
+cnt = 0
+while ! ifClockEnds(dr.clock)
+    writeLog(log_handle, "[PSEUDO_ESMF] (cnt=%d) Timestep model.", cnt)
     include(joinpath(root, "main_scripts/main05_run.jl"))
+    global cnt += 1
 end
 
 include(joinpath(root, "main_scripts/main06_finalize.jl"))

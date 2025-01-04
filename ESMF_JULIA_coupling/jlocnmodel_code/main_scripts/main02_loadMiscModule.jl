@@ -24,48 +24,17 @@ if !(:ModelTimeManagement in names(Main))
     include(normpath(joinpath(@__DIR__, "..", "share", "ModelTimeManagement.jl")))
 end
 
+if !(:TimeTools in names(Main))
+    include(normpath(joinpath(@__DIR__, "..", "share", "TimeTools.jl")))
+end
+
+
 
 using .LogSystem
 using .CouplingModule
 using .DriverModule
 using .ModelTimeManagement
-
-
-global model_calendar
-
-caltype_mapping = Dict(
-    "GREGORIAN" => CFTime.DateTimeProlepticGregorian,
-    "JULIAN"    => CFTime.DateTimeJulian,
-    "360DAY"    => CFTime.DateTime360Day,
-    "NOLEAP"    => CFTime.DateTimeNoLeap,
-)
-
-function parseTime(
-    timestr :: String,
-)
-    time_regex = r"(?<Y>\d+)-(?<m>\d+)-(?<d>\d+)T(?<H>\d+):(?<M>\d+):(?<S>\d+(?:\.\d*)?)"
-    
-    regex_match = match(time_regex, timestr)
-    if regex_match !== nothing
-        Y = parse(Int, regex_match["Y"])
-        m = parse(Int, regex_match["m"])
-        d = parse(Int, regex_match["d"])
-        H = parse(Int, regex_match["H"])
-        M = parse(Int, regex_match["M"])
-        S = parse(Float64, regex_match["S"])
-        
-        if S % 1 != 0
-            throw(ErrorException("I do not accept fractional seconds"))
-        end
-        
-        S = Int(S)
-    else
-        throw(ErrorException("Not a valid time format: $timestr"))
-    end
-
-    return (Y=Y,m=m,d=d,H=H,M=M,S=S)
-end
-
+using .TimeTools
 
 function setModelTimeInformation!(
     dr,
@@ -74,6 +43,13 @@ function setModelTimeInformation!(
     endtime_str,
     timeinterval_s,
 )
+    caltype_mapping = Dict(
+        "GREGORIAN" => CFTime.DateTimeProlepticGregorian,
+        "JULIAN"    => CFTime.DateTimeJulian,
+        "360DAY"    => CFTime.DateTime360Day,
+        "NOLEAP"    => CFTime.DateTimeNoLeap,
+    )
+
     println("[setModelTimeInformation!] caltype_str = [", caltype_str, "]") 
 
     if ! (caltype_str in keys(caltype_mapping))
@@ -84,25 +60,48 @@ function setModelTimeInformation!(
     println("[setModelTimeInformation!] begtime_str = ", begtime_str) 
     println("[setModelTimeInformation!] endtime_str = ", endtime_str) 
     println("timeinterval_s = ", timeinterval_s) 
-   
-    begtime = parseTime(begtime_str)
-    endtime = parseTime(endtime_str)
- 
-    model_calendar = ModelCalendar(
+
+    caltype = caltype_mapping[caltype_str]   
+    parsed_beg_time = parseTime(begtime_str)
+    parsed_end_time = parseTime(endtime_str)
+
+    cal_beg_time = caltype(
+            parsed_beg_time.Y,
+            parsed_beg_time.m,
+            parsed_beg_time.d,
+            parsed_beg_time.H,
+            parsed_beg_time.M,
+            parsed_beg_time.S,
+    )
+
+    cal_end_time = caltype(
+            parsed_end_time.Y,
+            parsed_end_time.m,
+            parsed_end_time.d,
+            parsed_end_time.H,
+            parsed_end_time.M,
+            parsed_end_time.S,
+    )
+
+    timedelta = cal_end_time - cal_beg_time
+    niters = ceil(Int64, timedelta / Second(timeinterval_s) )
+
+    mtc = ModelTimeConfig(0, timeinterval_s // 1)
+    beg_time = ModelTime(mtc, 0)
+    end_time = addIters(beg_time, niters)
+    cur_time = copy_partial(beg_time)
+
+    calendar = ModelCalendar(
         caltype_str,
-        caltype_mapping[caltype_str](
-            begtime.Y,
-            begtime.m,
-            begtime.d,
-            begtime.H,
-            begtime.M,
-            begtime.S,
-        )
+        beg_time,
     )
     
-    setCalendar!(
-        dr.OMDATA.clock,
-        model_calendar,
+    setClock!(
+        dr.OMDATA.clock;
+        beg_time = beg_time,
+        end_time = end_time,
+        cur_time = cur_time,
+        calendar = calendar,
     )
 
     println("[setModelTimeInformation!] Exiting")

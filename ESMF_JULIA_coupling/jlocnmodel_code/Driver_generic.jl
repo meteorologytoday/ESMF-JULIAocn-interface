@@ -52,6 +52,7 @@ module DriverModule
         misc     :: Union{Dict, Nothing}
         log_handle :: LogHandle
         domain     :: Union{ Domains.Domain, Nothing}
+        clock      :: Union{ModelClock, Nothing}
 
         function Driver(
             config   :: Dict,
@@ -69,6 +70,7 @@ module DriverModule
                 ci,
                 Dict(),
                 log_handle,
+                nothing,
                 nothing,
             )
 
@@ -128,23 +130,25 @@ module DriverModule
         cd(p)
 
 
-        local mt_start = nothing
-        local mt_end   = nothing
+        local timeinfo = nothing
         local read_restart = nothing
-        local dt = nothing
-
      
         if is_master
 
             writeLog(log_handle, "Getting model start time.")
             
             read_restart  = config["BASIC"]["restart"]
-            iter_start    = config["BASIC"]["iter_start"]
-            iter_advance  = config["BASIC"]["iter_advance"]
-            modeltime_ref = config["BASIC"]["modeltime_ref"]
-            dt            = Int64(config["BASIC"]["dt_num"]) // Int64(config["BASIC"]["dt_den"])
             
-             
+            timestep_s    = Int64(config["BASIC"]["dt_num"]) // Int64(config["BASIC"]["dt_den"])
+            caltype  = config["BASIC"]["caltype"]
+            beg_time = config["BASIC"]["beg_time"]
+            end_time = config["BASIC"]["end_time"]
+            simlength_s = Int64(config["BASIC"]["simlength_s"])
+
+            beg_time = (beg_time == "") ? nothing : beg_time
+            end_time = (end_time == "") ? nothing : end_time
+            simlength_s = (simlength_s == -1) ? nothing : simlength_s
+
             if read_restart
 
                 writeLog(log_handle, "read_restart is true.")
@@ -165,7 +169,15 @@ module DriverModule
                 end
 
             end
-
+            
+            timeinfo = (
+                caltype = caltype,
+                beg_time   = beg_time,
+                end_time   = end_time,
+                timestep_s = timestep_s,
+                simlength_s  = simlength_s,
+            )
+            #=
             mt_start = ModelTime(
                 ModelTimeConfig(modeltime_ref, dt),
                 iter_start,
@@ -176,23 +188,31 @@ module DriverModule
 
             writeLog(log_handle, "### Simulation time start : %s", string(mt_start))
             writeLog(log_handle, "### Simulation time end   : %s", string(mt_end))
-             
+           =#
         end
 
-        writeLog(log_handle, "Broadcast mt_start and read_restart to slaves.")
-        mt_start = MPI.bcast(mt_start, 0, comm) 
-        mt_end   = MPI.bcast(mt_end, 0, comm) 
+        writeLog(log_handle, "Broadcast timeinfo and read_restart to slaves.")
+        timeinfo = MPI.bcast(timeinfo, 0, comm) 
         read_restart = MPI.bcast(read_restart, 0, comm) 
 
-        # copy the start time by adding 0 seconds
-        beg_datetime = copy_partial(mt_start)
-
         # Construct model clock
-        clock = ModelClock("Model", beg_datetime)
+        clock = ModelClock("Model"; log_handle=log_handle)
+        setClockComprehensive!(
+            clock;
+            timeinfo...
+        ) 
+
+        writeLog(log_handle, "Simulation Time: (%d) %s => (%d) %s",
+            clock.beg_time.iter,
+            toCalendarDatetime(clock.beg_time, clock.calendar),
+            clock.end_time.iter,
+            toCalendarDatetime(clock.end_time, clock.calendar),
+        )
 
         # initializing
         writeLog(log_handle, "==================================")
-        writeLog(log_handle, "===== INITIALIZING MODEL: %s =====", dr.OMMODULE.name)
+        writeLog(log_handle, "INITIALIZING MODEL: %s", dr.OMMODULE.name)
+        writeLog(log_handle, "==================================")
         
         dr.OMDATA = dr.OMMODULE.init(
             casename     = config["DRIVER"]["casename"],
@@ -203,6 +223,9 @@ module DriverModule
             log_handle   = log_handle,
         )
 
+        if dr.OMDATA.domain === nothing
+            errorLog("[DRIVER] Domain not assigned in ocean metata. "; f=@__FILE__, l=@__LINE__)
+        end
 
         #=
         if is_master
@@ -232,6 +255,7 @@ module DriverModule
         #Domains.setDomain!(domain; rank=rank, number_of_pet=ntask)
         #println("Domain: ", domain)
         dr.domain = dr.OMDATA.domain
+        dr.clock  = clock
 
         if is_master
 
@@ -253,6 +277,7 @@ module DriverModule
 
         end
 
+        #=
         # =======================================
         # IMPORTANT: need to sync time
         _model_time = MPI.bcast(clock.model_time, 0, comm) 
@@ -260,9 +285,10 @@ module DriverModule
             setClock!(clock, _model_time.iter)
         end
         # =======================================
+        =#
 
-        dr.misc[:mt_start] = mt_start
-        dr.misc[:mt_end]   = mt_end
+        #dr.misc[:mt_start] = mt_start
+        #dr.misc[:mt_end]   = mt_end
         
     end
 
@@ -278,8 +304,17 @@ module DriverModule
         config = dr.config
         comm = dr.comm
  
+        niters = 1
         if is_master 
-            writeLog(log_handle, "Current time: %s", clock2str(clock))
+            cur_time = clock.cur_time
+            next_time = addIters(clock.cur_time, niters)
+            calendar = clock.calendar
+            
+            cur_time_str  = string(toCalendarDatetime(cur_time, calendar))
+            next_time_str = string(toCalendarDatetime(next_time, calendar))
+
+            writeLog(log_handle, "Simulation: %s => %s", cur_time_str, next_time_str)
+
         end
 
         cost = @elapsed let
@@ -293,14 +328,12 @@ module DriverModule
             #end
 
             # Do the run and THEN advance the clock
-
             dr.OMMODULE.run!(
                 dr.OMDATA;
-                niters = 1,
+                niters = niters,
                 write_restart = write_restart,
             )
             MPI.Barrier(comm)
-            
         end
 
         writeLog(log_handle, "Computation cost: %.2f secs.", cost)
@@ -339,19 +372,10 @@ module DriverModule
 
 
         # ==========================================
-        if is_master
-            # Advance the clock AFTER the run
-            advanceClock!(clock, 1)
-            dropRungAlarm!(clock)
-        end
-       
-        # Broadcast time to workers. Workers need time
-        # because datastream needs time interpolation. 
-        _model_time = MPI.bcast(clock.model_time, 0, comm) 
-        if !is_master
-            setClock!(clock, _model_time.iter)
-        end
-        
+        # Advance the clock AFTER the run
+        advanceClock!(clock, 1)
+        dropRungAlarm!(clock)
+   
     end
 
     function finalizeModel(
@@ -471,5 +495,6 @@ module DriverModule
         end
 
         println("[DRIVER] Leaving getDomainInfo")
-    end 
+    end
+
 end

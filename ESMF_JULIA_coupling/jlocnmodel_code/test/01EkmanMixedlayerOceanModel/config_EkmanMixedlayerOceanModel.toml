@@ -1,19 +1,19 @@
 [BASIC]
 restart       = false
-iter_start    = 0
-iter_advance  = 240
-modeltime_ref = 0.0 
+caltype       = "DEFAULT"
+beg_time      = "0001-01-01T00:00:00"
+end_time      = "0001-01-03T00:00:00"
 dt_num        = 3600
 dt_den        = 1
-
+simlength_s   = -1
 
 
 [MODEL_MISC]
 init_file = "BLANK_PROFILE"
 enable_archive = true
-monthly_record = ["{ESSENTIAL}"]
+daily_record = ["{ESSENTIAL}"]
 rpointer_file = "rpointer.emom"
-daily_record = []
+monthly_record = []
 
 [DRIVER]
 archive_list = "archive_list.txt"
@@ -35,9 +35,9 @@ substeps = 8
 timetype = "DateTimeNoLeap"
 "τwk_file" = ""
 "ϵ" = 1.4e-5
-Ekman_layers = 2
+Ekman_layers = 1
 Ks_H = 1000.0
-advection_scheme = "ekman_AGA2020"
+advection_scheme = "static"
 "rad_ζ1" = 0.15
 weak_restoring = "off"
 cdata_align_time = "0001-01-01 00:00:00"
@@ -47,8 +47,8 @@ Qflx = "off"
 cdata_end_time = "0002-01-01 00:00:00"
 cdata_var_file_SALT = ""
 Ks_V = 0.0001
-convective_adjustment = "on"
-Returnflow_layers = 3
+convective_adjustment = "off"
+Returnflow_layers = 2
 cdata_var_file_QFLXS = ""
 transform_vector_field = true
 Ks_V_cva = 1.0
