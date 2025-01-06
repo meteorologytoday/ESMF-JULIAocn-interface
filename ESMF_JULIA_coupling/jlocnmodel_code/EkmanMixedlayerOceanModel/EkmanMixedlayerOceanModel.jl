@@ -54,7 +54,10 @@ module EkmanMixedlayerOceanModel
 
     mutable struct METADATA
         casename    :: AbstractString
+
+        mb_full     :: Union{EMOM.ModelBlock, Nothing}
         mb          :: Union{EMOM.ModelBlock, Nothing}
+
         clock       :: ModelClock
 
         x2o         :: Union{Dict, Nothing}
@@ -62,9 +65,11 @@ module EkmanMixedlayerOceanModel
 
         config      :: Dict
         recorders   :: Union{Dict, Nothing}
-        jdi         :: Any#JobDistributionInfo
+        jdi         :: JobDistributionInfo
+        sync_data_full   :: Union{Dict, Nothing}
         sync_data   :: Dict
         comm        :: MPI.Comm
+        is_master   :: Bool
         log_handle  :: LogHandle
         domain      :: Domains.Domain
     end
@@ -76,6 +81,7 @@ module EkmanMixedlayerOceanModel
         config      :: Dict,
         read_restart :: Bool,
         comm         :: MPI.Comm,
+        is_master    :: Bool,
         log_handle   :: LogHandle,
     )
         
@@ -86,8 +92,6 @@ module EkmanMixedlayerOceanModel
         if comm_size == 1
             throw(ErrorException("Need at least 2 processes to work"))
         end
-
-        is_master = ( rank == 0 )
 
         local master_mb = nothing
         local master_ev = nothing
@@ -189,19 +193,18 @@ module EkmanMixedlayerOceanModel
         Ny = MPI.bcast(Ny, 0, comm)
             
         writeLog(log_handle, "Creating JobDistributionInfo...")
-        jdi = JobDistributionInfo(Nx = Nx, Ny = Ny, overlap=3, comm=comm)
+        jdi = JobDistributionInfo(Nx = Nx, Ny = Ny, overlap=3, comm=comm, master_rank=0)
         
         # Need to create Domain object accordingly
         domain = Parallelization.createDomain(jdi)
  
         # Second, create ModelBlocks based on ysplit_info
-        if is_master
-            my_ev = master_ev
-            my_mb = master_mb
-        else
-            my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng, log_handle=log_handle)
-            my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
+        if ! is_master
+            master_mb = nothing
         end
+
+        my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng, log_handle=log_handle)
+        my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
 
         MPI.Barrier(comm)
         # Third, register all the variables.
@@ -210,39 +213,36 @@ module EkmanMixedlayerOceanModel
         x2o = nothing
         o2x = nothing
 
-        if is_master
+        empty_arr_sT = zeros(Float64, 1, my_ev.Nx, my_ev.Ny)
+        x2o = Dict(
+            "SWFLX"       => my_mb.fi.SWFLX,
+            #"NSWFLX"      => my_mb.fi.NSWFLX,
+            "TAUX_east"   => my_mb.fi.TAUX_east,
+            "TAUY_north"  => my_mb.fi.TAUY_north,
+            #"FRWFLX"      => copy(empty_arr_sT),
+            #"VSFLX"       => my_mb.fi.VSFLX,
+            "LWUP"    => my_mb.fi.LWUP,
+            "LWDN"    => my_mb.fi.LWDN,
+            "SEN"     => my_mb.fi.SEN,
+            "LAT"     => my_mb.fi.LAT,
+            "MELTH"   => my_mb.fi.MELTH,
+            "MELTW"   => my_mb.fi.MELTW,
+            "SNOW"    => my_mb.fi.SNOW,
+            "IOFF"    => my_mb.fi.IOFF,
+            "ROFF"    => my_mb.fi.ROFF,
+            "PREC"    => my_mb.fi.PREC,
+            "EVAP"    => my_mb.fi.EVAP,
+            "SALTFLX" => my_mb.fi.SALTFLX,
+        )
 
-            empty_arr_sT = zeros(Float64, 1, my_ev.Nx, my_ev.Ny)
-            x2o = Dict(
-                "SWFLX"       => my_mb.fi.SWFLX,
-                #"NSWFLX"      => my_mb.fi.NSWFLX,
-                "TAUX_east"   => my_mb.fi.TAUX_east,
-                "TAUY_north"  => my_mb.fi.TAUY_north,
-                #"FRWFLX"      => copy(empty_arr_sT),
-                #"VSFLX"       => my_mb.fi.VSFLX,
-                "LWUP"    => my_mb.fi.LWUP,
-                "LWDN"    => my_mb.fi.LWDN,
-                "SEN"     => my_mb.fi.SEN,
-                "LAT"     => my_mb.fi.LAT,
-                "MELTH"   => my_mb.fi.MELTH,
-                "MELTW"   => my_mb.fi.MELTW,
-                "SNOW"    => my_mb.fi.SNOW,
-                "IOFF"    => my_mb.fi.IOFF,
-                "ROFF"    => my_mb.fi.ROFF,
-                "PREC"    => my_mb.fi.PREC,
-                "EVAP"    => my_mb.fi.EVAP,
-                "SALTFLX" => my_mb.fi.SALTFLX,
-            )
+        o2x = Dict(
+            "SST"         => my_mb.fi.sv[:SST],
+            "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
+            "USFC"        => my_mb.fi.USFC,
+            "VSFC"        => my_mb.fi.VSFC,
+            "mask"        => my_mb.ev.topo.sfcmask_sT,
+        )
 
-            o2x = Dict(
-                "SST"         => my_mb.fi.sv[:SST],
-                "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
-                "USFC"        => my_mb.fi.USFC,
-                "VSFC"        => my_mb.fi.VSFC,
-                "mask"        => my_mb.ev.topo.sfcmask_sT,
-            )
-
-        end
         # Synchronizing Data
         sync_data_list = Dict(
 
@@ -327,17 +327,23 @@ module EkmanMixedlayerOceanModel
 
         )
         
+        sync_data_full = Dict()
         sync_data = Dict()
         for (k, l) in sync_data_list
-            sync_data[k] = Array{DataUnit, 1}(undef, length(l))
+            sync_data_full[k] = Array{DataUnit, 1}(undef, length(l))
+            sync_data[k]      = Array{DataUnit, 1}(undef, length(l))
             for (n, varname) in enumerate(l)
-                sync_data[k][n] = my_mb.dt.data_units[varname]
+                sync_data[k][n]      = my_mb.dt.data_units[varname]
+                
+                if is_master
+                    sync_data_full[k][n] = master_mb.dt.data_units[varname]
+                end
             end
         end
 
-
         MD = METADATA(
             casename,
+            master_mb,
             my_mb,
             clock,
             x2o,
@@ -345,8 +351,10 @@ module EkmanMixedlayerOceanModel
             config,
             nothing,
             jdi,
+            sync_data_full,
             sync_data,
             comm,
+            is_master,
             log_handle,
             domain,
         )
@@ -357,7 +365,7 @@ module EkmanMixedlayerOceanModel
 
             activated_record = []
             MD.recorders = Dict()
-            complete_variable_list = EMOM.getDynamicVariableList(my_mb; varsets=["ALL",])
+            complete_variable_list = EMOM.getDynamicVariableList(master_mb; varsets=["ALL",])
 
 #            additional_variable_list = EMOM.getVariableList(ocn, :COORDINATE)
 
@@ -380,21 +388,21 @@ module EkmanMixedlayerOceanModel
                 end
                     
                 #println("varnames: ", varnames)
-                rec_varnames = EMOM.getDynamicVariableList(my_mb; varnames=varnames, varsets=varsets) |> keys |> collect
+                rec_varnames = EMOM.getDynamicVariableList(master_mb; varnames=varnames, varsets=varsets) |> keys |> collect
                 println("Record varnames: ", rec_varnames)
 
-                add_varnames = EMOM.getCompleteVariableList(my_mb, :static) |> keys |> collect 
+                add_varnames = EMOM.getCompleteVariableList(master_mb, :static) |> keys |> collect 
 
                 #println("Additional varanames: ", add_varnames)
 
                 #= 
                 if typeof(misc_config[rec_key]) <: Symbol 
-                    misc_config[rec_key] = EMOM.getVariableList(my_mb, misc_config[rec_key]) |> keys |> collect
+                    misc_config[rec_key] = EMOM.getVariableList(master_mb, misc_config[rec_key]) |> keys |> collect
                 end
 
                 # Qflux_finding mode requires certain output
                 if my_ev.config[:Qflx_finding] == :on
-                    append!(misc_config[rec_key], EMOM.getVariableList(my_mb, :QFLX_FINDING) |> keys )
+                    append!(misc_config[rec_key], EMOM.getVariableList(master_mb, :QFLX_FINDING) |> keys )
                 end
      
                 # Load variables information as a list
@@ -413,7 +421,7 @@ module EkmanMixedlayerOceanModel
                 if length(rec_varnames) != 0
                     
                     MD.recorders[rec_key] = Recorder(
-                        my_mb.dt,
+                        master_mb.dt,
                         rec_varnames,
                         EMOM.var_desc;
                         other_varnames=add_varnames,
@@ -479,7 +487,7 @@ module EkmanMixedlayerOceanModel
                         end,
                         recurring = niters_per_day,
                     )
-
+                    println("My RANK: ", is_master, "; ", MPI.Comm_rank(comm))
                     addAlarm!(
                         clock,
                         "[Daily] Create daily output file.",
@@ -550,21 +558,27 @@ module EkmanMixedlayerOceanModel
 
         MPI.Barrier(comm)
 
+        # Test. Should be removed later
+        if is_master
+            for j = 1:Ny
+                MD.mb_full.fi.sv[:TEMP][:, :, j] .= j
+            end
+        end
+
         syncField!(
             MD.sync_data[:thermo_state],
             MD.jdi,
             :M2S,
-            :BLOCK,
+            :BLOCK;
+            vars_master = MD.sync_data_full[:thermo_state],
         ) 
       
  
         # Setup HMXL depth
-        if ! is_master
-            if MD.config["MODEL_CORE"]["MLD_scheme"] == "SOM"
-                MD.mb.fi.HMXL .= - MD.mb.ev.topo.topoz_sT
-                if any(MD.mb.fi.HMXL .< 0)
-                    throw(ErrorException("Some HMXL is negative. Please check."))
-                end
+        if MD.config["MODEL_CORE"]["MLD_scheme"] == "SOM"
+            MD.mb.fi.HMXL .= - MD.mb.ev.topo.topoz_sT
+            if any(MD.mb.fi.HMXL .< 0)
+                throw(ErrorException("Some HMXL is negative. Please check."))
             end
         end
 
@@ -580,85 +594,78 @@ module EkmanMixedlayerOceanModel
         log_handle = MD.log_handle
         comm = MD.comm
         rank = MPI.Comm_rank(comm)
-        is_master = rank == 0
+        is_master = MD.is_master
 
         Δt_float = Float64(MD.clock.time_cfg.dt * niters)
         
         substeps = MD.mb.ev.cfgs["MODEL_CORE"]["substeps"]
         Δt_substep = Δt_float / substeps
-
+        
         syncField!(
             MD.sync_data[:forcing],
             MD.jdi,
             :M2S,
-            :BLOCK,
+            :BLOCK;
+            vars_master = MD.sync_data_full[:forcing],
         )
 
-        if ! is_master
+        EMOM.reset!(MD.mb.co.wksp)
+        EMOM.updateSfcFlx!(MD.mb)
+        EMOM.updateDatastream!(MD.mb, MD.clock)
+        EMOM.updateUVSFC!(MD.mb)
+        EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
 
-            EMOM.reset!(MD.mb.co.wksp)
-            EMOM.updateSfcFlx!(MD.mb)
-            EMOM.updateDatastream!(MD.mb, MD.clock)
-            EMOM.updateUVSFC!(MD.mb)
-            EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
+        Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))
+        EMOM.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
 
-            Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))
-            EMOM.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
-
-        end
+        # Because substep in stepAdvection updates _INTMX_
+        # based on _INTMX_ itself, we need to copy it first.
+        MD.mb.tmpfi._INTMX_ .= MD.mb.fi._X_
         
-
-        if ! is_master
-            # Because substep in stepAdvection updates _INTMX_
-            # based on _INTMX_ itself, we need to copy it first.
-            MD.mb.tmpfi._INTMX_ .= MD.mb.fi._X_
-        end 
         for substep = 1:substeps
 
-            if ! is_master
-                EMOM.reset!(MD.mb.co.wksp)
-                EMOM.stepAdvection!(MD.mb, Δt_substep)
-                EMOM.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
-            end
+            EMOM.reset!(MD.mb.co.wksp)
+            EMOM.stepAdvection!(MD.mb, Δt_substep)
+            EMOM.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
 
             syncField!(
                 MD.sync_data[:intm_state],
                 MD.jdi,
                 :S2M,
-                :BND,
+                :BND;
+                vars_master = MD.sync_data_full[:intm_state],
             )
 
             syncField!(
                 MD.sync_data[:intm_state],
                 MD.jdi,
                 :M2S,
-                :BND,
+                :BND;
+                vars_master = MD.sync_data_full[:intm_state],
             )
         end
 
-        if ! is_master
-            
-            EMOM.stepColumn!(MD.mb, Δt_float)
-            EMOM.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
+        EMOM.stepColumn!(MD.mb, Δt_float)
+        EMOM.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
 
-            # important: update X
-            MD.mb.fi._X_ .= MD.mb.tmpfi._NEWX_
-        end
-        
+        # important: update X
+        MD.mb.fi._X_ .= MD.mb.tmpfi._NEWX_
+       
         syncField!(
             MD.sync_data[:output_state],
             MD.jdi,
             :S2M,
-            :BLOCK,
+            :BLOCK;
+            vars_master = MD.sync_data_full[:output_state],
         )
-
+        
         syncField!(
             MD.sync_data[:thermo_state],
             MD.jdi,
             :M2S,
-            :BND,
+            :BND;
+            vars_master = MD.sync_data_full[:thermo_state],
         ) 
-
 
         if write_restart
             writeLog("`wrtie_restart` is true.")
@@ -763,6 +770,7 @@ module EkmanMixedlayerOceanModel
 
 
 
+    #=
     function syncM2S!(
         MD,
     )
@@ -774,5 +782,6 @@ module EkmanMixedlayerOceanModel
             :BLOCK,
         ) 
 
-    end    
+    end   
+    =# 
 end

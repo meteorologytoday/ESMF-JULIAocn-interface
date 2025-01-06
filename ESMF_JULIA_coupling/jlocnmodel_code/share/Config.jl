@@ -103,14 +103,15 @@ module Config
                 if pass
                     
                     new_cfg[name] = cfg[name]
-                    verbose && @printf("[Validation] Config `%s` : %s\n", string(name), string(new_cfg[name]))
+                    verbose && writeLog(log_handle, "[Validation] Config `%s` : %s", string(name), string(new_cfg[name]))
                 else
-                    throw(ErrorException(@sprintf(
+                    errorLog(
+                        log_handle,
                         "[Error] Invalid value of key `%s`: %s. Valid values/types: `%s`.",
                         string(name),
                         string(cfg[name]),
                         join(string.(valid_vts), "` ,`")
-                    )))
+                    )
                 end
 
 
@@ -123,10 +124,10 @@ module Config
                 )
                 
                 if required == :required
-                    throw(ErrorException(@sprintf("[Required] %s", msg)))
+                    errorLog(log_handle, "[Required] %s", msg)
                 else
                     new_cfg[name] = default
-                    verbose && @printf("[Optional] %s is set to default: %s", string(name), string(new_cfg[name]))
+                    verbose && writeLog(log_handle, "[Optional] %s is set to default: %s", string(name), string(new_cfg[name]))
 
                 end
             end

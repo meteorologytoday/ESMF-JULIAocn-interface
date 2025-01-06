@@ -26,8 +26,8 @@ caseroot = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlo
 compute_QFLX_direct_method = false
 
 [DOMAIN]
-z_w_file = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/z_w.nc"
-domain_file = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/CESM_domains/domain.ocn.gx3v7.120323.nc"
+z_w_file = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/test/02ESMF_EMOM/z_w.nc"
+domain_file = "/home/t2hsu/projects/EMOM/data/CESM_domains/domain.ocn.gx3v7.120323.nc"
 Nz_bot_file = ""
 
 [MODEL_CORE]

@@ -7,17 +7,20 @@ module LogSystem
 
     mutable struct LogHandle
         rank :: Integer
+        is_master :: Bool
         output_file :: String
     end
     
     function createLogHandle(
         rank :: Integer,
+        is_master :: Bool,
         output_dir :: String = ".",
     )
 
         filename = @sprintf("log.%04d", rank)
         return LogHandle(
             rank,
+            is_master,
             joinpath(output_dir, filename)
         )
         

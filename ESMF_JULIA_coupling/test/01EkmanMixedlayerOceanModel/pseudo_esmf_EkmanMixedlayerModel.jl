@@ -1,5 +1,5 @@
 
-root = joinpath("..", "..")
+root = joinpath("..", "..", "jlocnmodel_code")
 
 include(joinpath(root, "main_scripts/main01_loadModule_EkmanMixedlayerOceanModel.jl"))
 include(joinpath(root, "main_scripts/main02_loadMiscModule.jl"))

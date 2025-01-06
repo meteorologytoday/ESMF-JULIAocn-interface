@@ -24,20 +24,26 @@ cpl_funcs.master_before_model_init = function(
 end
 
 
+
 @printf("[DRIVER] Create an empty interface\n")
 cpl_if = CouplingModule.CouplingInterface(
     config_file,
     CouplingModule.createEmptyCouplerFunctions(),#SimpleOceanModel.createCouplerFunctions()
 )
 
+rank = MPI.Comm_rank(COMM)
+
 @printf("[DRIVER] Creating a log handle... \n")
-log_handle = createLogHandle(MPI.Comm_rank(COMM))
+
 
 @printf("[DRIVER] Create a DRIVER... \n")
+is_master = rank == 0
+log_handle = createLogHandle(MPI.Comm_rank(COMM), true)
 dr = DriverModule.Driver(
     config,
     OMMODULE, # Defined in main01_loadModule_[MODEL_NAME].jl
     COMM,
+    is_master,
     cpl_if, 
     log_handle,
 )

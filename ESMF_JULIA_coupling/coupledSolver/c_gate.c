@@ -182,10 +182,10 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     jl_init();
     
     printf("[C Code] Loading Julia Ocean Model... \n");
-    (void) jl_eval_string("include(\"main_scripts/main01_loadModule.jl\")");
+    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main01_loadModule.jl\")");
 
     printf("[C Code] Loading Julia misc modules...\n");
-    (void) jl_eval_string("include(\"main_scripts/main02_loadMiscModule.jl\")");
+    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main02_loadMiscModule.jl\")");
 
     printf("[C Code] Boxing the communicator...\n");
     // Convert the MPI communicator to a Julia value
@@ -203,14 +203,14 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     testJuliaException(__LINE__, "After loading JlOceanModel.jl");
 
     printf("[C Code] Create Driver\n");
-    (void) jl_eval_string("include(\"main_scripts/main03_createDriver.jl\")");
+    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main03_createDriver.jl\")");
     testJuliaException(__LINE__, "Cannot create Driver");
  
     ocean_model_driver = (jl_value_t *) jl_eval_string("dr");
     testJuliaException(__LINE__, "Cannot obtain model driver");
    
     printf("[C Code] Initiating ocean model\n");
-    (void) jl_eval_string("include(\"main_scripts/main04_init.jl\")");
+    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main04_init.jl\")");
     testJuliaException(__LINE__, "Cannot initiate ocean model");
     
     printf("[C Code] End of initiation.\n");
@@ -245,7 +245,7 @@ void MARCOISCOOL_JLMODEL_RUN(
     ESMC_FieldGetPtr(field, localDe, &rc);
     */
 
-    (void) jl_eval_string("include(\"main_scripts/main03_run.jl\")");
+    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main03_run.jl\")");
 
 }
 

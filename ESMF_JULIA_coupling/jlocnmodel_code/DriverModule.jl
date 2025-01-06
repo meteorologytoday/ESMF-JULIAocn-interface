@@ -48,16 +48,19 @@ module DriverModule
         OMMODULE :: Module
         OMDATA   :: Any
         comm     :: MPI.Comm
+        is_master :: Bool
         ci       :: CouplingModule.CouplingInterface
         misc     :: Union{Dict, Nothing}
         log_handle :: LogHandle
         domain     :: Union{ Domains.Domain, Nothing}
         clock      :: Union{ModelClock, Nothing}
 
+
         function Driver(
             config   :: Dict,
             OMMODULE :: Module,
             comm     :: MPI.Comm,
+            is_master :: Bool,
             ci       :: CouplingModule.CouplingInterface,
             log_handle :: LogHandle,
         )
@@ -67,6 +70,7 @@ module DriverModule
                 OMMODULE,
                 nothing,
                 comm,
+                is_master,
                 ci,
                 Dict(),
                 log_handle,
@@ -83,21 +87,16 @@ module DriverModule
     )
 
         comm = dr.comm
-        rank = MPI.Comm_rank(comm)
-        ntask = MPI.Comm_size(comm)
         config = dr.config
         log_handle = dr.log_handle 
 
 
         writeLog(log_handle, "===== [ Master Created ] =====")
-        writeLog(log_handle, "Number of total tasks       : %d", ntask)
-        writeLog(log_handle, "Number of total worker tasks: %d", ntask-1)
+        writeLog(log_handle, "Number of MPI tasks  : %d", MPI.Comm_size(comm))
         
         MPI.Barrier(comm)
 
-        dr.misc[:is_master] = rank == 0
-
-        is_master = dr.misc[:is_master]
+        is_master = dr.is_master
 
         if is_master
             if config == nothing
@@ -192,7 +191,8 @@ module DriverModule
         end
 
         writeLog(log_handle, "Broadcast timeinfo and read_restart to slaves.")
-        timeinfo = MPI.bcast(timeinfo, 0, comm) 
+        timeinfo = MPI.bcast(timeinfo, 0, comm)
+        println("Timeinfo: ", timeinfo) 
         read_restart = MPI.bcast(read_restart, 0, comm) 
 
         # Construct model clock
@@ -221,6 +221,7 @@ module DriverModule
             read_restart = read_restart,
             comm         = comm,
             log_handle   = log_handle,
+            is_master    = is_master,
         )
 
         if dr.OMDATA.domain === nothing
@@ -299,7 +300,7 @@ module DriverModule
         log_handle = dr.log_handle
         writeLog(log_handle, "Enter runMmodel.")
         
-        is_master = dr.misc[:is_master]
+        is_master = dr.is_master
         clock = dr.OMDATA.clock
         config = dr.config
         comm = dr.comm
@@ -384,7 +385,7 @@ module DriverModule
         log_handle = dr.log_handle
         writeLog(log_handle, "Enter runMmodel.")
         
-        is_master = dr.misc[:is_master]
+        is_master = dr.is_master
         config = dr.config 
         if is_master
            

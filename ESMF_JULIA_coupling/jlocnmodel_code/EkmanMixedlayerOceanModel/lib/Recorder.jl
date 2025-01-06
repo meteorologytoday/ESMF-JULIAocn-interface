@@ -184,7 +184,8 @@ end
 function setNewNCFile!(rec::Recorder, filename::AbstractString)
     rec.filename = filename
     rec.time_ptr = 1
-    
+   
+    println("Create new file: ", filename) 
     Dataset(filename, "c") do ds
 
         for (dimname, dim) in rec.data_table.dims 

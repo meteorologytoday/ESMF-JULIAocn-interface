@@ -3,7 +3,7 @@ esmf_overwrite = true
 restart       = false
 caltype       = "DEFAULT"
 beg_time      = "0001-01-01T00:00:00"
-end_time      = "0001-01-03T00:00:00"
+end_time      = "0001-01-02T00:00:00"
 dt_num        = 3600
 dt_den        = 1
 simlength_s   = -1
@@ -19,15 +19,15 @@ monthly_record = []
 
 [DRIVER]
 archive_list = "archive_list.txt"
-archive_root = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/dummy/archive"
+archive_root = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/test/01EkmanMixedlayerOceanModel/dummy/archive"
 casename = "dummy"
 caserun = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/dummy/caserun"
 caseroot = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/dummy/caseroot"
 compute_QFLX_direct_method = false
 
 [DOMAIN]
-z_w_file = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/z_w.nc"
-domain_file = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/jlocnmodel_code/test/01EkmanMixedlayerOceanModel/CESM_domains/domain.ocn.gx3v7.120323.nc"
+z_w_file = "/home/t2hsu/projects/ESMF-JULIAocn-interface/ESMF_JULIA_coupling/test/01EkmanMixedlayerOceanModel/z_w.nc"
+domain_file = "/home/t2hsu/projects/EMOM/data/CESM_domains/domain.ocn.gx3v7.120323.nc"
 Nz_bot_file = ""
 
 [MODEL_CORE]

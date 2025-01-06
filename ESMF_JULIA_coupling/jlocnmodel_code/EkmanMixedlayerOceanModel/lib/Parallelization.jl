@@ -1,4 +1,5 @@
 include("../../share/Domains.jl")
+include("../../share/DataManager.jl")
 
 
 module Parallelization
@@ -27,28 +28,39 @@ module Parallelization
     mutable struct JobDistributionInfo
 
         overlap       :: Int64
-        nworkers      :: Int64
-        wranks        :: Array{Int64, 1} # worker ranks
-        wrank_to_idx  :: Dict{Int64, Int64}
+        comm_size     :: Int64
+        remote_ranks  :: Array{Int64, 1}
+        rank_to_idx   :: Dict{Int64, Int64}
         y_split_infos :: AbstractArray{YSplitInfo, 1}
 
         comm :: MPI.Comm
         Nx :: Int64
         Ny :: Int64
 
+        master_rank :: Int64
+
         function JobDistributionInfo(;
             Nx       :: Int64,
             Ny       :: Int64,
             comm     :: MPI.Comm,
             overlap  :: Int64 = 3,
+            master_rank :: Int64 = 0,
         )
-            nworkers = MPI.Comm_size(comm) - 1
+            comm_size = MPI.Comm_size(comm)
 
-            if nworkers == 0
-                throw(ErrorException("No available workers!"))
+            if ! ( 0 <= master_rank <= (comm_size-1))
+                throw(ErrorException("master_rank out of range"))
             end
 
-            wranks = collect(1:nworkers)
+            remote_ranks = []
+            for rank in 0:(comm_size-1)
+                if rank == master_rank
+                    continue
+                end
+                push!(remote_ranks, rank)
+            end
+
+            y_split_infos = Array{YSplitInfo}(undef, comm_size)
 
             (
                 pull_fr_rngs,
@@ -60,40 +72,37 @@ module Parallelization
                 push_fr_rngs_bnd,
                 push_to_rngs_bnd 
 
-            ) = calParallizationRange(N=Ny, P=nworkers, L=overlap)
+            ) = calParallizationRange(N=Ny, P=comm_size, L=overlap)
       
-            wrank_to_idx = Dict() 
-            for i = 1:nworkers
-                wrank_to_idx[i] = i
-            end
+            rank_to_idx = Dict() 
+            for i = 0:(comm_size-1)
 
- 
-            y_split_infos = Array{YSplitInfo}(undef, nworkers)
+                idx = i+1
+                rank_to_idx[i] = idx
 
-            for (i, p) in enumerate(wranks)
-
-                y_split_infos[i] = YSplitInfo(
-                    pull_fr_rngs[i],
-                    pull_to_rngs[i],
-                    push_fr_rngs[i],
-                    push_to_rngs[i],
-                    pull_fr_rngs_bnd[i, :],
-                    pull_to_rngs_bnd[i, :],
-                    push_fr_rngs_bnd[i, :],
-                    push_to_rngs_bnd[i, :],
+                y_split_infos[idx] = YSplitInfo(
+                    pull_fr_rngs[idx],
+                    pull_to_rngs[idx],
+                    push_fr_rngs[idx],
+                    push_to_rngs[idx],
+                    pull_fr_rngs_bnd[idx, :],
+                    pull_to_rngs_bnd[idx, :],
+                    push_fr_rngs_bnd[idx, :],
+                    push_to_rngs_bnd[idx, :],
                 )
 
             end
           
             return new(
                 overlap,
-                nworkers,
-                wranks,
-                wrank_to_idx,
+                comm_size,
+                remote_ranks,
+                rank_to_idx,
                 y_split_infos,
                 comm,
                 Nx,
                 Ny,
+                master_rank,
             ) 
 
         end
@@ -203,7 +212,9 @@ module Parallelization
         jdi :: JobDistributionInfo,
         rank :: Integer,
     )
-        return jdi.y_split_infos[jdi.wrank_to_idx[rank]]
+        idx = jdi.rank_to_idx[rank]  # rank 0 == first range
+        #println("idx=$idx", ";", jdi.y_split_infos)
+        return jdi.y_split_infos[idx]
     end
 
 
@@ -216,50 +227,112 @@ module Parallelization
         vars         :: AbstractArray{DataUnit},
         jdi          :: JobDistributionInfo,
         direction    :: Symbol,
-        sync_type    :: Symbol,
+        sync_type    :: Symbol;
+        vars_master  :: Union{AbstractArray{DataUnit}, Nothing} = nothing,
     )
 
         comm = jdi.comm
-        rank = MPI.Comm_rank(comm)
-
-        is_master = (rank == 0)
+        local_rank = MPI.Comm_rank(comm)
+        is_master = local_rank == jdi.master_rank
         
         reqs = Array{MPI.Request}(undef,0)
 
+        if is_master
+            if vars_master === nothing
+                throw(ErrorException("The variable `vars_master` should be provided because `is_master` == true."))
+            end
+            if length(vars_master) != length(vars)
+                throw(ErrorException("The variable `vars` and `vars_master` should have the same length."))
+            end
+        end
+
         if direction == :S2M  # Slave to master
             if sync_type == :BLOCK
+
                 if is_master
-                    for (i, _rank) in enumerate(jdi.wranks)
-                        for (j, var) in enumerate(vars)
-                            v = view(var.data, :, :, getYsplitInfoByRank(jdi, _rank).push_to_rng) 
-                            push!(reqs, MPI.Irecv!(v, i, j, comm))
+
+                    # For master, because the local data cannot be convenient exchanged through
+                    # MPI, we have to do the exchange manually. Therefore, the code has two parts.
+                    # First part is putting the request of remote workers, and the second part is
+                    # exchange locally.
+
+                    # Part 1 : Put request. Pulling data from remote
+                    for (i, _rank) in enumerate(jdi.remote_ranks)
+                        for (j, var) in enumerate(vars_master)
+
+                            v = view(var.data, :, :, getYsplitInfoByRank(jdi, _rank).push_to_rng)
+                            push!(reqs, MPI.Irecv!(v, comm; source=_rank, tag=j))
+
                         end
                     end
+                    
+                    # Part 2 : Directly pull data from local 
+                    y_split_info = getYsplitInfoByRank(jdi, local_rank)
+                    for (j, (var_local, var_master)) in enumerate(zip(vars, vars_master))
+                        v_master = view(var_master.data, :, :, y_split_info.push_to_rng)
+                        v_local  = view(var_local.data,  :, :, y_split_info.push_fr_rng)
+                        v_master .= v_local
+                    end
+ 
                 else
                     for (j, var) in enumerate(vars)
-                        v = view(var.data, :, :, getYsplitInfoByRank(jdi, rank).push_fr_rng) 
-                        push!(reqs, MPI.Isend(v, 0, j, comm))
+                        v = view(var.data, :, :, getYsplitInfoByRank(jdi, local_rank).push_fr_rng) 
+                        push!(reqs, MPI.Isend(v, comm; dest=jdi.master_rank, tag=j))
                     end
                 end
             end
 
             if sync_type == :BND
+                
                 if is_master
-                    for (i, _rank) in enumerate(jdi.wranks)
+                    
+                    # Here we are doing two parts. Same reason as mentioned in the comments right above. 
+                    
+                    # Part 1 : Put request. Pulling data from remote
+                    for (i, _rank) in enumerate(jdi.remote_ranks)
                         for (k, push_to_rng_bnd) in enumerate(getYsplitInfoByRank(jdi, _rank).push_to_rng_bnd)
-                            (push_to_rng_bnd == nothing) && continue
-                            for (j, var) in enumerate(vars)
-                                v = view(var.data, :, :, push_to_rng_bnd) 
-                                push!(reqs, MPI.Irecv!(v, i, k*length(vars) + j, comm))
+                            
+                            # Sometimes, there are no bounday to be push
+                            if push_to_rng_bnd === nothing
+                                continue
                             end
+                            
+                            for (j, var) in enumerate(vars_master)
+                                v = view(var.data, :, :, push_to_rng_bnd) 
+                                push!(reqs, MPI.Irecv!(v, comm; source=_rank, tag=k*length(vars_master) + j))
+                            end
+
                         end
                     end
+                    
+                    # Part 2 : Directly pull data from local
+                    y_split_info = getYsplitInfoByRank(jdi, local_rank) 
+                    for (k, (push_fr_rng_bnd, push_to_rng_bnd)) in enumerate(zip(
+                        y_split_info.push_fr_rng_bnd,
+                        y_split_info.push_to_rng_bnd,
+                    ))
+                       
+                        if push_to_rng_bnd === nothing
+                            continue
+                        end
+                        
+                        for (j, (var_local, var_master)) in enumerate(zip(vars, vars_master))
+                            v_master = view(var_master.data, :, :, push_to_rng_bnd) 
+                            v_local = view(var_local.data, :, :, push_fr_rng_bnd)
+                            v_master .= v_local 
+                        end
+
+                    end
+
                 else
-                    for (k, push_fr_rng_bnd) in enumerate(getYsplitInfoByRank(jdi, rank).push_fr_rng_bnd)
-                        (push_fr_rng_bnd == nothing) && continue
+
+                    for (k, push_fr_rng_bnd) in enumerate(getYsplitInfoByRank(jdi, local_rank).push_fr_rng_bnd)
+                        if push_fr_rng_bnd === nothing
+                            continue
+                        end
                         for (j, var) in enumerate(vars)
                             v = view(var.data, :, :, push_fr_rng_bnd) 
-                            push!(reqs, MPI.Isend(v, 0, k*length(vars) + j, comm))
+                            push!(reqs, MPI.Isend(v, comm; dest=jdi.master_rank, tag=k*length(vars) + j))
                         end
                     end
                 end
@@ -270,37 +343,76 @@ module Parallelization
 
             if sync_type == :BLOCK
                 if is_master
-                    for (i, _rank) in enumerate(jdi.wranks)
-                        for (j, var) in enumerate(vars)
+                    
+                    # Part 1 : Put request. Sending data to remote
+                    for (i, _rank) in enumerate(jdi.remote_ranks)
+                        for (j, var) in enumerate(vars_master)
                             v = view(var.data, :, :, getYsplitInfoByRank(jdi, _rank).pull_fr_rng) 
-                            push!(reqs, MPI.Isend(v, i, j, comm))
+                            push!(reqs, MPI.Isend(v, comm; dest=i, tag=j))
                         end
                     end
+
+                    # Part 2 : Directly send data to local
+                    y_split_info = getYsplitInfoByRank(jdi, local_rank)
+                    for (j, (var_local, var_master)) in enumerate(zip(vars, vars_master))
+                        v_master = view(var_master.data, :, :, y_split_info.pull_fr_rng) 
+                        v_local  = view(var_local.data,  :, :, y_split_info.pull_fr_rng) 
+                        v_local .= v_master
+                    end
+
                 else
                     for (j, var) in enumerate(vars)
-                        v = view(var.data, :, :, getYsplitInfoByRank(jdi, rank).pull_to_rng) 
-                        push!(reqs, MPI.Irecv!(v, 0, j, comm))
+                        v = view(var.data, :, :, getYsplitInfoByRank(jdi, local_rank).pull_to_rng) 
+                        push!(reqs, MPI.Irecv!(v, comm; source=jdi.master_rank, tag=j))
                     end
                 end
             end
 
             if sync_type == :BND
+                
                 if is_master
-                    for (i, _rank) in enumerate(jdi.wranks)
+
+                    # Part 1: Sending data to remote
+                    for (i, _rank) in enumerate(jdi.remote_ranks)
                         for (k, pull_fr_rng_bnd) in enumerate(getYsplitInfoByRank(jdi, _rank).pull_fr_rng_bnd)
-                            (pull_fr_rng_bnd == nothing) && continue
-                            for (j, var) in enumerate(vars)
+
+                            if pull_fr_rng_bnd === nothing
+                                continue
+                            end
+
+                            for (j, var) in enumerate(vars_master)
                                 v = view(var.data, :, :, pull_fr_rng_bnd) 
-                                push!(reqs, MPI.Isend(v, i, k * length(vars) + j, comm))
+                                push!(reqs, MPI.Isend(v, comm; dest=_rank, tag=k * length(vars_master) + j))
                             end
                         end
                     end
-                else
-                    for (k, pull_to_rng_bnd) in enumerate(getYsplitInfoByRank(jdi, rank).pull_to_rng_bnd)
-                        (pull_to_rng_bnd == nothing) && continue
+
+                    # Part 2: Directly send data to local
+                    y_split_info = getYsplitInfoByRank(jdi, local_rank) 
+                    for (k, (pull_fr_rng_bnd, pull_to_rng_bnd)) in enumerate(zip(
+                        y_split_info.pull_fr_rng_bnd,
+                        y_split_info.pull_to_rng_bnd,
+                    ))
+
+                        if pull_fr_rng_bnd === nothing
+                            continue
+                        end
+                        for (j, (var_local, var_master)) in enumerate(zip(vars, vars_master))
+                            v_master = view(var_master.data, :, :, pull_fr_rng_bnd) 
+                            v_local  = view(var_local.data,  :, :, pull_to_rng_bnd) 
+                            v_local .= v_master
+                        end
+                    end
+
+                else # Slave
+
+                    for (k, pull_to_rng_bnd) in enumerate(getYsplitInfoByRank(jdi, local_rank).pull_to_rng_bnd)
+                        if pull_to_rng_bnd === nothing
+                            continue
+                        end
                         for (j, var) in enumerate(vars)
                             v = view(var.data, :, :, pull_to_rng_bnd) 
-                            push!(reqs, MPI.Irecv!(v, 0, k*length(vars) + j, comm))
+                            push!(reqs, MPI.Irecv!(v, comm; source=jdi.master_rank, tag=k*length(vars) + j))
                         end
                     end
                 end
@@ -308,20 +420,7 @@ module Parallelization
         end
 
         MPI.Waitall!(reqs)
-      
         MPI.Barrier(comm) 
-        #= 
-        if direction == :M2S && rank==1
-            for (_, var) in enumerate(vars)
-                if var.id == "TEMP"
-                    println("detect TEMP.")
-                    if var.sdata1[1, 1, end] == 0
-                        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                    end
-                end
-            end
-        end  # Master to slave
-        =#
     end
 
     function printJobDistributionInfo(jdi :: JobDistributionInfo)
@@ -347,21 +446,19 @@ module Parallelization
 
     function createDomain(jdi :: JobDistributionInfo)
 
-        print(jdi.comm)
-        println(MPI.Comm_size(jdi.comm))
         rank = MPI.Comm_rank(jdi.comm) 
 
         domain = Domains.Domain(
             0, # This number will be updated
             0, # This number will be updated
             jdi.Nx,
-            Int64(jdi.Ny / jdi.nworkers),
+            Int64(jdi.Ny / jdi.comm_size),
             0,             # OLx
             jdi.overlap,   # OLy
             1,
             1,
             1,            # nPx :: Integer
-            jdi.nworkers, # nPy :: Integer
+            jdi.comm_size, # nPy :: Integer
             jdi.Nx, #  :: Integer
             jdi.Ny, #  :: Integer
             1,
@@ -372,7 +469,7 @@ module Parallelization
         Domains.setDomain!(
             domain;
             rank=rank,
-            number_of_pet=jdi.nworkers,
+            number_of_pet=jdi.comm_size,
         )
 
         return domain
