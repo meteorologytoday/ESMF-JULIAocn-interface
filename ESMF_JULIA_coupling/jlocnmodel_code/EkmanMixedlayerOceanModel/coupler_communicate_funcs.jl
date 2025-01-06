@@ -20,7 +20,8 @@ function getVariable(
         end
     elseif category == "COMP2CPL"
         if varname == "sst"
-            var = model.o2x["SST"]    
+            var = model.o2x["SST"]
+            println("SST = ", var[1, 1, :]) 
         end
     elseif category == "CPL2COMP"
         if varname == "rsns"

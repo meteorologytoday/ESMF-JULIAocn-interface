@@ -360,6 +360,7 @@ module mod_esmf_ocn
   ocnGridOut = ocnGridIn
   PRINT *, "copy grid arrays finished ..."
 
+    print *, "Create SST"
    field = ESMF_FieldCreate(name="sst", grid=ocnGridOut,             &
      typekind=ESMF_TYPEKIND_R8, rc=rc)
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -368,28 +369,7 @@ module mod_esmf_ocn
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
        line=__LINE__, file=FILENAME)) return
 
-    print *, "Test if I can do this"
-
-  call CPL_talk_COMP(gcomp, "COMP2CPL", "sst", DIRECTION_COMP2CPL, localPet, rc)
-  call CPL_talk_COMP(gcomp, "CPL2COMP", "rsns", DIRECTION_CPL2COMP, localPet, rc)
-
-
-
-  !print *, "Register sst"
-  !call ESMF_FieldGet(field, farrayPtr=ptr, rc=rc)
-  !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-  !    line=__LINE__, file=FILENAME)) return
-  ! varname = trim("sst") // C_NULL_CHAR
-  ! call MARCOISCOOL_JLMODEL_REGISTER_VARIABLE_REAL8(  &
-  !      C_LOC(varname),                         &
-  !      ptr,                                    &
-  !      100                                    &
-  ! ) 
-
-
-
-
-
+    print *, "Create PMSL"
    field = ESMF_FieldCreate(name="pmsl", grid=ocnGridIn,             &
      typekind=ESMF_TYPEKIND_R8, rc=rc)
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -398,6 +378,7 @@ module mod_esmf_ocn
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
        line=__LINE__, file=FILENAME)) return
 
+    print *, "Create RSNS"
    field = ESMF_FieldCreate(name="rsns", grid=ocnGridIn,             &
      typekind=ESMF_TYPEKIND_R8, rc=rc)
    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
@@ -409,10 +390,13 @@ module mod_esmf_ocn
 
 
 
-   !call OCN_SetInitData(gcomp, ocnGridIn, ocnGridOut, rc)
-   !if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
-   !    line=__LINE__, file=FILENAME)) return
 
+   call OCN_SetInitData(gcomp, ocnGridIn, ocnGridOut, rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+       line=__LINE__, file=FILENAME)) return
+
+    !print *, "Talk to COMP"
+   !call CPL_talk_COMP(gcomp, "CPL2COMP", "rsns", DIRECTION_CPL2COMP, localPet, rc)
   PRINT *, "Exiting OCN_Init2"
 
 
@@ -496,7 +480,7 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  call ESMF_TimeIntervalSet(stabilityTimeStep, m=10, rc=rc)
+  call ESMF_TimeIntervalSet(stabilityTimeStep, m=60, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
@@ -538,10 +522,10 @@ module mod_esmf_ocn
 
   stopTimeStr = trim(stopTimeStr) // C_NULL_CHAR
 
-  CALL MARCOISCOOL_JLMODEL_REGISTER_TIME( &
-         C_LOC(startTime), C_LOC(startTimeStr), &
-         C_LOC(stopTimeStr), timeinterval_s &
-  ) 
+  !CALL MARCOISCOOL_JLMODEL_REGISTER_TIME( &
+  !       C_LOC(startTime), C_LOC(startTimeStr), &
+  !       C_LOC(stopTimeStr), timeinterval_s &
+  !) 
   print *, "Leaving OCN_SetClock"
   end subroutine
 !
@@ -558,6 +542,7 @@ module mod_esmf_ocn
   type(ESMF_State),    TARGET:: importState
   type(ESMF_State),    TARGET:: exportState
   type(ESMF_Clock),    TARGET:: clock
+  type(ESMF_Field),    TARGET:: field1, field2
 
   TYPE(ESMF_GridComp), POINTER :: p_gcomp
   TYPE(ESMF_State),    POINTER :: p_importState
@@ -616,6 +601,8 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=__FILE__)) return  ! bail out
 
+   
+
   
   !write (timestr_compact,                                               &
   !       '(I4.4,"-",I2.2,"-",I2.2," ",I2.2,":",I2.2,":",I2.2)') &
@@ -626,6 +613,28 @@ module mod_esmf_ocn
   !call MARCOISCOOL_JLMODEL_sendInfo2Model(C_LOC(msg_to_model))
 
   print *, "OCN iLoop is: ", iLoopOCN
+ 
+  call ESMF_StateGet(importState, "rsns", field1, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+  call ESMF_StateGet(exportState, "sst", field2, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+   
+  print *, "Getting sst"
+  call CPL_talk_COMP(gcomp, "COMP2CPL", "sst",  DIRECTION_COMP2CPL, rc)
+
+  print *, "Copy sst onto rsns"
+  call ESMF_FieldCopy(fieldOut=field1, fieldIn=field2, rc=rc)
+  if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
+      line=__LINE__, file=FILENAME)) return
+
+  print *, "Sending rsns"
+  call CPL_talk_COMP(gcomp, "CPL2COMP", "rsns", DIRECTION_CPL2COMP, rc)
+  
+
 
   !! call OCN_Get(gcomp, iLoopOCN, rc)
 
@@ -1012,7 +1021,7 @@ module mod_esmf_ocn
   type(ESMF_Field) :: fieldOut
   type(ESMF_Field) :: fieldIn2
 
-  integer :: ii, jj
+  integer :: ii, jj, beg_x, end_x, beg_y, end_y 
   integer :: nx = 10
   integer :: ny = 10
   character(ESMF_MAXSTR) :: cname, ofile
@@ -1048,7 +1057,7 @@ module mod_esmf_ocn
 
   do ii = 1, Nx
     do jj = 1, Ny
-      ptrIn(ii,jj) = 0.001d0*ii + 1.0d0*ii
+      !ptrIn(ii,jj) = 0.001d0*ii + 1.0d0*ii
     end do
   end do
 
@@ -1062,7 +1071,7 @@ module mod_esmf_ocn
 
   do ii = 1, Nx
     do jj = 1, Ny
-      ptrOut(ii,jj) = 0.001d0*ii + 1.0d0*ii
+      !ptrOut(ii,jj) = 0.001d0*ii + 1.0d0*ii
     end do
   end do
 
@@ -1074,12 +1083,24 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  do ii = 1, Nx
-    do jj = 1, Ny
-      ptrIn2(ii,jj) = 0.00001d0*ii + 100.0d0*ii
+
+  beg_x = lbound(ptrIn2, 1)  
+  end_x = ubound(ptrIn2, 1) 
+  beg_y = lbound(ptrIn2, 2)  
+  end_y = ubound(ptrIn2, 2)  
+
+  print *, "beg_x: ", beg_x
+  print *, "end_x: ", end_x
+  print *, "beg_y: ", beg_y
+  print *, "end_y: ", end_y
+
+
+  do ii = beg_x, end_x
+    do jj = beg_y, end_y
+      ptrIn2(ii,jj) = 1 * ii + 100.0d0*ii
     end do
   end do
-
+      
   if (debugLevel >= 1) then
     write (ofile, "(A9)") "rsnsOCN.nc"
     call ESMF_FieldWrite(fieldIn2, trim(ofile), rc=rc)
@@ -1201,7 +1222,7 @@ module mod_esmf_ocn
   if (direction .eq. DIRECTION_CPL2COMP) then
      do i = 1, arr_size_x
      do j = 1, arr_size_y
-       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = i + (j-1)*arr_size_x
+       !ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = i + 1000 * (j-1)
        ptr_comp1d(i + (j-1)*arr_size_x) = ptr(i + (lowbnd_x-1), j + (lowbnd_y-1))
      end do 
      end do
@@ -1212,11 +1233,6 @@ module mod_esmf_ocn
      end do 
      end do
 
-     do i = 1, arr_size_x
-     do j = 1, arr_size_y
-     end do 
-     end do
-
   end if
 
   print *, "[communicate_array_real8] Done"
@@ -1224,7 +1240,7 @@ module mod_esmf_ocn
   end subroutine communicate_array_real8
 
 
-  subroutine CPL_talk_COMP(gcomp, category, varname, direction, localpet, rc)
+  subroutine CPL_talk_COMP(gcomp, category, varname, direction, rc)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -1239,7 +1255,7 @@ module mod_esmf_ocn
   type(ESMF_GridComp) :: gcomp
   character(len=*) , TARGET:: category, varname
   integer, intent(out) :: rc
-  integer, intent(in) :: direction, localpet
+  integer, intent(in) :: direction
   
 !
 !-----------------------------------------------------------------------
@@ -1256,7 +1272,7 @@ module mod_esmf_ocn
 !     Get gridded component 
 !-----------------------------------------------------------------------
 !
-  print *, "[CPL_talk_COMP] Here. Localpet=", localpet
+  print *, "[CPL_talk_COMP] Here."
   if (direction .eq. DIRECTION_CPL2COMP) then
     call ESMF_GridCompGet(gcomp, importState=state, rc=rc)
   elseif (direction .eq. DIRECTION_COMP2CPL) then

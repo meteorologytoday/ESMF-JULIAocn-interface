@@ -257,7 +257,7 @@ void MARCOISCOOL_JLMODEL_RUN(
 ) {
 
     printf("[C Code] Run Model...\n");
-    (void) jl_eval_string("printXYZ()");
+    //(void) jl_eval_string("printXYZ()");
 
     /*
     ESMC_Field field;
@@ -279,7 +279,8 @@ void MARCOISCOOL_JLMODEL_RUN(
     ESMC_FieldGetPtr(field, localDe, &rc);
     */
 
-    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main03_run.jl\")");
+    (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main05_run.jl\")");
+    testJuliaException(__LINE__, "Something happen during running ocean model");
 
 }
 

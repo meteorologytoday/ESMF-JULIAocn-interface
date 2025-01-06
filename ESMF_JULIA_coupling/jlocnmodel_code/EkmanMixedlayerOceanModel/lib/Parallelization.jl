@@ -23,6 +23,12 @@ module Parallelization
         pull_to_rng_bnd  :: AbstractArray{Union{UnitRange, Nothing}}
         push_fr_rng_bnd  :: AbstractArray{Union{UnitRange, Nothing}}
         push_to_rng_bnd  :: AbstractArray{Union{UnitRange, Nothing}}
+
+        pull_fr_rng_cpl :: UnitRange
+        pull_to_rng_cpl :: UnitRange
+        push_fr_rng_cpl :: UnitRange
+        push_to_rng_cpl :: UnitRange
+
     end
 
     mutable struct JobDistributionInfo
@@ -31,12 +37,14 @@ module Parallelization
         comm_size     :: Int64
         remote_ranks  :: Array{Int64, 1}
         rank_to_idx   :: Dict{Int64, Int64}
-        y_split_infos :: AbstractArray{YSplitInfo, 1}
 
+        # This is between master and slaves
+        y_split_infos :: AbstractArray{YSplitInfo, 1}
+        
         comm :: MPI.Comm
         Nx :: Int64
         Ny :: Int64
-
+        Ny_inner :: Int64  # inneer block
         master_rank :: Int64
 
         function JobDistributionInfo(;
@@ -62,7 +70,7 @@ module Parallelization
 
             y_split_infos = Array{YSplitInfo}(undef, comm_size)
 
-            (
+            Ny_inner, (
                 pull_fr_rngs,
                 pull_to_rngs,
                 push_fr_rngs,
@@ -70,8 +78,11 @@ module Parallelization
                 pull_fr_rngs_bnd,
                 pull_to_rngs_bnd,
                 push_fr_rngs_bnd,
-                push_to_rngs_bnd 
-
+                push_to_rngs_bnd, 
+                pull_fr_rngs_cpl,
+                pull_to_rngs_cpl,
+                push_fr_rngs_cpl,
+                push_to_rngs_cpl,
             ) = calParallizationRange(N=Ny, P=comm_size, L=overlap)
       
             rank_to_idx = Dict() 
@@ -89,6 +100,10 @@ module Parallelization
                     pull_to_rngs_bnd[idx, :],
                     push_fr_rngs_bnd[idx, :],
                     push_to_rngs_bnd[idx, :],
+                    pull_fr_rngs_cpl[idx],
+                    pull_to_rngs_cpl[idx],
+                    push_fr_rngs_cpl[idx],
+                    push_to_rngs_cpl[idx],
                 )
 
             end
@@ -102,6 +117,7 @@ module Parallelization
                 comm,
                 Nx,
                 Ny,
+                Ny_inner,
                 master_rank,
             ) 
 
@@ -143,11 +159,18 @@ module Parallelization
         push_to_rngs_bnd = Array{Union{UnitRange, Nothing}}(undef, P, 2)
 
 
+        pull_fr_rngs_cpl = Array{Union{UnitRange, Nothing}}(undef, P)
+        pull_to_rngs_cpl = Array{Union{UnitRange, Nothing}}(undef, P)
+        push_fr_rngs_cpl = Array{Union{UnitRange, Nothing}}(undef, P)
+        push_to_rngs_cpl = Array{Union{UnitRange, Nothing}}(undef, P)
+ 
+
 
         cnt = 1
         for p = 1:P
             m = (p <= R) ? n̄ + 1 : n̄  # assigned grids
 
+            # Used between Master and Slave
             pull_fr_rngs[p] = cnt-L:cnt+m-1+L
             pull_to_rngs[p] = 1:length(pull_fr_rngs[p])
             push_fr_rngs[p] = L+1:L+m
@@ -166,6 +189,23 @@ module Parallelization
 
             push_to_rngs_bnd[p, 1] = cnt:cnt+L-1
             push_to_rngs_bnd[p, 2] = cnt+m-L:cnt+m-1
+
+
+            # Between x2o => x2o_local  (pull)
+            # and     o2x_local => o2x  (push)
+            L_south = L
+            L_north = L
+            if p == 1
+                L_south = 0
+            end
+            if p == P
+                L_north = 0
+            end
+            
+            pull_fr_rngs_cpl[p] = 1:m
+            pull_to_rngs_cpl[p] = L_south+1:L_south+m
+            push_fr_rngs_cpl[p] = L_south+1:L_south+m
+            push_to_rngs_cpl[p] = 1:m
 
             cnt += m
         end
@@ -197,14 +237,20 @@ module Parallelization
             push_fr_rngs_bnd[1, 2] = push_fr_rngs_bnd[1, 2] .- L
         end
 
-        return pull_fr_rngs,
+        return n̄, (pull_fr_rngs,
                pull_to_rngs,
                push_fr_rngs,
                push_to_rngs,
                pull_fr_rngs_bnd,
                pull_to_rngs_bnd,
                push_fr_rngs_bnd,
-               push_to_rngs_bnd
+               push_to_rngs_bnd,
+               pull_fr_rngs_cpl,
+               pull_to_rngs_cpl,
+               push_fr_rngs_cpl,
+               push_to_rngs_cpl,
+        )
+
 
     end
 

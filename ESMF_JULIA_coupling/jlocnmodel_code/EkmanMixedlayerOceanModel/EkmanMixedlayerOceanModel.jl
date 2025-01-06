@@ -61,8 +61,14 @@ module EkmanMixedlayerOceanModel
 
         clock       :: ModelClock
 
+        # These two are for CPL
         x2o         :: Union{Dict, Nothing}
         o2x         :: Union{Dict, Nothing}
+
+        # These are for local
+        x2o_local   :: Union{Dict, Nothing}
+        o2x_local   :: Union{Dict, Nothing}
+
 
         config      :: Dict
         recorders   :: Union{Dict, Nothing}
@@ -224,8 +230,8 @@ module EkmanMixedlayerOceanModel
         x2o = nothing
         o2x = nothing
 
-        empty_arr_sT = zeros(Float64, 1, my_ev.Nx, my_ev.Ny)
-        x2o = Dict(
+
+        x2o_local = Dict(
             "SWFLX"       => my_mb.fi.SWFLX,
             #"NSWFLX"      => my_mb.fi.NSWFLX,
             "TAUX_east"   => my_mb.fi.TAUX_east,
@@ -246,7 +252,7 @@ module EkmanMixedlayerOceanModel
             "SALTFLX" => my_mb.fi.SALTFLX,
         )
 
-        o2x = Dict(
+        o2x_local = Dict(
             "SST"         => my_mb.fi.sv[:SST],
             "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
             "USFC"        => my_mb.fi.USFC,
@@ -254,12 +260,35 @@ module EkmanMixedlayerOceanModel
             "mask"        => my_mb.ev.topo.sfcmask_sT,
         )
 
+
+        # Notice that the Ny here has to be the valid range, i.e., no
+        # containing the extended boundary
+        empty_arr_sT = zeros(Float64, 1, my_ev.Nx, jdi.Ny_inner)
+
+        x2o = Dict()
+        for varname in keys(x2o_local)
+            x2o[varname] = copy(empty_arr_sT)
+        end 
+        
+        o2x = Dict()
+        for varname in keys(o2x_local)
+            o2x[varname] = copy(empty_arr_sT)
+        end 
+ 
+        # For experiment
+        for j = 1:jdi.Ny_inner
+            x2o["SWFLX"][:, :, j] .= j
+        end
+
+
         # Synchronizing Data
         sync_data_list = Dict(
 
             # These forcings are syned from
             # master to slave before each
             # timestep starts.
+
+            #=
             :forcing => (
                 "SWFLX",
                 "TAUX_east",
@@ -277,6 +306,7 @@ module EkmanMixedlayerOceanModel
                 "EVAP",
                 "SALTFLX",
             ),
+            =#
 
             # These states will be synced from
             # slave to master right after
@@ -310,6 +340,22 @@ module EkmanMixedlayerOceanModel
                 "VSFC",
                 "NSWFLX",
                 "VSFLX",
+
+                "SWFLX",
+                "TAUX_east",
+                "TAUY_north",
+                "LWUP",
+                "LWDN",
+                "SEN",
+                "LAT",
+                "MELTH",
+                "MELTW",
+                "SNOW",
+                "IOFF",
+                "ROFF",
+                "PREC",
+                "EVAP",
+                "SALTFLX",
             ),
 
             # These states are synced from 
@@ -359,6 +405,8 @@ module EkmanMixedlayerOceanModel
             clock,
             x2o,
             o2x,
+            x2o_local,
+            o2x_local,
             config,
             nothing,
             jdi,
@@ -498,7 +546,7 @@ module EkmanMixedlayerOceanModel
                         end,
                         recurring = niters_per_day,
                     )
-                    println("My RANK: ", is_master, "; ", MPI.Comm_rank(comm))
+                    
                     addAlarm!(
                         clock,
                         "[Daily] Create daily output file.",
@@ -611,7 +659,15 @@ module EkmanMixedlayerOceanModel
         
         substeps = MD.mb.ev.cfgs["MODEL_CORE"]["substeps"]
         Δt_substep = Δt_float / substeps
-        
+
+
+
+        writeLog(log_handle, "Call recvDataFromCoupler!")
+        recvDataFromCoupler!(MD)
+        writeLog(log_handle, "Done calling recvDataFromCoupler!")
+      
+ 
+        #= 
         syncField!(
             MD.sync_data[:forcing],
             MD.jdi,
@@ -619,6 +675,7 @@ module EkmanMixedlayerOceanModel
             :BLOCK;
             vars_master = MD.sync_data_full[:forcing],
         )
+        =#
 
         EMOM.reset!(MD.mb.co.wksp)
         EMOM.updateSfcFlx!(MD.mb)
@@ -661,7 +718,7 @@ module EkmanMixedlayerOceanModel
 
         # important: update X
         MD.mb.fi._X_ .= MD.mb.tmpfi._NEWX_
-       
+         
         syncField!(
             MD.sync_data[:output_state],
             MD.jdi,
@@ -677,7 +734,29 @@ module EkmanMixedlayerOceanModel
             :BND;
             vars_master = MD.sync_data_full[:thermo_state],
         ) 
+ 
 
+        # ===============================================
+        # TESTING
+        # ===============================================
+        println("Setting SST...")
+        if ! ("SST" in keys(MD.o2x_local))
+            println("Cannot find SST...............")
+        end
+
+
+        f = MD.o2x_local["SST"]
+        for j=1:size(f, 3)
+            for i = 1:size(f, 2)
+                f[1, i, j] = 50 * (i-1) + (j-1)
+            end
+        end
+        # ===============================================
+       
+        println("Calling sendDataToCoupler!")
+        sendDataToCoupler!(MD)
+        println("End calling sendDataToCoupler!")
+        
         if write_restart
             writeLog("`wrtie_restart` is true.")
             if is_master 
@@ -710,6 +789,8 @@ module EkmanMixedlayerOceanModel
         iter = MD.clock.cur_time.iter
 
         filename = @sprintf("%s.EMOM.%s.%06d.nc", MD.casename, group, iter)
+
+        writeLog(MD.log_handle, "######## Create new file: %s", filename)
 
         setNewNCFile!(
             recorder,
@@ -779,20 +860,26 @@ module EkmanMixedlayerOceanModel
         
     end
 
-
-
-    #=
-    function syncM2S!(
-        MD,
+    function recvDataFromCoupler!(
+        MD :: METADATA,
     )
-        log_handle = MD.log_handle
-        syncField!(
-            MD.sync_data[:qflx_direct],
-            MD.jdi,
-            :M2S,
-            :BLOCK,
-        ) 
 
-    end   
-    =# 
+        ysplit_info = getYsplitInfoByRank(MD.jdi, MPI.Comm_rank(MD.comm)) 
+        for varname in keys(MD.x2o)
+            MD.x2o_local[varname][:, :, ysplit_info.pull_to_rng_cpl] = MD.x2o[varname][:, :, ysplit_info.pull_fr_rng_cpl]
+        end
+        
+    end
+
+    function sendDataToCoupler!(
+        MD :: METADATA,
+    )
+        ysplit_info = getYsplitInfoByRank(MD.jdi, MPI.Comm_rank(MD.comm)) 
+        for varname in keys(MD.o2x)
+            MD.o2x[varname][:, :, ysplit_info.push_to_rng_cpl] = MD.o2x_local[varname][:, :, ysplit_info.push_fr_rng_cpl]
+        end
+    end
+
+
+
 end

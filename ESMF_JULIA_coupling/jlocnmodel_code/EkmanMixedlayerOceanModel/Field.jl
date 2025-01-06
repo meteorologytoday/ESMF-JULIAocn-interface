@@ -101,7 +101,7 @@ mutable struct Field
         HMXL = zeros(Float64, 1, Nx, Ny)
         USFC = zeros(Float64, 1, Nx, Ny)   # Notice that USFC is on T grid
         VSFC = zeros(Float64, 1, Nx, Ny)   # Notice that VSFC is on T grid
-        SWFLX = zeros(Float64, 1, Nx, Ny)
+        SWFLX = zeros(Float64, 1, Nx, Ny) .+ 20.0
         NSWFLX = zeros(Float64, 1, Nx, Ny)
         VSFLX = zeros(Float64, 1, Nx, Ny)
         
