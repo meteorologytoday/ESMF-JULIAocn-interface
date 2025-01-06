@@ -44,6 +44,7 @@ module EkmanMixedlayerOceanModel
 
     include(joinpath(@__DIR__, "lib", "AppendLine.jl"))
     include(joinpath(@__DIR__, "EkmanMixedlayerOceanModel_CORE.jl"))
+
     include(joinpath(@__DIR__, "configs", "domain_configs.jl"))
     include(joinpath(@__DIR__, "configs", "EMOM_configs.jl"))
 
@@ -73,6 +74,8 @@ module EkmanMixedlayerOceanModel
         log_handle  :: LogHandle
         domain      :: Domains.Domain
     end
+    
+    include(joinpath(@__DIR__, "coupler_communicate_funcs.jl"))
 
 
     function init(;
@@ -203,7 +206,15 @@ module EkmanMixedlayerOceanModel
             master_mb = nothing
         end
 
-        my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng, log_handle=log_handle)
+        ysplit_info = getYsplitInfoByRank(jdi, rank)
+
+        my_ev          = EMOM.Env(
+            master_ev_cfgs;
+            sub_yrng = ysplit_info.pull_fr_rng,
+            valid_yrng = ysplit_info.push_fr_rng,
+            log_handle=log_handle,
+        )
+
         my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
 
         MPI.Barrier(comm)
@@ -559,11 +570,11 @@ module EkmanMixedlayerOceanModel
         MPI.Barrier(comm)
 
         # Test. Should be removed later
-        if is_master
-            for j = 1:Ny
-                MD.mb_full.fi.sv[:TEMP][:, :, j] .= j
-            end
-        end
+        #if is_master
+        #    for j = 1:Ny
+        #        MD.mb_full.fi.sv[:TEMP][:, :, j] .= j
+        #    end
+        #end
 
         syncField!(
             MD.sync_data[:thermo_state],

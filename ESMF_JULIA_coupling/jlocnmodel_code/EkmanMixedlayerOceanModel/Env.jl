@@ -3,6 +3,7 @@ mutable struct Env
     cfgs :: Dict
     
     sub_yrng :: Union{UnitRange, Colon, Nothing}
+    valid_yrng :: Union{UnitRange, Colon, Nothing}
     Nx :: Integer
     Ny :: Integer
     Nz :: Integer
@@ -21,6 +22,7 @@ mutable struct Env
         cfgs;
         log_handle :: LogHandle, 
         sub_yrng :: Union{UnitRange, Colon} = Colon(),
+        valid_yrng :: Union{UnitRange, Colon} = Colon(),
         verbose :: Bool = false,
     )
        
@@ -104,7 +106,8 @@ mutable struct Env
             
             cfgs,
  
-            sub_yrng,        
+            sub_yrng,
+            valid_yrng, 
             Nx,
             Ny,
             Nz,

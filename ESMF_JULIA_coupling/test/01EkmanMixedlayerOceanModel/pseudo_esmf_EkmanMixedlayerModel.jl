@@ -20,6 +20,12 @@ domain_params = zeros(Int64, 13)
 DriverModule.getDomainInfo(dr, domain_params)
 println("domain_params = ", domain_params)
 
+
+writeLog(log_handle, "[PSEUDO_ESMF] Faking some communication")
+x = DriverModule.get2DArrayFloat64(dr, "COORD", "LONGITUDE",)
+println("rank = $(MPI.Comm_rank(COMM)). x = ", x)
+
+
 cnt = 0
 while ! ifClockEnds(dr.clock)
     writeLog(log_handle, "[PSEUDO_ESMF] (cnt=%d) Timestep model.", cnt)

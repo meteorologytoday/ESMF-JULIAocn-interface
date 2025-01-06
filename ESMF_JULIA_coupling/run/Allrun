@@ -11,4 +11,4 @@ cp -r ../test/02ESMF_EMOM/* .
 
 echo "running the NUOPC--WRF code..."
 export ESMF_LOGLEVEL=TRACE
-mpirun -np 8 ./esmf_application
+mpirun -np 9 ./esmf_application

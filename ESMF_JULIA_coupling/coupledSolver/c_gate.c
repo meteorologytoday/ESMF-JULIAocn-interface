@@ -69,6 +69,7 @@ void MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8(
 */
 
 double* MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(
+    const char * category,
     const char * varname,
     int arr_size,
     int direction
@@ -77,12 +78,32 @@ double* MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(
     // The code here should be something like getting
     // driver.x2c[varname] or driver.c2x[varname]
     printf("[C Code] Creating array in Julia... arr_size = %d\n", arr_size);
-    jl_value_t *varname_julia_str = jl_cstr_to_string(varname);
-    jl_function_t *func = jl_eval_string("createArray");
-    jl_value_t *arr_size_jl = jl_box_int64(arr_size);
-    jl_value_t *new_arr = jl_call2(func, varname_julia_str, arr_size_jl);
+
+    jl_value_t *varname_julia_str, *arr_size_jl, *category_julia_str;
+    JL_GC_PUSH3(
+        category_julia_str,
+        varname_julia_str,
+        arr_size_jl
+    );
+    
+    category_julia_str  = jl_cstr_to_string(category);
+    varname_julia_str   = jl_cstr_to_string(varname);
+    jl_function_t *func = jl_eval_string("DriverModule.get2DArrayFloat64");
+    testJuliaException(__LINE__, "Getting DriverModule.get2DArrayFloat64... ");
+    arr_size_jl = jl_box_int64(arr_size);
+    
+    jl_value_t* args[4];
+    args[0] = ocean_model_driver;
+    args[1] = category_julia_str;
+    args[2] = varname_julia_str;
+    args[3] = arr_size_jl;
+
+    jl_value_t *new_arr = jl_call(func, args, 4);
+    testJuliaException(__LINE__, "Getting variable... ");
+    
     double *new_arr_ptr = jl_array_data(new_arr, double);
     
+    JL_GC_POP();
     return new_arr_ptr;
 
 }
@@ -137,10 +158,18 @@ void MARCOISCOOL_JLMODEL_REGISTER_TIME(
     jl_function_t *func = jl_eval_string("setModelTimeInformation!");
     testJuliaException(__LINE__, "After getting function setModelTimeInformation!");
 
-    jl_value_t *caltype_julia_str = jl_cstr_to_string(caltype);
-    jl_value_t *starttimestr_julia_str = jl_cstr_to_string(starttimestr);
-    jl_value_t *stoptimestr_julia_str = jl_cstr_to_string(stoptimestr);
-    jl_value_t *timeinterval_s_julia_int = jl_box_int32(timeinterval_s);
+    jl_value_t *caltype_julia_str, *starttimestr_julia_str, *stoptimestr_julia_str, *timeinterval_s_julia_int;
+    JL_GC_PUSH4(
+        caltype_julia_str,
+        starttimestr_julia_str,
+        stoptimestr_julia_str,
+        timeinterval_s_julia_int
+    );
+
+    caltype_julia_str        = jl_cstr_to_string(caltype);
+    starttimestr_julia_str   = jl_cstr_to_string(starttimestr);
+    stoptimestr_julia_str    = jl_cstr_to_string(stoptimestr);
+    timeinterval_s_julia_int = jl_box_int32(timeinterval_s);
 
     jl_value_t* args[5];
     args[0] = ocean_model_driver;
@@ -151,7 +180,9 @@ void MARCOISCOOL_JLMODEL_REGISTER_TIME(
 
     (void) jl_call(func, args, 5);
     testJuliaException(__LINE__, "After Calling setModelTimeInformation!");
- 
+
+    JL_GC_POP();
+
     printf("[C Code] Leave MARCOISCOOL_JLMODEL_REGISTER_TIME\n");
 }
 
@@ -188,8 +219,10 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main02_loadMiscModule.jl\")");
 
     printf("[C Code] Boxing the communicator...\n");
+
     // Convert the MPI communicator to a Julia value
     jl_value_t *comm_value = jl_box_int64((int64_t)comm);
+    JL_GC_PUSH1(&comm_value);
     printf("[C Code] comm = %d\n", (int64_t)comm);
  
     // Call a Julia function
@@ -212,7 +245,8 @@ void MARCOISCOOL_JLMODEL_INIT( int thread_id, int fcomm) {
     printf("[C Code] Initiating ocean model\n");
     (void) jl_eval_string("include(\"jlocnmodel_code/main_scripts/main04_init.jl\")");
     testJuliaException(__LINE__, "Cannot initiate ocean model");
-    
+   
+    JL_GC_POP(); 
     printf("[C Code] End of initiation.\n");
 }
 
@@ -287,8 +321,15 @@ void MARCOISCOOL_JLMODEL_getDomainInfo( \
     printf("[C Code] Getting domain info...\n");
 
     size_t param_len = 13;
-    jl_value_t* array_type = jl_apply_array_type((jl_value_t*) jl_int64_type, 1);
-    jl_array_t* param      = jl_alloc_array_1d(array_type, param_len);
+
+    jl_value_t* array_type;
+    jl_array_t* param;
+    
+    JL_GC_PUSH2(&array_type, param);
+
+    array_type = jl_apply_array_type((jl_value_t*) jl_int64_type, 1);
+    param      = jl_alloc_array_1d(array_type, param_len);
+
     int64_t *paramData = jl_array_data(param, int64_t);
     for (size_t i = 0; i < jl_array_nrows(param); i++) {
         paramData[i] = 0;
@@ -336,6 +377,7 @@ void MARCOISCOOL_JLMODEL_getDomainInfo( \
 
     }
 
+    JL_GC_POP();
     printf("[C Code] Exiting getDomainInfo\n");
 
 

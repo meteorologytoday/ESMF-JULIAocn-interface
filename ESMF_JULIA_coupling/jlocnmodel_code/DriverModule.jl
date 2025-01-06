@@ -126,7 +126,7 @@ module DriverModule
             end
         end
         MPI.Barrier(comm)
-        cd(p)
+        #cd(p)
 
 
         local timeinfo = nothing
@@ -499,4 +499,25 @@ module DriverModule
         println("[DRIVER] Leaving getDomainInfo")
     end
 
+    function get2DArrayFloat64(
+        dr :: Driver,
+        category :: String,
+        varname  :: String,
+        arr_size :: Union{Integer, Nothing} = nothing,
+    )
+        println("[DriverModule] Entering get2DArrayFloat64")
+        log_handle = dr.log_handle
+        
+        println("[DriverModule] Getting variable")
+        arr = dr.OMMODULE.getVariable(dr.OMDATA, category, varname)
+
+        if arr_size != nothing && length(arr) != arr_size
+            println("[DriverModule] Something is wrong")
+            println("Expected length of array = $(arr_size), but length of array=$(length(arr))")
+            errorLog(log_handle, "Length of array is not expected. "; f=@__FILE__, l=@__LINE__)
+        end
+        println("[DriverModule] Leaving get2DArrayFloat64")
+
+        return arr
+    end
 end

@@ -113,7 +113,7 @@ module mod_esmf_esm
   integer :: cpuATM, cpuOCN
 
   cpuATM = 5
-  cpuOCN = 3
+  cpuOCN = 4
 ! ---- ESMF_PY END ----
 
 

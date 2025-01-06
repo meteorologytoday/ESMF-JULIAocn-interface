@@ -57,11 +57,13 @@ module mod_esmf_ocn
 
     INTERFACE
         TYPE(C_PTR) FUNCTION MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8( &
+            category,             &
             varname,              &
             arr_size,             &
             direction             &
         ) BIND(C, name="MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8")
         IMPORT :: C_PTR, C_INT, C_DOUBLE
+        TYPE(C_PTR), VALUE :: category
         TYPE(C_PTR), VALUE :: varname
         INTEGER(C_INT), VALUE :: arr_size
         INTEGER(C_INT), VALUE :: direction
@@ -368,8 +370,8 @@ module mod_esmf_ocn
 
     print *, "Test if I can do this"
 
-  call CPL_talk_COMP(gcomp, "sst", DIRECTION_COMP2CPL, localPet, rc)
-  call CPL_talk_COMP(gcomp, "rsns", DIRECTION_CPL2COMP, localPet, rc)
+  call CPL_talk_COMP(gcomp, "COMP2CPL", "sst", DIRECTION_COMP2CPL, localPet, rc)
+  call CPL_talk_COMP(gcomp, "CPL2COMP", "rsns", DIRECTION_CPL2COMP, localPet, rc)
 
 
 
@@ -669,6 +671,7 @@ module mod_esmf_ocn
   integer :: myThid = 1
   integer :: k, m, n, p, iG, jG, tile
   character(ESMF_MAXSTR) :: name
+
   real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
   type(ESMF_Array) :: arrX, arrY
   type(ESMF_StaggerLoc) :: staggerLoc
@@ -678,6 +681,8 @@ module mod_esmf_ocn
   integer, allocatable :: deBlockList(:,:,:)
   integer :: localDECount, j
   character(ESMF_MAXSTR) ::  ofile
+  character(len=1024) :: category, varname 
+  integer :: arr_size
 
   integer :: nx = 10
   integer :: ny = 10
@@ -848,7 +853,6 @@ module mod_esmf_ocn
 
   do j = 0, localDECount-1
 
-    print *, "j is: ", j
     call ESMF_GridGetCoord(gridIn, staggerLoc=staggerLoc, localDE=j,&
                          coordDim=1, farrayPtr=ptrX, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,  &
@@ -873,19 +877,30 @@ module mod_esmf_ocn
     print *, "Size of array ptrX dim2 lbound: ", lbound(ptrX, 2)
     print *, "Size of array ptrX dim2 ubound: ", ubound(ptrX, 2)
 
-    do n = 1, nx/nPx  ! nx/nPx = size of tile
-      do m = 1, ny
-        localN = localPet * (nx/nPx) + n
-        !! TODO: pseudo mesh
-        !print *, "loop n is: ", n, ", localN is: ", localN, ", m is: ", m
-        !print *, "ocnMesh n is: ", n, " m is: ", m
-        ptrX(localN,m) = 0 + (360.0d0/nx)*(localN-0.5d0)
-        ptrY(localN,m) = -90 + (180.0d0/ny)*(m-0.5d0)
-        !print *, "ocean meshX is: ", ptrX(localN,m)
-        !print *, "ocean meshY is: ", ptrY(localN,m)
-      end do
-    end do
-    print *, "ocean array filled!  localpet =", localpet
+
+    print *, "Obtain X and Y"
+    
+    print *, "Calling communicate_array_real8 to get Latitude"
+    CALL communicate_array_real8(ptrY, "COORD", "LATITUDE",  DIRECTION_COMP2CPL)
+    
+    print *, "Calling communicate_array_real8 to get Longitude"
+    CALL communicate_array_real8(ptrX, "COORD", "LONGITUDE", DIRECTION_COMP2CPL)
+    
+
+
+    !do n = 1, nx/nPx  ! nx/nPx = size of tile
+    !  do m = 1, ny
+    !    localN = localPet * (nx/nPx) + n
+    !    !! TODO: pseudo mesh
+    !    !print *, "loop n is: ", n, ", localN is: ", localN, ", m is: ", m
+    !    !print *, "ocnMesh n is: ", n, " m is: ", m
+    !    ptrX(localN,m) = 0 + (360.0d0/nx)*(localN-0.5d0)
+    !    ptrY(localN,m) = -90 + (180.0d0/ny)*(m-0.5d0)
+    !    !print *, "ocean meshX is: ", ptrX(localN,m)
+    !    !print *, "ocean meshY is: ", ptrY(localN,m)
+    !  end do
+    !end do
+    !print *, "ocean array filled!  localpet =", localpet
 !
 !-----------------------------------------------------------------------
 !     Nullify pointers 
@@ -914,6 +929,9 @@ module mod_esmf_ocn
 !-----------------------------------------------------------------------
 !
     if ( (debugLevel >= 1)) then
+
+      CALL getcwd(ofile)
+      print *, "CUrrent working directory: ", ofile
 
       print *, "Output ocean grid for localpet = ", localpet
       call ESMF_GridGetCoord(gridIn,                                &
@@ -1119,7 +1137,94 @@ module mod_esmf_ocn
   end subroutine OCN_Get
 
 
-  subroutine CPL_talk_COMP(gcomp, varname, direction, localpet, rc)
+  subroutine communicate_array_real8 ( &
+    ptr, &
+    category, varname, &
+    direction &
+  )
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+  implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+  real(ESMF_KIND_R8), pointer :: ptr(:, :)
+  character(len=*) , TARGET:: category, varname
+  character(len=2048) , TARGET:: category_input, varname_input
+  integer, intent(in) :: direction
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+  type(c_ptr) :: c_ptr_comp
+  real(ESMF_KIND_R8), pointer :: arr_ptr(:, :), ptr_comp1d(:), cont_ptr(:, :)
+  integer :: arr_size_x, arr_size_y
+  integer :: i, j, lowbnd_x, lowbnd_y
+!
+!
+!-----------------------------------------------------------------------
+!     Get gridded component 
+!-----------------------------------------------------------------------
+  print *, "[communicate_array_real8] Entering" 
+  category_input = trim(category) // C_NULL_CHAR
+  varname_input = trim(varname) // C_NULL_CHAR
+  
+  print *, "[communicate_array_real8] Obtaining Array Size" 
+  arr_size_x = SIZE(ptr, 1)
+  arr_size_y = SIZE(ptr, 2)
+  print *, "varname = ", trim(varname_input)
+  print *, "arr_size_x = ", arr_size_x
+  print *, "arr_size_y = ", arr_size_y
+
+  lowbnd_x = LBOUND(ptr, 1)
+  lowbnd_y = LBOUND(ptr, 2)
+
+  !ALLOCATE( cont_arr(arr_size_x * arr_size_y) )
+  print *, "[communicate_array_real8] Obtaining Array" 
+  c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8( &
+    C_LOC(category_input), &
+    C_LOC(varname_input), &
+    arr_size_x * arr_size_y, &
+    direction &
+  )
+
+  print *, "[communicate_array_real8] Converting pointer" 
+  CALL c_f_pointer(c_ptr_comp, ptr_comp1d, [arr_size_x*arr_size_y])
+
+  print *, "[communicate_array_real8] Copy data" 
+  if (direction .eq. DIRECTION_CPL2COMP) then
+     do i = 1, arr_size_x
+     do j = 1, arr_size_y
+       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = i + (j-1)*arr_size_x
+       ptr_comp1d(i + (j-1)*arr_size_x) = ptr(i + (lowbnd_x-1), j + (lowbnd_y-1))
+     end do 
+     end do
+  elseif (direction .eq. DIRECTION_COMP2CPL) then
+     do i = 1, arr_size_x
+     do j = 1, arr_size_y
+       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = ptr_comp1d(i + (j-1)*arr_size_x)
+     end do 
+     end do
+
+     do i = 1, arr_size_x
+     do j = 1, arr_size_y
+     end do 
+     end do
+
+  end if
+
+  print *, "[communicate_array_real8] Done"
+
+  end subroutine communicate_array_real8
+
+
+  subroutine CPL_talk_COMP(gcomp, category, varname, direction, localpet, rc)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -1132,21 +1237,16 @@ module mod_esmf_ocn
 !-----------------------------------------------------------------------
 !
   type(ESMF_GridComp) :: gcomp
-  character(len=*) , TARGET:: varname
+  character(len=*) , TARGET:: category, varname
   integer, intent(out) :: rc
   integer, intent(in) :: direction, localpet
-
   
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-  type(c_ptr) :: c_ptr_comp
-  real(ESMF_KIND_R8), pointer :: ptr(:, :), ptr_comp1d(:), cont_ptr(:, :)
-!  real(ESMF_KIND_R8), allocatable :: cont_arr(:)
-  integer :: arr_size_x, arr_size_y
-  integer :: i, j, lowbnd_x, lowbnd_y
+  real(ESMF_KIND_R8), pointer :: ptr(:, :)
   type(ESMF_Field) :: field
   type(ESMF_State) :: state
 !
@@ -1182,59 +1282,12 @@ module mod_esmf_ocn
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,    &
       line=__LINE__, file=FILENAME)) return
 
-  varname = trim(varname)
-  arr_size_x = SIZE(ptr, 1)
-  arr_size_y = SIZE(ptr, 2)
-  print *, "varname = ", trim(varname)
-  print *, "arr_size_x = ", arr_size_x
-  print *, "arr_size_y = ", arr_size_y
 
-  lowbnd_x = LBOUND(ptr, 1)
-  lowbnd_y = LBOUND(ptr, 2)
+  CALL communicate_array_real8(        &
+    ptr, category, varname, direction  &
+  )
 
-  !ALLOCATE( cont_arr(arr_size_x * arr_size_y) )
-  c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y, direction)
-  CALL c_f_pointer(c_ptr_comp, ptr_comp1d, [arr_size_x*arr_size_y])
-
-  print *, "[CPL_talk_COMP] Ready to run loop. localpet=", localpet
-  !c_ptr_comp = MARCOISCOOL_JLMODEL_GET_VARIABLE_REAL8(C_LOC(varname), arr_size_x * arr_size_y)
-  !CALL MARCOISCOOL_JLMODEL_GETPUT_VARIABLE_REAL8( &
-  !  C_LOC(varname),                               &
-  !  cont_arr,                                     &
-  !  arr_size_x * arr_size_y,                      &
-  !  direction &
-  !)
-
-  if (direction .eq. DIRECTION_CPL2COMP) then
-     do i = 1, arr_size_x
-     do j = 1, arr_size_y
-       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = i + (j-1)*arr_size_x
-       ptr_comp1d(i + (j-1)*arr_size_x) = ptr(i + (lowbnd_x-1), j + (lowbnd_y-1))
-     end do 
-     end do
-  elseif (direction .eq. DIRECTION_COMP2CPL) then
-     do i = 1, arr_size_x
-     do j = 1, arr_size_y
-       ptr(i + (lowbnd_x-1), j + (lowbnd_y-1)) = ptr_comp1d(i + (j-1)*arr_size_x)
-     end do 
-     end do
-
-     do i = 1, arr_size_x
-     do j = 1, arr_size_y
-       print *, "[", localpet,"] (", i, ", ", j, ") = ", ptr(i + (lowbnd_x-1), j + (lowbnd_y-1))
-     end do 
-     end do
-
-  end if
-
-  !NULLIFY(ptr)
-  !NULLIFY(ptr_comp)
   print *, "[CPL_talk_COMP] Done"
-!
-  !if (debugLevel >= 1) then
-  !  write (ofile, "(A7,I2.2,A3)") "pmslOCN", iLoop, ".nc"
-  !  call ESMF_FieldWrite(field, trim(ofile), rc=rc)
-  !end if
 
   end subroutine CPL_talk_COMP
 
