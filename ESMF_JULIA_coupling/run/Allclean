@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm CESM_domains
 rm jlocnmodel_code
 rm -rf *.*
 rm -rf *data prepare_run esmf_application *list

@@ -6,6 +6,8 @@ echo "cleaning the current folder"
 echo "copying the NUOPC--WRF code..."
 cp ../build/esmf_application .
 cp ../build/namelist.rc .
+
+ln -s /home/t2hsu/projects/EMOM/data/CESM_domains .
 ln -s ../jlocnmodel_code .
 cp -r ../test/02ESMF_EMOM/* .
 
